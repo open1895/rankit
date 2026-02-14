@@ -706,6 +706,8 @@ const CreatorProfile = () => {
         <ShareCard
           creatorId={id}
           creatorName={creator.name}
+          rank={creator.rank}
+          votesCount={creator.votes_count}
           onClose={() => setShowShare(false)}
         />
       )}
