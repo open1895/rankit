@@ -7,7 +7,7 @@ import CommentInput from "./CommentInput";
 interface RankingCardProps {
   creator: Creator;
   creators: Creator[];
-  onVote: (id: string) => void;
+  onVote: (id: string) => Promise<boolean>;
 }
 
 const RankingCard = ({ creator, creators, onVote }: RankingCardProps) => {
@@ -16,12 +16,14 @@ const RankingCard = ({ creator, creators, onVote }: RankingCardProps) => {
   const votesUntilNext = getVotesUntilNext(creator, creators);
   const rankDiff = creator.previousRank - creator.rank;
 
-  const handleVote = () => {
+  const handleVote = async () => {
     setIsVoting(true);
-    onVote(creator.id);
+    const success = await onVote(creator.id);
     setTimeout(() => {
       setIsVoting(false);
-      setShowCommentInput(true);
+      if (success) {
+        setShowCommentInput(true);
+      }
     }, 600);
   };
 
