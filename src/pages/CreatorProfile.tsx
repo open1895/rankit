@@ -5,6 +5,7 @@ import { Creator } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import ShareCard from "@/components/ShareCard";
 import FanBadge from "@/components/FanBadge";
+import CreatorChat from "@/components/CreatorChat";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import {
@@ -399,6 +400,9 @@ const CreatorProfile = () => {
               팬 게시판 바로가기
             </span>
           </Link>
+
+          {/* Real-time Chat */}
+          <CreatorChat creatorId={id!} creatorName={creator.name} />
         </div>
 
         {/* Stats */}

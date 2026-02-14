@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.generate-share-card]
 verify_jwt = false
+
+[functions.tournament-vote]
+verify_jwt = false
+
+[functions.generate-highlights]
+verify_jwt = false
