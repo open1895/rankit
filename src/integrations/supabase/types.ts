@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           avatar_url: string
           category: string
+          channel_link: string
           created_at: string
           id: string
           is_verified: boolean
@@ -28,6 +29,7 @@ export type Database = {
         Insert: {
           avatar_url?: string
           category?: string
+          channel_link?: string
           created_at?: string
           id?: string
           is_verified?: boolean
@@ -38,6 +40,7 @@ export type Database = {
         Update: {
           avatar_url?: string
           category?: string
+          channel_link?: string
           created_at?: string
           id?: string
           is_verified?: boolean
