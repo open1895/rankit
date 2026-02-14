@@ -192,28 +192,27 @@ const Index = () => {
             </div>
             <h1 className="text-lg font-bold gradient-text tracking-tight">Rank It</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="glass-sm px-3 py-1.5 flex items-center gap-2">
-              <Ticket className="w-4 h-4 text-neon-cyan" />
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <div className="glass-sm px-2 py-1 flex items-center gap-1">
+              <Ticket className="w-3.5 h-3.5 text-neon-cyan" />
               <span className="text-xs font-medium">
-                <span className="text-neon-cyan font-bold text-sm">{remainingVotes}</span>
-                <span className="text-muted-foreground ml-1">표</span>
+                <span className="text-neon-cyan font-bold">{remainingVotes}</span>
+                <span className="text-muted-foreground ml-0.5">표</span>
               </span>
             </div>
             {user ? (
               <Link
                 to="/mypage"
-                className="glass-sm px-2.5 py-1.5 text-xs text-neon-cyan hover:text-foreground transition-colors flex items-center gap-1"
+                className="glass-sm p-1.5 text-neon-cyan hover:text-foreground transition-colors flex items-center"
               >
                 <User className="w-3.5 h-3.5" />
               </Link>
             ) : (
               <Link
                 to="/auth"
-                className="glass-sm px-3 py-1.5 text-xs font-medium text-neon-cyan flex items-center gap-1"
+                className="glass-sm p-1.5 text-neon-cyan flex items-center"
               >
                 <LogIn className="w-3.5 h-3.5" />
-                <span>로그인</span>
               </Link>
             )}
             <NotificationBell />
