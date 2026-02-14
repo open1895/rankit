@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { creator_id } = await req.json();
+    const { creator_id, referral_code } = await req.json();
     if (!creator_id) {
       return new Response(JSON.stringify({ error: "creator_id is required" }), {
         status: 400,
@@ -76,7 +76,44 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    // Handle referral bonus
+    let referralBonus = false;
+    if (referral_code && typeof referral_code === "string" && referral_code.length >= 6) {
+      // Check if this IP already used this referral code
+      const { data: existingUse } = await supabase
+        .from("referral_uses")
+        .select("id")
+        .eq("referral_code", referral_code)
+        .eq("used_by_ip", voterIp)
+        .limit(1);
+
+      if (!existingUse || existingUse.length === 0) {
+        // Check if referral code exists
+        const { data: codeData } = await supabase
+          .from("referral_codes")
+          .select("id, bonus_votes_earned")
+          .eq("code", referral_code)
+          .limit(1);
+
+        if (codeData && codeData.length > 0) {
+          // Record the referral use
+          await supabase.from("referral_uses").insert({
+            referral_code,
+            used_by_ip: voterIp,
+          });
+
+          // Increment bonus votes for referrer
+          await supabase
+            .from("referral_codes")
+            .update({ bonus_votes_earned: codeData[0].bonus_votes_earned + 3 })
+            .eq("id", codeData[0].id);
+
+          referralBonus = true;
+        }
+      }
+    }
+
+    return new Response(JSON.stringify({ success: true, referral_bonus: referralBonus }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

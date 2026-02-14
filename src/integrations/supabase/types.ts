@@ -225,6 +225,51 @@ export type Database = {
           },
         ]
       }
+      referral_codes: {
+        Row: {
+          bonus_votes_earned: number
+          code: string
+          created_at: string
+          id: string
+          nickname: string
+        }
+        Insert: {
+          bonus_votes_earned?: number
+          code: string
+          created_at?: string
+          id?: string
+          nickname: string
+        }
+        Update: {
+          bonus_votes_earned?: number
+          code?: string
+          created_at?: string
+          id?: string
+          nickname?: string
+        }
+        Relationships: []
+      }
+      referral_uses: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          used_by_ip: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          used_by_ip: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          used_by_ip?: string
+        }
+        Relationships: []
+      }
       season_rankings: {
         Row: {
           created_at: string

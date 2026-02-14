@@ -7,7 +7,10 @@ import CountdownTimer from "@/components/CountdownTimer";
 import LiveFeed from "@/components/LiveFeed";
 import FanComments from "@/components/FanComments";
 import ThemeToggle from "@/components/ThemeToggle";
-import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows } from "lucide-react";
+import ReferralSystem from "@/components/ReferralSystem";
+import StreakTracker from "@/components/StreakTracker";
+import WeeklyMissions from "@/components/WeeklyMissions";
+import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star } from "lucide-react";
 import { toast } from "sonner";
 
 const CATEGORY_TABS = [
@@ -124,8 +127,9 @@ const Index = () => {
       return false;
     }
 
+    const refCode = localStorage.getItem("pending_referral");
     const { data, error } = await supabase.functions.invoke("vote", {
-      body: { creator_id: id },
+      body: { creator_id: id, referral_code: refCode || undefined },
     });
 
     if (error) {
@@ -146,7 +150,11 @@ const Index = () => {
       return false;
     }
 
-    toast.success("투표 완료! 🎉");
+    toast.success(data?.referral_bonus ? "투표 완료! 🎉 초대 보너스 투표권이 지급되었어요!" : "투표 완료! 🎉");
+
+    // Track weekly vote count for missions
+    const weeklyCount = parseInt(localStorage.getItem("weekly_vote_count") || "0");
+    localStorage.setItem("weekly_vote_count", String(weeklyCount + 1));
 
     if (todayVoted.has(id)) {
       setExtraVotes((v) => v - 1);
@@ -245,24 +253,40 @@ const Index = () => {
           </span>
         </Link>
 
+        {/* Streak & Missions */}
+        <StreakTracker />
+        <WeeklyMissions />
+
+        {/* Referral System */}
+        <ReferralSystem />
+
         {/* Navigation Links */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <Link
             to="/seasons"
             className="glass-sm p-3 text-center text-sm font-medium text-neon-cyan hover:border-neon-cyan/50 transition-all"
           >
-            <span className="inline-flex items-center gap-2">
+            <span className="flex flex-col items-center gap-1">
               <Calendar className="w-4 h-4" />
-              시즌 아카이브
+              <span className="text-[10px]">아카이브</span>
             </span>
           </Link>
           <Link
             to="/compare"
             className="glass-sm p-3 text-center text-sm font-medium text-neon-purple hover:border-neon-purple/50 transition-all"
           >
-            <span className="inline-flex items-center gap-2">
+            <span className="flex flex-col items-center gap-1">
               <GitCompareArrows className="w-4 h-4" />
-              크리에이터 비교
+              <span className="text-[10px]">비교</span>
+            </span>
+          </Link>
+          <Link
+            to="/fans"
+            className="glass-sm p-3 text-center text-sm font-medium text-neon-cyan hover:border-neon-cyan/50 transition-all"
+          >
+            <span className="flex flex-col items-center gap-1">
+              <Star className="w-4 h-4" />
+              <span className="text-[10px]">팬 랭킹</span>
             </span>
           </Link>
         </div>
