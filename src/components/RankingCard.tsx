@@ -3,14 +3,17 @@ import { Link } from "react-router-dom";
 import { Creator, getVotesUntilNext } from "@/lib/data";
 import { Trophy, TrendingUp, TrendingDown, Minus, CheckCircle2, Heart } from "lucide-react";
 import CommentInput from "./CommentInput";
+import MiniInfluenceChart from "./MiniInfluenceChart";
 
 interface RankingCardProps {
   creator: Creator;
   creators: Creator[];
   onVote: (id: string) => Promise<boolean>;
+  maxSubs: number;
+  maxVotes: number;
 }
 
-const RankingCard = ({ creator, creators, onVote }: RankingCardProps) => {
+const RankingCard = ({ creator, creators, onVote, maxSubs, maxVotes }: RankingCardProps) => {
   const [isVoting, setIsVoting] = useState(false);
   const [showCommentInput, setShowCommentInput] = useState(false);
   const votesUntilNext = getVotesUntilNext(creator, creators);
@@ -111,6 +114,14 @@ const RankingCard = ({ creator, creators, onVote }: RankingCardProps) => {
             </p>
           )}
         </div>
+
+        {/* Mini Influence Chart */}
+        <MiniInfluenceChart
+          subscriberCount={creator.subscriber_count}
+          votesCount={creator.votes_count}
+          maxSubs={maxSubs}
+          maxVotes={maxVotes}
+        />
 
         {/* Vote Button */}
         <button
