@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      comments: {
+        Row: {
+          created_at: string
+          creator_id: string
+          id: string
+          message: string
+          nickname: string
+          post_count: number
+          vote_count: number
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          id?: string
+          message: string
+          nickname: string
+          post_count?: number
+          vote_count?: number
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          id?: string
+          message?: string
+          nickname?: string
+          post_count?: number
+          vote_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creators: {
         Row: {
           avatar_url: string
