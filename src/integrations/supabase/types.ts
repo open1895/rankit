@@ -225,6 +225,78 @@ export type Database = {
           },
         ]
       }
+      season_rankings: {
+        Row: {
+          created_at: string
+          creator_id: string
+          final_rank: number
+          final_votes: number
+          id: string
+          season_id: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          final_rank: number
+          final_votes?: number
+          id?: string
+          season_id: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          final_rank?: number
+          final_votes?: number
+          id?: string
+          season_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_rankings_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_rankings_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seasons: {
+        Row: {
+          created_at: string
+          ended_at: string
+          id: string
+          is_active: boolean
+          season_number: number
+          started_at: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          ended_at: string
+          id?: string
+          is_active?: boolean
+          season_number: number
+          started_at: string
+          title?: string
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string
+          id?: string
+          is_active?: boolean
+          season_number?: number
+          started_at?: string
+          title?: string
+        }
+        Relationships: []
+      }
       votes: {
         Row: {
           created_at: string
