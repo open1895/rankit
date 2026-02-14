@@ -7,7 +7,6 @@ const LiveFeed = () => {
   const [currentEvent, setCurrentEvent] = useState<VoteEvent | null>(null);
 
   useEffect(() => {
-    // Subscribe to realtime changes on creators table
     const channel = supabase
       .channel("live-votes")
       .on(
@@ -37,14 +36,14 @@ const LiveFeed = () => {
     <div className="fixed bottom-4 left-4 right-4 z-50 pointer-events-none sm:left-auto sm:right-6 sm:max-w-sm">
       <div
         key={currentEvent.id}
-        className="glass-sm p-3 flex items-center gap-2 animate-slide-up pointer-events-auto"
+        className="glass p-3.5 flex items-center gap-3 animate-slide-up pointer-events-auto shadow-xl shadow-background/50"
       >
-        <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center shrink-0">
-          <Zap className="w-4 h-4 text-primary-foreground" />
+        <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
+          <Zap className="w-4.5 h-4.5 text-primary-foreground" />
         </div>
         <p className="text-xs text-muted-foreground leading-snug">
-          <span className="text-neon-cyan font-medium">{currentEvent.fanLocation}</span>의 팬이{" "}
-          <span className="text-foreground font-semibold">{currentEvent.creatorName}</span>에게
+          <span className="text-neon-cyan font-semibold">{currentEvent.fanLocation}</span>의 팬이{" "}
+          <span className="text-foreground font-bold">{currentEvent.creatorName}</span>에게
           방금 투표했습니다! 🔥
         </p>
       </div>
