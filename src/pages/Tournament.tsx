@@ -132,8 +132,8 @@ const Tournament = () => {
   }, {});
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-40 glass border-b border-glass-border">
+    <div className="min-h-screen bg-background mesh-bg pb-24">
+      <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Link to="/" className="text-muted-foreground hover:text-foreground">
@@ -148,7 +148,11 @@ const Tournament = () => {
 
       <main className="container max-w-lg mx-auto px-4 py-6 space-y-6">
         {loading ? (
-          <div className="text-center py-12 text-muted-foreground text-sm">로딩 중...</div>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="glass p-4 h-32 animate-pulse rounded-2xl" />
+            ))}
+          </div>
         ) : !tournament ? (
           <div className="glass p-8 text-center space-y-4">
             <Swords className="w-12 h-12 mx-auto text-muted-foreground" />
@@ -157,11 +161,11 @@ const Tournament = () => {
           </div>
         ) : (
           <>
-            <div className="glass p-5 text-center space-y-2">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neon-purple/15 text-neon-purple text-xs font-medium">
-                <Zap className="w-3 h-3" /> LIVE
+            <div className="glass p-6 text-center space-y-3 animate-glow-pulse">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neon-purple/15 text-neon-purple text-xs font-semibold animate-pulse-neon">
+                <Zap className="w-3.5 h-3.5" /> LIVE
               </div>
-              <h2 className="text-xl font-bold">{tournament.title}</h2>
+              <h2 className="text-xl font-bold gradient-text">{tournament.title}</h2>
               <p className="text-sm text-muted-foreground">{tournament.description}</p>
             </div>
 
@@ -181,7 +185,7 @@ const Tournament = () => {
                     const voted = votedMatches.has(match.id);
 
                     return (
-                      <div key={match.id} className="glass p-4 space-y-3">
+                      <div key={match.id} className="glass glass-hover p-4 space-y-3">
                         <div className="flex items-center gap-3">
                           {/* Creator A */}
                           <button

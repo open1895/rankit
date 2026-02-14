@@ -143,8 +143,8 @@ const CompareCreators = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background pb-24" onClick={() => { setShowListA(false); setShowListB(false); }}>
-      <header className="sticky top-0 z-40 glass border-b border-glass-border">
+    <div className="min-h-screen bg-background mesh-bg pb-24" onClick={() => { setShowListA(false); setShowListB(false); }}>
+      <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground transition-colors">

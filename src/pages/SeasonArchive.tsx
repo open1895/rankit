@@ -77,8 +77,8 @@ const SeasonArchive = () => {
     rank === 1 ? "rank-gold" : rank === 2 ? "rank-silver" : rank === 3 ? "rank-bronze" : "text-muted-foreground";
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-40 glass border-b border-glass-border">
+    <div className="min-h-screen bg-background mesh-bg pb-24">
+      <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground transition-colors">
@@ -95,7 +95,7 @@ const SeasonArchive = () => {
 
       <main className="container max-w-lg mx-auto px-4 py-6 space-y-4">
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">로딩 중...</div>
+          <div className="space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="glass p-4 h-16 animate-pulse rounded-2xl" />)}</div>
         ) : (
           <>
             {/* Season List */}
