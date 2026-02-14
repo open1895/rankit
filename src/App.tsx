@@ -11,6 +11,7 @@ import Support from "./pages/Support";
 import SeasonArchive from "./pages/SeasonArchive";
 import CompareCreators from "./pages/CompareCreators";
 import FanLeaderboard from "./pages/FanLeaderboard";
+import Tournament from "./pages/Tournament";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/seasons" element={<SeasonArchive />} />
           <Route path="/compare" element={<CompareCreators />} />
           <Route path="/fans" element={<FanLeaderboard />} />
+          <Route path="/tournament" element={<Tournament />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

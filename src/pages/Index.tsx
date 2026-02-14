@@ -10,7 +10,9 @@ import ThemeToggle from "@/components/ThemeToggle";
 import ReferralSystem from "@/components/ReferralSystem";
 import StreakTracker from "@/components/StreakTracker";
 import WeeklyMissions from "@/components/WeeklyMissions";
-import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star } from "lucide-react";
+import NotificationBell from "@/components/NotificationBell";
+import WeeklyHighlights from "@/components/WeeklyHighlights";
+import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords } from "lucide-react";
 import { toast } from "sonner";
 
 const CATEGORY_TABS = [
@@ -189,6 +191,7 @@ const Index = () => {
                 잔여 투표권: <span className="text-neon-cyan font-bold">{Math.max(0, 1 - todayVoted.size + extraVotes)}</span>
               </span>
             </div>
+            <NotificationBell />
             <ThemeToggle />
           </div>
         </div>
@@ -260,8 +263,11 @@ const Index = () => {
         {/* Referral System */}
         <ReferralSystem />
 
+        {/* Weekly Highlights */}
+        <WeeklyHighlights />
+
         {/* Navigation Links */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <Link
             to="/seasons"
             className="glass-sm p-3 text-center text-sm font-medium text-neon-cyan hover:border-neon-cyan/50 transition-all"
@@ -287,6 +293,15 @@ const Index = () => {
             <span className="flex flex-col items-center gap-1">
               <Star className="w-4 h-4" />
               <span className="text-[10px]">팬 랭킹</span>
+            </span>
+          </Link>
+          <Link
+            to="/tournament"
+            className="glass-sm p-3 text-center text-sm font-medium text-neon-purple hover:border-neon-purple/50 transition-all"
+          >
+            <span className="flex flex-col items-center gap-1">
+              <Swords className="w-4 h-4" />
+              <span className="text-[10px]">대결</span>
             </span>
           </Link>
         </div>

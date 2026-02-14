@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          created_at: string
+          creator_id: string
+          id: string
+          message: string
+          nickname: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          id?: string
+          message: string
+          nickname: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          id?: string
+          message?: string
+          nickname?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           created_at: string
@@ -342,6 +374,146 @@ export type Database = {
         }
         Relationships: []
       }
+      tournament_matches: {
+        Row: {
+          created_at: string
+          creator_a_id: string
+          creator_b_id: string
+          id: string
+          is_completed: boolean
+          match_order: number
+          round: number
+          tournament_id: string
+          votes_a: number
+          votes_b: number
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          creator_a_id: string
+          creator_b_id: string
+          id?: string
+          is_completed?: boolean
+          match_order?: number
+          round?: number
+          tournament_id: string
+          votes_a?: number
+          votes_b?: number
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          creator_a_id?: string
+          creator_b_id?: string
+          id?: string
+          is_completed?: boolean
+          match_order?: number
+          round?: number
+          tournament_id?: string
+          votes_a?: number
+          votes_b?: number
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_matches_creator_a_id_fkey"
+            columns: ["creator_a_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_creator_b_id_fkey"
+            columns: ["creator_b_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournament_votes: {
+        Row: {
+          created_at: string
+          id: string
+          match_id: string
+          voted_creator_id: string
+          voter_ip: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_id: string
+          voted_creator_id: string
+          voter_ip: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_id?: string
+          voted_creator_id?: string
+          voter_ip?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_votes_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_votes_voted_creator_id_fkey"
+            columns: ["voted_creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournaments: {
+        Row: {
+          created_at: string
+          description: string
+          ended_at: string | null
+          id: string
+          is_active: boolean
+          round: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean
+          round?: number
+          title?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean
+          round?: number
+          title?: string
+        }
+        Relationships: []
+      }
       votes: {
         Row: {
           created_at: string
@@ -364,6 +536,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "votes_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_highlights: {
+        Row: {
+          created_at: string
+          creator_id: string
+          highlight_text: string
+          id: string
+          rank_change: number
+          top_fan_nickname: string | null
+          vote_increase: number
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          highlight_text?: string
+          id?: string
+          rank_change?: number
+          top_fan_nickname?: string | null
+          vote_increase?: number
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          highlight_text?: string
+          id?: string
+          rank_change?: number
+          top_fan_nickname?: string | null
+          vote_increase?: number
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_highlights_creator_id_fkey"
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "creators"
