@@ -50,6 +50,7 @@ const DAILY_MAX_POINTS = 8;
 const SCORE_POST = 2;
 const SCORE_COMMENT = 0.5;
 const SCORE_LIKE = 0.5;
+const BEST_THRESHOLD = 5; // likes needed for "베스트" badge
 
 // Simple daily key for localStorage
 const getDailyKey = () => `activity_${new Date().toISOString().slice(0, 10)}`;
@@ -85,6 +86,7 @@ const CreatorBoard = () => {
     return stored ? parseFloat(stored) : 0;
   });
   const [scorePopup, setScorePopup] = useState({ score: 0, label: "", trigger: 0 });
+  const [weeklyPosts, setWeeklyPosts] = useState<Post[]>([]);
 
   const addPoints = useCallback((points: number, label: string) => {
     setDailyPoints((prev) => {
@@ -108,6 +110,19 @@ const CreatorBoard = () => {
     supabase.from("creators").select("name").eq("id", id).single().then(res => {
       setCreatorName(res.data?.name || "");
     });
+
+    // Fetch weekly popular posts
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    supabase
+      .from("posts")
+      .select("*")
+      .eq("creator_id", id)
+      .gte("created_at", oneWeekAgo.toISOString())
+      .gte("likes_count", BEST_THRESHOLD)
+      .order("likes_count", { ascending: false })
+      .limit(3)
+      .then(({ data }) => setWeeklyPosts(data || []));
   }, [id]);
 
   useEffect(() => {
@@ -343,6 +358,33 @@ const CreatorBoard = () => {
           </span>
         </div>
 
+        {/* Weekly Popular Section */}
+        {weeklyPosts.length > 0 && (
+          <div className="glass p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Flame className="w-4 h-4 text-neon-red" />
+              <h3 className="text-sm font-bold gradient-text">🏆 주간 인기 게시글</h3>
+            </div>
+            <div className="space-y-2">
+              {weeklyPosts.map((post, idx) => (
+                <div key={post.id} className="glass-sm px-3 py-2 flex items-center gap-3">
+                  <span className="text-xs font-bold text-neon-purple shrink-0">
+                    {idx + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold truncate">{post.title}</p>
+                    <p className="text-[10px] text-muted-foreground">{post.nickname}</p>
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] text-neon-red shrink-0">
+                    <Heart className="w-3 h-3 fill-neon-red" />
+                    {post.likes_count}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Write Form */}
         {showWrite && (
           <form onSubmit={handleSubmitPost} className="glass p-4 space-y-3 animate-slide-up">
@@ -417,7 +459,14 @@ const CreatorBoard = () => {
               </div>
 
               {/* Post Content */}
-              <h4 className="text-sm font-semibold">{post.title}</h4>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-semibold">{post.title}</h4>
+                {post.likes_count >= BEST_THRESHOLD && (
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold bg-neon-red/20 text-neon-red shrink-0">
+                    🔥 베스트
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-foreground/80 whitespace-pre-wrap">{post.content}</p>
 
               {/* Actions */}
