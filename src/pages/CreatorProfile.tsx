@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Creator } from "@/lib/data";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ type FanPeriod = "all" | "weekly" | "monthly";
 const CreatorProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [creator, setCreator] = useState<(Creator & { channel_link?: string }) | null>(null);
   const [rankHistory, setRankHistory] = useState<RankHistoryPoint[]>([]);
   const [loading, setLoading] = useState(true);
@@ -246,6 +248,11 @@ const CreatorProfile = () => {
   }, [fanPeriod, fetchFanRanking]);
 
   const handleVote = async () => {
+    if (!user) {
+      toast.error("투표하려면 로그인이 필요합니다.");
+      navigate("/auth");
+      return;
+    }
     if (!id) return;
     const { data, error } = await supabase.functions.invoke("vote", {
       body: { creator_id: id },

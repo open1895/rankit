@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Creator } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import RankingCard from "@/components/RankingCard";
 import CountdownTimer from "@/components/CountdownTimer";
 import LiveFeed from "@/components/LiveFeed";
@@ -13,7 +14,7 @@ import WeeklyMissions from "@/components/WeeklyMissions";
 import NotificationBell from "@/components/NotificationBell";
 import WeeklyHighlights from "@/components/WeeklyHighlights";
 import ScrollReveal from "@/components/ScrollReveal";
-import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles } from "lucide-react";
+import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 const CATEGORY_TABS = [
@@ -33,6 +34,8 @@ const CATEGORY_TABS = [
 const PAGE_SIZE = 20;
 
 const Index = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [creators, setCreators] = useState<Creator[]>([]);
   const [extraVotes, setExtraVotes] = useState(0);
   const [isCharging, setIsCharging] = useState(false);
@@ -122,6 +125,12 @@ const Index = () => {
   }, []);
 
   const handleVote = async (id: string): Promise<boolean> => {
+    if (!user) {
+      toast.error("투표하려면 로그인이 필요합니다.");
+      navigate("/auth");
+      return false;
+    }
+
     if (todayVoted.has(id) && extraVotes <= 0) {
       toast.error("투표권이 부족합니다! 광고를 시청하고 추가 투표권을 받으세요.");
       return false;
@@ -191,6 +200,22 @@ const Index = () => {
                 <span className="text-muted-foreground ml-1">표</span>
               </span>
             </div>
+            {user ? (
+              <button
+                onClick={() => signOut()}
+                className="glass-sm px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <Link
+                to="/auth"
+                className="glass-sm px-3 py-1.5 text-xs font-medium text-neon-cyan flex items-center gap-1"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>로그인</span>
+              </Link>
+            )}
             <NotificationBell />
             <ThemeToggle />
           </div>

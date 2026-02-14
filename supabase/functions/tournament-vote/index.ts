@@ -5,20 +5,39 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function hashIp(ip: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(ip);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+    // Verify auth
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "로그인이 필요합니다." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(
+      authHeader.replace("Bearer ", "")
+    );
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "인증에 실패했습니다." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userId = claimsData.claims.sub as string;
+
     const { match_id, voted_creator_id } = await req.json();
     if (!match_id || !voted_creator_id) {
       return new Response(JSON.stringify({ error: "match_id and voted_creator_id required" }), {
@@ -27,14 +46,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const rawIp =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      req.headers.get("cf-connecting-ip") ||
-      "unknown";
-    const voterIp = await hashIp(rawIp);
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     // Check match exists and is not completed
@@ -65,12 +76,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check duplicate vote
+    // Check duplicate vote by user_id
     const { data: existing } = await supabase
       .from("tournament_votes")
       .select("id")
       .eq("match_id", match_id)
-      .eq("voter_ip", voterIp)
+      .eq("user_id", userId)
       .limit(1);
 
     if (existing && existing.length > 0) {
@@ -84,7 +95,8 @@ Deno.serve(async (req) => {
     await supabase.from("tournament_votes").insert({
       match_id,
       voted_creator_id,
-      voter_ip: voterIp,
+      voter_ip: userId,
+      user_id: userId,
     });
 
     // Update match vote counts

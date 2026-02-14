@@ -161,18 +161,21 @@ export type Database = {
           id: string
           liker_ip: string
           post_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           liker_ip: string
           post_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           liker_ip?: string
           post_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -224,6 +227,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string
+          created_at: string
+          display_name: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       rank_history: {
         Row: {
@@ -450,6 +480,7 @@ export type Database = {
           created_at: string
           id: string
           match_id: string
+          user_id: string | null
           voted_creator_id: string
           voter_ip: string
         }
@@ -457,6 +488,7 @@ export type Database = {
           created_at?: string
           id?: string
           match_id: string
+          user_id?: string | null
           voted_creator_id: string
           voter_ip: string
         }
@@ -464,6 +496,7 @@ export type Database = {
           created_at?: string
           id?: string
           match_id?: string
+          user_id?: string | null
           voted_creator_id?: string
           voter_ip?: string
         }
@@ -519,18 +552,21 @@ export type Database = {
           created_at: string
           creator_id: string
           id: string
+          user_id: string | null
           voter_ip: string
         }
         Insert: {
           created_at?: string
           creator_id: string
           id?: string
+          user_id?: string | null
           voter_ip: string
         }
         Update: {
           created_at?: string
           creator_id?: string
           id?: string
+          user_id?: string | null
           voter_ip?: string
         }
         Relationships: [
