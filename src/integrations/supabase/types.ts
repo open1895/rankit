@@ -91,6 +91,108 @@ export type Database = {
         }
         Relationships: []
       }
+      post_comments: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          nickname: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          nickname: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          nickname?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          liker_ip: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          liker_ip: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          liker_ip?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          comments_count: number
+          content: string
+          created_at: string
+          creator_id: string
+          id: string
+          likes_count: number
+          nickname: string
+          title: string
+        }
+        Insert: {
+          comments_count?: number
+          content: string
+          created_at?: string
+          creator_id: string
+          id?: string
+          likes_count?: number
+          nickname: string
+          title: string
+        }
+        Update: {
+          comments_count?: number
+          content?: string
+          created_at?: string
+          creator_id?: string
+          id?: string
+          likes_count?: number
+          nickname?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rank_history: {
         Row: {
           creator_id: string
