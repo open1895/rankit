@@ -13,6 +13,10 @@ import {
   X,
   ChevronDown,
   ChevronUp,
+  Flame,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -37,6 +41,9 @@ interface PostComment {
   created_at: string;
 }
 
+type SortMode = "latest" | "popular";
+const POSTS_PER_PAGE = 10;
+
 const CreatorBoard = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -44,6 +51,9 @@ const CreatorBoard = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWrite, setShowWrite] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>("latest");
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Write form
   const [nickname, setNickname] = useState("");
@@ -59,26 +69,43 @@ const CreatorBoard = () => {
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [likingPosts, setLikingPosts] = useState<Set<string>>(new Set());
 
+  const totalPages = Math.max(1, Math.ceil(totalCount / POSTS_PER_PAGE));
+
   useEffect(() => {
     if (!id) return;
+    supabase.from("creators").select("name").eq("id", id).single().then(res => {
+      setCreatorName(res.data?.name || "");
+    });
+  }, [id]);
 
-    const fetchData = async () => {
-      const [creatorRes, postsRes] = await Promise.all([
-        supabase.from("creators").select("name").eq("id", id).single(),
-        supabase
-          .from("posts")
-          .select("*")
-          .eq("creator_id", id)
-          .order("created_at", { ascending: false })
-          .limit(50),
-      ]);
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
 
-      setCreatorName(creatorRes.data?.name || "");
-      setPosts(postsRes.data || []);
+    const from = (page - 1) * POSTS_PER_PAGE;
+    const to = from + POSTS_PER_PAGE - 1;
+
+    const orderCol = sortMode === "popular" ? "likes_count" : "created_at";
+
+    const fetchPosts = async () => {
+      const countRes = await supabase
+        .from("posts")
+        .select("id", { count: "exact", head: true })
+        .eq("creator_id", id);
+      setTotalCount(countRes.count || 0);
+
+      const { data } = await supabase
+        .from("posts")
+        .select("*")
+        .eq("creator_id", id)
+        .order(orderCol, { ascending: false })
+        .range(from, to);
+
+      setPosts(data || []);
       setLoading(false);
     };
 
-    fetchData();
+    fetchPosts();
 
     // Realtime
     const channel = supabase
@@ -105,7 +132,7 @@ const CreatorBoard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id]);
+  }, [id, sortMode, page]);
 
   const handleSubmitPost = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -247,6 +274,35 @@ const CreatorBoard = () => {
       </header>
 
       <main className="container max-w-lg mx-auto px-4 py-6 space-y-4">
+        {/* Sort Tabs */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setSortMode("latest"); setPage(1); }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              sortMode === "latest"
+                ? "bg-primary text-primary-foreground"
+                : "glass-sm text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            최신순
+          </button>
+          <button
+            onClick={() => { setSortMode("popular"); setPage(1); }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              sortMode === "popular"
+                ? "bg-primary text-primary-foreground"
+                : "glass-sm text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Flame className="w-3.5 h-3.5" />
+            인기순
+          </button>
+          <span className="ml-auto text-[10px] text-muted-foreground">
+            총 {totalCount}개
+          </span>
+        </div>
+
         {/* Write Form */}
         {showWrite && (
           <form onSubmit={handleSubmitPost} className="glass p-4 space-y-3 animate-slide-up">
@@ -306,7 +362,8 @@ const CreatorBoard = () => {
             </button>
           </div>
         ) : (
-          posts.map((post) => (
+          <>
+          {posts.map((post) => (
             <div key={post.id} className="glass p-4 space-y-2">
               {/* Post Header */}
               <div className="flex items-center justify-between">
@@ -404,7 +461,31 @@ const CreatorBoard = () => {
                 </div>
               )}
             </div>
-          ))
+          ))}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="glass-sm p-2 rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-30 transition-all"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-xs text-muted-foreground">
+                {page} / {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="glass-sm p-2 rounded-lg text-muted-foreground hover:text-foreground disabled:opacity-30 transition-all"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          </>
         )}
       </main>
     </div>
