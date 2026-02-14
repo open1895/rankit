@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Creator, getVotesUntilNext } from "@/lib/data";
 import { Trophy, TrendingUp, TrendingDown, Minus, CheckCircle2, Heart } from "lucide-react";
 
@@ -75,7 +76,7 @@ const RankingCard = ({ creator, creators, onVote }: RankingCardProps) => {
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="font-semibold text-sm truncate">{creator.name}</span>
+          <Link to={`/creator/${creator.id}`} className="font-semibold text-sm truncate hover:text-neon-cyan transition-colors">{creator.name}</Link>
           {creator.is_verified && creator.rank <= 10 && (
             <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-neon-cyan/20 text-neon-cyan font-medium whitespace-nowrap">
               Official ✓

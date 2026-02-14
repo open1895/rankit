@@ -50,6 +50,38 @@ export type Database = {
         }
         Relationships: []
       }
+      rank_history: {
+        Row: {
+          creator_id: string
+          id: string
+          rank: number
+          recorded_at: string
+          votes_count: number
+        }
+        Insert: {
+          creator_id: string
+          id?: string
+          rank: number
+          recorded_at?: string
+          votes_count: number
+        }
+        Update: {
+          creator_id?: string
+          id?: string
+          rank?: number
+          recorded_at?: string
+          votes_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rank_history_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       votes: {
         Row: {
           created_at: string
