@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import ScorePopup from "@/components/ScorePopup";
+import DailyActivityBar from "@/components/DailyActivityBar";
 import {
   ArrowLeft,
   Crown,
@@ -43,6 +45,13 @@ interface PostComment {
 
 type SortMode = "latest" | "popular";
 const POSTS_PER_PAGE = 10;
+const DAILY_MAX_POINTS = 8;
+const SCORE_POST = 2;
+const SCORE_COMMENT = 0.5;
+const SCORE_LIKE = 0.5;
+
+// Simple daily key for localStorage
+const getDailyKey = () => `activity_${new Date().toISOString().slice(0, 10)}`;
 
 const CreatorBoard = () => {
   const { id } = useParams<{ id: string }>();
@@ -68,6 +77,28 @@ const CreatorBoard = () => {
   const [commentMessage, setCommentMessage] = useState("");
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [likingPosts, setLikingPosts] = useState<Set<string>>(new Set());
+
+  // Activity score state
+  const [dailyPoints, setDailyPoints] = useState(() => {
+    const stored = localStorage.getItem(getDailyKey());
+    return stored ? parseFloat(stored) : 0;
+  });
+  const [scorePopup, setScorePopup] = useState({ score: 0, label: "", trigger: 0 });
+
+  const addPoints = useCallback((points: number, label: string) => {
+    setDailyPoints((prev) => {
+      const remaining = DAILY_MAX_POINTS - prev;
+      if (remaining <= 0) {
+        toast.info("오늘의 활동 점수를 모두 채웠어요! 🎉");
+        return prev;
+      }
+      const earned = Math.min(points, remaining);
+      const next = prev + earned;
+      localStorage.setItem(getDailyKey(), String(next));
+      setScorePopup((p) => ({ score: earned, label, trigger: p.trigger + 1 }));
+      return next;
+    });
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / POSTS_PER_PAGE));
 
@@ -164,6 +195,7 @@ const CreatorBoard = () => {
       console.error(error);
     } else {
       toast.success("게시글이 등록되었습니다! ✍️");
+      addPoints(SCORE_POST, "게시글 작성");
       setTitle("");
       setContent("");
       setShowWrite(false);
@@ -183,6 +215,7 @@ const CreatorBoard = () => {
       toast.error(data?.message || "좋아요에 실패했습니다.");
     } else {
       toast.success("좋아요! ❤️");
+      addPoints(SCORE_LIKE, "좋아요");
     }
 
     setTimeout(() => {
@@ -235,6 +268,7 @@ const CreatorBoard = () => {
       toast.error("댓글 작성에 실패했습니다.");
     } else {
       setCommentMessage("");
+      addPoints(SCORE_COMMENT, "댓글 작성");
       // Refresh comments
       const { data } = await supabase
         .from("post_comments")
@@ -249,6 +283,7 @@ const CreatorBoard = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
+      <ScorePopup score={scorePopup.score} label={scorePopup.label} trigger={scorePopup.trigger} />
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
@@ -274,6 +309,9 @@ const CreatorBoard = () => {
       </header>
 
       <main className="container max-w-lg mx-auto px-4 py-6 space-y-4">
+        {/* Daily Activity Bar */}
+        <DailyActivityBar currentPoints={dailyPoints} maxPoints={DAILY_MAX_POINTS} />
+
         {/* Sort Tabs */}
         <div className="flex items-center gap-2">
           <button

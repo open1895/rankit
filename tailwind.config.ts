@@ -112,6 +112,12 @@ export default {
           "0%": { transform: "translateX(0)" },
           "100%": { transform: "translateX(-50%)" },
         },
+        "score-float": {
+          "0%": { transform: "scale(0.5) translateY(20px)", opacity: "0" },
+          "20%": { transform: "scale(1.2) translateY(-10px)", opacity: "1" },
+          "40%": { transform: "scale(1) translateY(-30px)", opacity: "1" },
+          "100%": { transform: "scale(0.8) translateY(-80px)", opacity: "0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -124,6 +130,7 @@ export default {
         "count-up": "count-up 0.3s ease-out",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
         "marquee": "marquee 15s linear infinite",
+        "score-float": "score-float 1.8s ease-out forwards",
       },
     },
   },
