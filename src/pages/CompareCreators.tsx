@@ -112,7 +112,7 @@ const CompareCreators = () => {
               {filteredList.map((c: CreatorInfo) => (
                 <button
                   key={c.id}
-                  onClick={() => { onSelect(c); setShowList(false); setSearch(""); }}
+                  onClick={(e) => { e.stopPropagation(); onSelect(c); setShowList(false); setSearch(""); }}
                   className="w-full px-3 py-2 flex items-center gap-2 hover:bg-muted/50 transition-colors text-left"
                 >
                   <span className="text-xs font-bold text-muted-foreground w-6">#{c.rank}</span>
