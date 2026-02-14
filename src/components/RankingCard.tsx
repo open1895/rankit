@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Creator, getVotesUntilNext } from "@/lib/data";
 import { Trophy, TrendingUp, TrendingDown, Minus, CheckCircle2, Heart } from "lucide-react";
@@ -16,8 +16,21 @@ interface RankingCardProps {
 const RankingCard = ({ creator, creators, onVote, maxSubs, maxVotes }: RankingCardProps) => {
   const [isVoting, setIsVoting] = useState(false);
   const [showCommentInput, setShowCommentInput] = useState(false);
+  const [rankAnim, setRankAnim] = useState<"up" | "down" | null>(null);
+  const prevRankRef = useRef(creator.rank);
   const votesUntilNext = getVotesUntilNext(creator, creators);
   const rankDiff = creator.previousRank - creator.rank;
+
+  // Detect rank changes and trigger animation
+  useEffect(() => {
+    if (prevRankRef.current !== creator.rank) {
+      const direction = creator.rank < prevRankRef.current ? "up" : "down";
+      setRankAnim(direction);
+      prevRankRef.current = creator.rank;
+      const timer = setTimeout(() => setRankAnim(null), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [creator.rank]);
 
   const handleVote = async () => {
     setIsVoting(true);
@@ -42,7 +55,7 @@ const RankingCard = ({ creator, creators, onVote, maxSubs, maxVotes }: RankingCa
 
   return (
     <div className="space-y-0">
-      <div className={`glass p-3 sm:p-4 flex items-center gap-2 sm:gap-4 transition-all duration-300 hover:border-neon-purple/40 group ${creator.rank <= 3 ? "neon-glow-purple" : ""}`}>
+      <div className={`glass p-3 sm:p-4 flex items-center gap-2 sm:gap-4 transition-all duration-300 hover:border-neon-purple/40 group ${creator.rank <= 3 ? "neon-glow-purple" : ""} ${rankAnim === "up" ? "animate-rank-up" : rankAnim === "down" ? "animate-rank-down" : ""}`}>
         {/* Rank */}
         <div className="flex flex-col items-center w-8 sm:w-10 shrink-0">
           <span className={`text-xl sm:text-2xl font-bold ${rankStyle}`}>
