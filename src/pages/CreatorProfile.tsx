@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Creator } from "@/lib/data";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import {
   BarChart3,
   Share2,
   MessageCircle,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -260,6 +261,17 @@ const CreatorProfile = () => {
               <Share2 className="w-5 h-5 text-neon-cyan" />
             </Button>
           </div>
+
+          {/* Board Link */}
+          <Link
+            to={`/creator/${id}/board`}
+            className="block w-full glass-sm p-3 text-center text-sm font-medium text-neon-cyan hover:border-neon-cyan/50 transition-all rounded-xl"
+          >
+            <span className="inline-flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" />
+              팬 게시판 바로가기
+            </span>
+          </Link>
         </div>
 
         {/* Stats */}

@@ -1,0 +1,414 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  ArrowLeft,
+  Crown,
+  MessageSquarePlus,
+  Heart,
+  MessageCircle,
+  Send,
+  X,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
+
+interface Post {
+  id: string;
+  creator_id: string;
+  nickname: string;
+  title: string;
+  content: string;
+  likes_count: number;
+  comments_count: number;
+  created_at: string;
+}
+
+interface PostComment {
+  id: string;
+  post_id: string;
+  nickname: string;
+  message: string;
+  created_at: string;
+}
+
+const CreatorBoard = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [creatorName, setCreatorName] = useState("");
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showWrite, setShowWrite] = useState(false);
+
+  // Write form
+  const [nickname, setNickname] = useState("");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  // Expanded post for comments
+  const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
+  const [postComments, setPostComments] = useState<PostComment[]>([]);
+  const [commentNickname, setCommentNickname] = useState("");
+  const [commentMessage, setCommentMessage] = useState("");
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [likingPosts, setLikingPosts] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchData = async () => {
+      const [creatorRes, postsRes] = await Promise.all([
+        supabase.from("creators").select("name").eq("id", id).single(),
+        supabase
+          .from("posts")
+          .select("*")
+          .eq("creator_id", id)
+          .order("created_at", { ascending: false })
+          .limit(50),
+      ]);
+
+      setCreatorName(creatorRes.data?.name || "");
+      setPosts(postsRes.data || []);
+      setLoading(false);
+    };
+
+    fetchData();
+
+    // Realtime
+    const channel = supabase
+      .channel(`board-${id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "posts", filter: `creator_id=eq.${id}` },
+        (payload) => {
+          setPosts((prev) => [payload.new as Post, ...prev]);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "posts" },
+        (payload) => {
+          const updated = payload.new as Post;
+          setPosts((prev) =>
+            prev.map((p) => (p.id === updated.id ? updated : p))
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
+
+  const handleSubmitPost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id) return;
+
+    if (nickname.trim().length < 2) {
+      toast.error("닉네임은 2자 이상이어야 합니다.");
+      return;
+    }
+    if (title.trim().length < 2) {
+      toast.error("제목은 2자 이상이어야 합니다.");
+      return;
+    }
+    if (content.trim().length < 10) {
+      toast.error("내용은 10자 이상이어야 합니다.");
+      return;
+    }
+
+    setSubmitting(true);
+    const { error } = await supabase.from("posts").insert({
+      creator_id: id,
+      nickname: nickname.trim(),
+      title: title.trim(),
+      content: content.trim(),
+    });
+
+    if (error) {
+      toast.error("게시글 작성에 실패했습니다.");
+      console.error(error);
+    } else {
+      toast.success("게시글이 등록되었습니다! ✍️");
+      setTitle("");
+      setContent("");
+      setShowWrite(false);
+    }
+    setSubmitting(false);
+  };
+
+  const handleLike = async (postId: string) => {
+    if (likingPosts.has(postId)) return;
+    setLikingPosts((prev) => new Set(prev).add(postId));
+
+    const { data, error } = await supabase.functions.invoke("like-post", {
+      body: { post_id: postId },
+    });
+
+    if (error || data?.error) {
+      toast.error(data?.message || "좋아요에 실패했습니다.");
+    } else {
+      toast.success("좋아요! ❤️");
+    }
+
+    setTimeout(() => {
+      setLikingPosts((prev) => {
+        const next = new Set(prev);
+        next.delete(postId);
+        return next;
+      });
+    }, 1000);
+  };
+
+  const toggleComments = async (postId: string) => {
+    if (expandedPostId === postId) {
+      setExpandedPostId(null);
+      return;
+    }
+    setExpandedPostId(postId);
+
+    const { data } = await supabase
+      .from("post_comments")
+      .select("*")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: true })
+      .limit(50);
+
+    setPostComments(data || []);
+  };
+
+  const handleSubmitComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!expandedPostId) return;
+
+    if (commentNickname.trim().length < 2) {
+      toast.error("닉네임은 2자 이상이어야 합니다.");
+      return;
+    }
+    if (commentMessage.trim().length < 2) {
+      toast.error("댓글은 2자 이상이어야 합니다.");
+      return;
+    }
+
+    setCommentSubmitting(true);
+    const { error } = await supabase.from("post_comments").insert({
+      post_id: expandedPostId,
+      nickname: commentNickname.trim(),
+      message: commentMessage.trim(),
+    });
+
+    if (error) {
+      toast.error("댓글 작성에 실패했습니다.");
+    } else {
+      setCommentMessage("");
+      // Refresh comments
+      const { data } = await supabase
+        .from("post_comments")
+        .select("*")
+        .eq("post_id", expandedPostId)
+        .order("created_at", { ascending: true })
+        .limit(50);
+      setPostComments(data || []);
+    }
+    setCommentSubmitting(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-background pb-24">
+      {/* Header */}
+      <header className="sticky top-0 z-40 glass border-b border-glass-border">
+        <div className="container max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
+          <button
+            onClick={() => navigate(`/creator/${id}`)}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Crown className="w-5 h-5 text-neon-purple shrink-0" />
+            <span className="text-lg font-bold gradient-text truncate">
+              {creatorName} 게시판
+            </span>
+          </div>
+          <button
+            onClick={() => setShowWrite(!showWrite)}
+            className="glass-sm p-2 rounded-lg text-neon-cyan hover:border-neon-cyan/50 transition-all"
+          >
+            {showWrite ? <X className="w-5 h-5" /> : <MessageSquarePlus className="w-5 h-5" />}
+          </button>
+        </div>
+      </header>
+
+      <main className="container max-w-lg mx-auto px-4 py-6 space-y-4">
+        {/* Write Form */}
+        {showWrite && (
+          <form onSubmit={handleSubmitPost} className="glass p-4 space-y-3 animate-slide-up">
+            <h3 className="text-sm font-semibold gradient-text">✍️ 새 게시글 작성</h3>
+            <Input
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              placeholder="닉네임 (2~20자)"
+              maxLength={20}
+              className="glass-sm bg-card/30 border-glass-border focus:border-neon-purple/50 text-sm"
+            />
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="제목 (2~100자)"
+              maxLength={100}
+              className="glass-sm bg-card/30 border-glass-border focus:border-neon-purple/50 text-sm"
+            />
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="내용을 입력하세요 (10~2000자)"
+              maxLength={2000}
+              rows={4}
+              className="w-full rounded-md glass-sm bg-card/30 border border-glass-border focus:border-neon-purple/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none resize-none"
+            />
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-muted-foreground">{content.length}/2000</span>
+              <Button
+                type="submit"
+                disabled={submitting}
+                size="sm"
+                className="gradient-primary text-primary-foreground rounded-lg text-xs px-4"
+              >
+                {submitting ? "등록 중..." : "게시하기"}
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {/* Posts List */}
+        {loading ? (
+          <div className="text-center py-12 text-muted-foreground text-sm">로딩 중...</div>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-16 space-y-3">
+            <MessageCircle className="w-10 h-10 mx-auto text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground">
+              아직 게시글이 없어요.
+              <br />
+              첫 번째 글을 작성해보세요! ✍️
+            </p>
+            <button
+              onClick={() => setShowWrite(true)}
+              className="text-xs text-neon-cyan hover:underline"
+            >
+              글 작성하기 →
+            </button>
+          </div>
+        ) : (
+          posts.map((post) => (
+            <div key={post.id} className="glass p-4 space-y-2">
+              {/* Post Header */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-neon-purple">{post.nickname}</span>
+                <span className="text-[10px] text-muted-foreground">
+                  {formatDistanceToNow(new Date(post.created_at), {
+                    locale: ko,
+                    addSuffix: true,
+                  })}
+                </span>
+              </div>
+
+              {/* Post Content */}
+              <h4 className="text-sm font-semibold">{post.title}</h4>
+              <p className="text-xs text-foreground/80 whitespace-pre-wrap">{post.content}</p>
+
+              {/* Actions */}
+              <div className="flex items-center gap-4 pt-1">
+                <button
+                  onClick={() => handleLike(post.id)}
+                  disabled={likingPosts.has(post.id)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-neon-red transition-colors"
+                >
+                  <Heart
+                    className={`w-3.5 h-3.5 ${likingPosts.has(post.id) ? "fill-neon-red text-neon-red" : ""}`}
+                  />
+                  <span>{post.likes_count}</span>
+                </button>
+                <button
+                  onClick={() => toggleComments(post.id)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-neon-cyan transition-colors"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>{post.comments_count}</span>
+                  {expandedPostId === post.id ? (
+                    <ChevronUp className="w-3 h-3" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3" />
+                  )}
+                </button>
+              </div>
+
+              {/* Comments Section */}
+              {expandedPostId === post.id && (
+                <div className="space-y-2 pt-2 border-t border-glass-border">
+                  {postComments.length === 0 ? (
+                    <p className="text-[10px] text-muted-foreground text-center py-2">
+                      아직 댓글이 없어요
+                    </p>
+                  ) : (
+                    <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                      {postComments.map((c) => (
+                        <div key={c.id} className="glass-sm px-2.5 py-2 space-y-0.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-semibold text-neon-cyan">
+                              {c.nickname}
+                            </span>
+                            <span className="text-[9px] text-muted-foreground">
+                              {formatDistanceToNow(new Date(c.created_at), {
+                                locale: ko,
+                                addSuffix: true,
+                              })}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-foreground/80">{c.message}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Comment Input */}
+                  <form onSubmit={handleSubmitComment} className="flex gap-2">
+                    <Input
+                      value={commentNickname}
+                      onChange={(e) => setCommentNickname(e.target.value)}
+                      placeholder="닉네임"
+                      maxLength={20}
+                      className="w-20 glass-sm bg-card/30 border-glass-border text-[11px] h-8 px-2"
+                    />
+                    <Input
+                      value={commentMessage}
+                      onChange={(e) => setCommentMessage(e.target.value)}
+                      placeholder="댓글 입력..."
+                      maxLength={500}
+                      className="flex-1 glass-sm bg-card/30 border-glass-border text-[11px] h-8 px-2"
+                    />
+                    <button
+                      type="submit"
+                      disabled={commentSubmitting}
+                      className="glass-sm p-1.5 rounded-md text-neon-cyan hover:border-neon-cyan/50 transition-all shrink-0"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default CreatorBoard;
