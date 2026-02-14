@@ -211,7 +211,13 @@ const Index = () => {
                 style={{ animationDelay: `${i * 60}ms` }}
                 className="animate-slide-up"
               >
-                <RankingCard creator={creator} creators={creators} onVote={handleVote} />
+                <RankingCard
+                  creator={creator}
+                  creators={creators}
+                  onVote={handleVote}
+                  maxSubs={Math.max(...creators.map(c => c.subscriber_count), 1)}
+                  maxVotes={Math.max(...creators.map(c => c.votes_count), 1)}
+                />
               </div>
             ))
           )}
