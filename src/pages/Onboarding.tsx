@@ -3,18 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Crown, Upload, Zap, ArrowLeft, Camera, Check } from "lucide-react";
+import { Crown, Upload, Zap, ArrowLeft, Camera, Check, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 const CATEGORIES = [
-  { value: "게임", emoji: "🎮" },
-  { value: "먹방", emoji: "🍔" },
-  { value: "뷰티", emoji: "💄" },
-  { value: "음악", emoji: "🎵" },
-  { value: "일상", emoji: "📷" },
-  { value: "교육", emoji: "📚" },
-  { value: "테크", emoji: "💻" },
-  { value: "스포츠", emoji: "⚽" },
+  { value: "게임", emoji: "🎮", sub: ["게임", "게임/스트리밍"] },
+  { value: "먹방/요리", emoji: "🍽️", sub: ["먹방/요리"] },
+  { value: "뷰티/패션", emoji: "💄", sub: ["뷰티/패션"] },
+  { value: "음악/커버", emoji: "🎵", sub: ["음악/커버"] },
+  { value: "fitness/운동", emoji: "💪", sub: ["fitness/운동"] },
+  { value: "여행/브이로그", emoji: "✈️", sub: ["여행/브이로그"] },
+  { value: "테크/코딩", emoji: "💻", sub: ["테크/코딩"] },
+  { value: "교육/독서", emoji: "📚", sub: ["교육/독서"] },
+  { value: "댄스/퍼포먼스", emoji: "💃", sub: ["댄스/퍼포먼스"] },
+  { value: "아트/일러스트", emoji: "🎨", sub: ["아트/일러스트"] },
 ];
 
 const Onboarding = () => {
@@ -25,9 +27,12 @@ const Onboarding = () => {
   const [channelLink, setChannelLink] = useState("");
   const [subscriberCount, setSubscriberCount] = useState("");
   const [category, setCategory] = useState("");
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const selectedCategoryObj = CATEGORIES.find((c) => c.value === category);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -190,28 +195,52 @@ const Onboarding = () => {
             <p className="text-[10px] text-muted-foreground">영향력 지수에 40% 반영됩니다</p>
           </div>
 
-          {/* Category */}
+          {/* Category Dropdown */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">카테고리 *</label>
-            <div className="grid grid-cols-4 gap-2">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.value}
-                  type="button"
-                  onClick={() => setCategory(cat.value)}
-                  className={`flex flex-col items-center gap-1 py-3 rounded-xl text-xs font-medium transition-all ${
-                    category === cat.value
-                      ? "glass neon-glow-purple border-neon-purple/50 text-foreground"
-                      : "glass-sm text-muted-foreground hover:text-foreground hover:border-glass-border"
-                  }`}
-                >
-                  <span className="text-lg">{cat.emoji}</span>
-                  <span>{cat.value}</span>
-                  {category === cat.value && (
-                    <Check className="w-3 h-3 text-neon-purple" />
-                  )}
-                </button>
-              ))}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl glass-sm bg-card/30 border text-sm transition-colors ${
+                  showCategoryDropdown
+                    ? "border-neon-purple/50"
+                    : "border-glass-border"
+                } ${category ? "text-foreground" : "text-muted-foreground"}`}
+              >
+                <span>
+                  {selectedCategoryObj
+                    ? `${selectedCategoryObj.emoji} ${selectedCategoryObj.value}`
+                    : "카테고리를 선택하세요"}
+                </span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${showCategoryDropdown ? "rotate-180" : ""}`} />
+              </button>
+
+              {showCategoryDropdown && (
+                <div className="absolute z-50 mt-2 w-full rounded-xl bg-card border border-glass-border shadow-xl shadow-background/50 overflow-hidden">
+                  <div className="max-h-60 overflow-y-auto">
+                    {CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.value}
+                        type="button"
+                        onClick={() => {
+                          setCategory(cat.value);
+                          setShowCategoryDropdown(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
+                          category === cat.value
+                            ? "bg-neon-purple/20 text-neon-purple"
+                            : "text-foreground hover:bg-card/80"
+                        }`}
+                      >
+                        <span className="text-lg">{cat.emoji}</span>
+                        <span className="flex-1 text-left">{cat.value}</span>
+                        {category === cat.value && <Check className="w-4 h-4 text-neon-purple" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

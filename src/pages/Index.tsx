@@ -6,7 +6,7 @@ import RankingCard from "@/components/RankingCard";
 import CountdownTimer from "@/components/CountdownTimer";
 import LiveFeed from "@/components/LiveFeed";
 import FanComments from "@/components/FanComments";
-import { Crown, TrendingUp, Ticket, UserPlus, Trophy } from "lucide-react";
+import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 const CATEGORY_TABS = [
@@ -23,6 +23,8 @@ const CATEGORY_TABS = [
   { label: "💃 댄스", value: "댄스" },
 ];
 
+const PAGE_SIZE = 20;
+
 const Index = () => {
   const [creators, setCreators] = useState<Creator[]>([]);
   const [extraVotes, setExtraVotes] = useState(0);
@@ -30,11 +32,34 @@ const Index = () => {
   const [todayVoted, setTodayVoted] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const filteredCreators = useMemo(() => {
-    if (selectedCategory === "all") return creators;
-    return creators.filter((c) => c.category.includes(selectedCategory));
-  }, [creators, selectedCategory]);
+    let result = creators;
+    if (selectedCategory !== "all") {
+      result = result.filter((c) => c.category.includes(selectedCategory));
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(
+        (c) => c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [creators, selectedCategory, searchQuery]);
+
+  const visibleCreators = useMemo(
+    () => filteredCreators.slice(0, visibleCount),
+    [filteredCreators, visibleCount]
+  );
+
+  const hasMore = visibleCount < filteredCreators.length;
+
+  // Reset visible count when filter/search changes
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [selectedCategory, searchQuery]);
 
   // Fetch creators from DB
   useEffect(() => {
@@ -103,7 +128,6 @@ const Index = () => {
     });
 
     if (error) {
-      // Try to parse error context for edge function HTTP errors
       let msg = "투표에 실패했습니다.";
       try {
         const ctx = JSON.parse(error.context?.body || "{}");
@@ -220,6 +244,26 @@ const Index = () => {
         {/* Fan Comments */}
         <FanComments />
 
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="크리에이터 검색..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl glass-sm bg-card/30 border border-glass-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-neon-purple/50 transition-colors"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
         {/* Category Tabs */}
         <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
           <div className="flex gap-2 pb-1 w-max">
@@ -239,28 +283,49 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Result count */}
+        {!loading && (
+          <div className="text-xs text-muted-foreground">
+            {searchQuery ? `"${searchQuery}" 검색 결과: ` : ""}
+            {filteredCreators.length}명의 크리에이터
+          </div>
+        )}
+
         {/* Rankings */}
         <div className="space-y-3">
           {loading ? (
             <div className="text-center py-8 text-muted-foreground text-sm">로딩 중...</div>
           ) : filteredCreators.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground text-sm">해당 카테고리의 크리에이터가 없습니다</div>
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              {searchQuery ? `"${searchQuery}"에 대한 결과가 없습니다` : "해당 카테고리의 크리에이터가 없습니다"}
+            </div>
           ) : (
-            filteredCreators.map((creator, i) => (
-              <div
-                key={creator.id}
-                style={{ animationDelay: `${i * 60}ms` }}
-                className="animate-slide-up"
-              >
-                <RankingCard
-                  creator={creator}
-                  creators={creators}
-                  onVote={handleVote}
-                  maxSubs={Math.max(...filteredCreators.map(c => c.subscriber_count), 1)}
-                  maxVotes={Math.max(...filteredCreators.map(c => c.votes_count), 1)}
-                />
-              </div>
-            ))
+            <>
+              {visibleCreators.map((creator, i) => (
+                <div
+                  key={creator.id}
+                  style={{ animationDelay: `${i * 60}ms` }}
+                  className="animate-slide-up"
+                >
+                  <RankingCard
+                    creator={creator}
+                    creators={creators}
+                    onVote={handleVote}
+                    maxSubs={Math.max(...filteredCreators.map(c => c.subscriber_count), 1)}
+                    maxVotes={Math.max(...filteredCreators.map(c => c.votes_count), 1)}
+                  />
+                </div>
+              ))}
+              {hasMore && (
+                <button
+                  onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
+                  className="w-full glass-sm p-3 flex items-center justify-center gap-2 text-sm font-medium text-neon-cyan hover:border-neon-cyan/50 transition-all rounded-xl"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                  더 보기 ({filteredCreators.length - visibleCount}명 남음)
+                </button>
+              )}
+            </>
           )}
         </div>
       </main>
