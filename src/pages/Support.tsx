@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import ThemeToggle from "@/components/ThemeToggle";
 import { ArrowLeft, Crown, Monitor, Megaphone, Gift, Star, Trophy, Zap, Target, Award } from "lucide-react";
 
 const REWARDS = [
@@ -50,10 +51,11 @@ const Support = () => {
           <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <Crown className="w-5 h-5 text-neon-purple" />
             <span className="text-lg font-bold gradient-text">보상 안내</span>
           </div>
+          <ThemeToggle />
         </div>
       </header>
 

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Crown, Upload, Zap, ArrowLeft, Camera, Check, ChevronDown } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 
 const CATEGORIES = [
@@ -103,10 +104,11 @@ const Onboarding = () => {
           <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <Crown className="w-5 h-5 text-neon-purple" />
             <span className="text-lg font-bold gradient-text">크리에이터 등록</span>
           </div>
+          <ThemeToggle />
         </div>
       </header>
 

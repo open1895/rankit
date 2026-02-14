@@ -1,6 +1,15 @@
 <!doctype html>
-<html lang="ko" class="dark">
+<html lang="ko">
   <head>
+    <script>
+      // Apply saved theme before render to prevent flash
+      (function() {
+        var theme = localStorage.getItem('theme');
+        if (theme === 'light') {
+          document.documentElement.classList.add('light');
+        }
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rank It (랭크잇) - 크리에이터 영향력 랭킹 플랫폼</title>
