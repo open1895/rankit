@@ -31,10 +31,10 @@ const RankingCard = ({ creator, creators, onVote }: RankingCardProps) => {
   const initials = creator.avatar_url || creator.name.slice(0, 2);
 
   return (
-    <div className={`glass p-4 flex items-center gap-3 sm:gap-4 transition-all duration-300 hover:border-neon-purple/40 group ${creator.rank <= 3 ? "neon-glow-purple" : ""}`}>
+    <div className={`glass p-3 sm:p-4 flex items-center gap-2 sm:gap-4 transition-all duration-300 hover:border-neon-purple/40 group ${creator.rank <= 3 ? "neon-glow-purple" : ""}`}>
       {/* Rank */}
-      <div className="flex flex-col items-center w-10 shrink-0">
-        <span className={`text-2xl font-bold ${rankStyle}`}>
+      <div className="flex flex-col items-center w-8 sm:w-10 shrink-0">
+        <span className={`text-xl sm:text-2xl font-bold ${rankStyle}`}>
           {creator.rank}
         </span>
         <div className="flex items-center gap-0.5 mt-0.5">
@@ -56,7 +56,7 @@ const RankingCard = ({ creator, creators, onVote }: RankingCardProps) => {
 
       {/* Avatar */}
       <div className="relative shrink-0">
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold ${
+        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold ${
           creator.rank === 1
             ? "gradient-primary text-primary-foreground neon-glow-purple"
             : "gradient-primary text-primary-foreground"
@@ -101,7 +101,7 @@ const RankingCard = ({ creator, creators, onVote }: RankingCardProps) => {
       <button
         onClick={handleVote}
         disabled={isVoting}
-        className={`shrink-0 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
+        className={`shrink-0 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 ${
           isVoting
             ? "gradient-primary scale-110 animate-count-up"
             : "glass-sm border-neon-purple/30 text-neon-purple hover:neon-glow-purple hover:border-neon-purple/60 active:scale-95"
