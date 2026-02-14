@@ -20,6 +20,8 @@ import {
   Share2,
   MessageCircle,
   MessageSquare,
+  Medal,
+  Star,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -63,6 +65,7 @@ const CreatorProfile = () => {
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [activityData, setActivityData] = useState({ posts: 0, postComments: 0, postLikes: 0 });
   const [maxValues, setMaxValues] = useState({ maxSubs: 1, maxVotes: 1, maxActivity: 1 });
+  const [fanRanking, setFanRanking] = useState<{ nickname: string; score: number; votes: number; posts: number; comments: number }[]>([]);
 
   useEffect(() => {
     if (!id) return;
@@ -136,6 +139,46 @@ const CreatorProfile = () => {
           maxActivity: 1, // Will be computed below
         });
       }
+
+      // Build fan ranking from comments + posts
+      const fanMap = new Map<string, { votes: number; posts: number; comments: number }>();
+
+      // From comments (vote messages)
+      (commentsRes.data || []).forEach((c) => {
+        const entry = fanMap.get(c.nickname) || { votes: 0, posts: 0, comments: 0 };
+        entry.votes += c.vote_count;
+        fanMap.set(c.nickname, entry);
+      });
+
+      // From posts
+      const postsForFans = await supabase.from("posts").select("nickname").eq("creator_id", creatorId);
+      (postsForFans.data || []).forEach((p) => {
+        const entry = fanMap.get(p.nickname) || { votes: 0, posts: 0, comments: 0 };
+        entry.posts += 1;
+        fanMap.set(p.nickname, entry);
+      });
+
+      // From post_comments
+      const postIds = (await supabase.from("posts").select("id").eq("creator_id", creatorId)).data?.map(p => p.id) || [];
+      if (postIds.length > 0) {
+        const pcRes = await supabase.from("post_comments").select("nickname, post_id");
+        (pcRes.data || []).filter(pc => postIds.includes(pc.post_id)).forEach((pc) => {
+          const entry = fanMap.get(pc.nickname) || { votes: 0, posts: 0, comments: 0 };
+          entry.comments += 1;
+          fanMap.set(pc.nickname, entry);
+        });
+      }
+
+      const ranking = Array.from(fanMap.entries())
+        .map(([nickname, data]) => ({
+          nickname,
+          score: data.votes * 3 + data.posts * 2 + data.comments,
+          ...data,
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
+
+      setFanRanking(ranking);
 
       setLoading(false);
     };
@@ -509,6 +552,58 @@ const CreatorProfile = () => {
                 />
               </AreaChart>
             </ResponsiveContainer>
+          )}
+        </div>
+
+        {/* Fan Ranking Leaderboard */}
+        <div className="glass p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Medal className="w-4 h-4 text-neon-purple" />
+            <h3 className="text-sm font-semibold">🏅 팬 랭킹 TOP 10</h3>
+          </div>
+          {fanRanking.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground text-xs">
+              아직 팬 활동 데이터가 없어요.
+              <br />
+              투표하고 게시판에 참여해보세요! 🔥
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {fanRanking.map((fan, idx) => {
+                const medalColors = ["text-yellow-400", "text-gray-300", "text-amber-600"];
+                return (
+                  <div
+                    key={fan.nickname}
+                    className={`glass-sm px-3 py-2.5 flex items-center gap-3 ${idx < 3 ? "border border-neon-purple/20" : ""}`}
+                  >
+                    <div className="w-6 text-center shrink-0">
+                      {idx < 3 ? (
+                        <Trophy className={`w-4 h-4 mx-auto ${medalColors[idx]}`} />
+                      ) : (
+                        <span className="text-xs font-bold text-muted-foreground">{idx + 1}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-xs font-bold truncate ${idx === 0 ? "text-yellow-400" : idx === 1 ? "text-gray-300" : idx === 2 ? "text-amber-600" : "text-foreground"}`}>
+                          {fan.nickname}
+                        </span>
+                        {idx === 0 && <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 shrink-0" />}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[9px] text-muted-foreground">투표 {fan.votes}</span>
+                        <span className="text-[9px] text-muted-foreground">게시글 {fan.posts}</span>
+                        <span className="text-[9px] text-muted-foreground">댓글 {fan.comments}</span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-bold gradient-text">{fan.score}</div>
+                      <div className="text-[8px] text-muted-foreground">점</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
 
