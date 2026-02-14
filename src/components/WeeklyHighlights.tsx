@@ -19,7 +19,6 @@ const WeeklyHighlights = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      // Get the most recent week's highlights
       const { data } = await supabase
         .from("weekly_highlights")
         .select("*")
@@ -31,7 +30,6 @@ const WeeklyHighlights = () => {
         return;
       }
 
-      // Fetch creator info
       const creatorIds = data.map((h) => h.creator_id);
       const { data: creators } = await supabase
         .from("creators")
@@ -55,47 +53,47 @@ const WeeklyHighlights = () => {
   if (loading || highlights.length === 0) return null;
 
   return (
-    <div className="glass p-4 space-y-3">
-      <div className="flex items-center gap-2">
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 px-1">
         <Sparkles className="w-4 h-4 text-neon-purple" />
-        <h3 className="text-sm font-semibold">✨ 주간 하이라이트</h3>
+        <h3 className="text-sm font-bold gradient-text">주간 하이라이트</h3>
       </div>
 
-      <div className="overflow-x-auto -mx-2 px-2">
-        <div className="flex gap-3 w-max pb-1">
+      <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+        <div className="flex gap-3 w-max pb-2">
           {highlights.map((h) => (
             <Link
               key={h.id}
               to={`/creator/${h.creator_id}`}
-              className="glass-sm p-3 w-40 shrink-0 space-y-2 hover:border-neon-purple/50 transition-all"
+              className="glass glass-hover p-3.5 w-44 shrink-0 space-y-2.5 group"
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 {h.creator?.avatar_url ? (
                   <img
                     src={h.creator.avatar_url}
                     alt={h.creator?.name}
-                    className="w-8 h-8 rounded-full object-cover"
+                    className="w-9 h-9 rounded-full object-cover ring-2 ring-neon-purple/20 group-hover:ring-neon-purple/50 transition-all"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground">
+                  <div className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground shadow-md shadow-primary/20">
                     {h.creator?.name?.slice(0, 2) || "?"}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold truncate">{h.creator?.name}</div>
+                  <div className="text-xs font-semibold truncate group-hover:text-neon-cyan transition-colors">{h.creator?.name}</div>
                   <div className="text-[10px] text-muted-foreground">{h.creator?.rank}위</div>
                 </div>
               </div>
 
               <div className="flex items-center gap-1.5">
                 {h.rank_change > 0 ? (
-                  <TrendingUp className="w-3 h-3 text-green-400" />
+                  <TrendingUp className="w-3.5 h-3.5 text-green-400" />
                 ) : h.rank_change < 0 ? (
-                  <TrendingDown className="w-3 h-3 text-destructive" />
+                  <TrendingDown className="w-3.5 h-3.5 text-destructive" />
                 ) : (
-                  <Minus className="w-3 h-3 text-muted-foreground" />
+                  <Minus className="w-3.5 h-3.5 text-muted-foreground" />
                 )}
-                <span className={`text-[10px] font-medium ${
+                <span className={`text-xs font-semibold ${
                   h.rank_change > 0 ? "text-green-400" : h.rank_change < 0 ? "text-destructive" : "text-muted-foreground"
                 }`}>
                   {h.rank_change > 0 ? `+${h.rank_change}` : h.rank_change}단계
@@ -103,12 +101,12 @@ const WeeklyHighlights = () => {
               </div>
 
               {h.vote_increase > 0 && (
-                <div className="text-[10px] text-neon-cyan">+{h.vote_increase}표</div>
+                <div className="text-xs text-neon-cyan font-medium">+{h.vote_increase}표 ↑</div>
               )}
 
               {h.top_fan_nickname && (
-                <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-                  <Star className="w-2.5 h-2.5" />
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <Star className="w-3 h-3 text-neon-purple/60" />
                   MVP: {h.top_fan_nickname}
                 </div>
               )}
