@@ -62,6 +62,7 @@ export type Database = {
           is_verified: boolean
           name: string
           rank: number
+          subscriber_count: number
           votes_count: number
         }
         Insert: {
@@ -73,6 +74,7 @@ export type Database = {
           is_verified?: boolean
           name: string
           rank?: number
+          subscriber_count?: number
           votes_count?: number
         }
         Update: {
@@ -84,6 +86,7 @@ export type Database = {
           is_verified?: boolean
           name?: string
           rank?: number
+          subscriber_count?: number
           votes_count?: number
         }
         Relationships: []
