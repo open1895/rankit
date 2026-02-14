@@ -91,8 +91,8 @@ const FanLeaderboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-40 glass border-b border-glass-border">
+    <div className="min-h-screen bg-background mesh-bg pb-24">
+      <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground transition-colors">
@@ -131,7 +131,7 @@ const FanLeaderboard = () => {
 
         {/* Leaderboard */}
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">로딩 중...</div>
+          <div className="space-y-2">{[...Array(5)].map((_, i) => <div key={i} className="glass p-3 h-14 animate-pulse rounded-2xl" />)}</div>
         ) : fans.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground text-sm">
             아직 활동 기록이 없습니다. 투표하고 게시글을 작성해보세요!
@@ -141,7 +141,7 @@ const FanLeaderboard = () => {
             {fans.map((fan, i) => (
               <div
                 key={fan.nickname}
-                className={`glass p-3 flex items-center gap-3 transition-all ${getRankStyle(i + 1)}`}
+                className={`glass glass-hover p-3 flex items-center gap-3 transition-all ${getRankStyle(i + 1)}`}
               >
                 <div className="w-8 h-8 flex items-center justify-center shrink-0">
                   {getRankIcon(i + 1)}

@@ -298,10 +298,10 @@ const CreatorBoard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background mesh-bg pb-24">
       <ScorePopup score={scorePopup.score} label={scorePopup.label} trigger={scorePopup.trigger} />
       {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b border-glass-border">
+      <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
           <button
             onClick={() => navigate(`/creator/${id}`)}

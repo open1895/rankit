@@ -301,9 +301,9 @@ const CreatorProfile = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background mesh-bg pb-24">
       {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b border-glass-border">
+      <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
           <button
             onClick={() => navigate("/")}
@@ -320,7 +320,7 @@ const CreatorProfile = () => {
 
       <main className="container max-w-lg mx-auto px-4 py-6 space-y-6">
         {/* Profile Card */}
-        <div className="glass p-6 text-center space-y-4">
+        <div className="glass p-6 text-center space-y-4 animate-fade-in-up">
           {/* Avatar */}
           <div className="flex justify-center">
             <div className="relative">
@@ -328,10 +328,10 @@ const CreatorProfile = () => {
                 <img
                   src={creator.avatar_url}
                   alt={creator.name}
-                  className="w-20 h-20 rounded-full object-cover border-2 border-neon-purple/50"
+                  className="w-20 h-20 rounded-full object-cover ring-3 ring-neon-purple/30 ring-offset-2 ring-offset-background"
                 />
               ) : (
-                <div className="w-20 h-20 rounded-full gradient-primary flex items-center justify-center text-xl font-bold text-primary-foreground">
+                <div className="w-20 h-20 rounded-full gradient-primary flex items-center justify-center text-xl font-bold text-primary-foreground shadow-xl shadow-primary/30">
                   {creator.rank <= 3 ? <Trophy className="w-8 h-8" /> : creator.name.slice(0, 2)}
                 </div>
               )}
@@ -406,13 +406,13 @@ const CreatorProfile = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="glass-sm p-4 text-center space-y-1">
-            <div className="text-2xl font-bold gradient-text">{creator.rank}</div>
+        <div className="grid grid-cols-2 gap-3" style={{ animationDelay: '100ms' }}>
+          <div className="glass-sm glass-hover p-4 text-center space-y-1">
+            <div className="text-2xl font-bold gradient-text neon-text-purple">{creator.rank}</div>
             <div className="text-[11px] text-muted-foreground">현재 순위</div>
           </div>
-          <div className="glass-sm p-4 text-center space-y-1">
-            <div className="text-2xl font-bold text-neon-cyan">
+          <div className="glass-sm glass-hover p-4 text-center space-y-1">
+            <div className="text-2xl font-bold text-neon-cyan neon-text-cyan">
               {topPercent <= 0 ? "—" : `${topPercent}%`}
             </div>
             <div className="text-[11px] text-muted-foreground">상위 퍼센트</div>
