@@ -8,6 +8,8 @@ import Onboarding from "./pages/Onboarding";
 import CreatorProfile from "./pages/CreatorProfile";
 import CreatorBoard from "./pages/CreatorBoard";
 import Support from "./pages/Support";
+import SeasonArchive from "./pages/SeasonArchive";
+import CompareCreators from "./pages/CompareCreators";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +26,8 @@ const App = () => (
           <Route path="/creator/:id" element={<CreatorProfile />} />
           <Route path="/creator/:id/board" element={<CreatorBoard />} />
           <Route path="/support" element={<Support />} />
+          <Route path="/seasons" element={<SeasonArchive />} />
+          <Route path="/compare" element={<CompareCreators />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

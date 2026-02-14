@@ -7,7 +7,7 @@ import CountdownTimer from "@/components/CountdownTimer";
 import LiveFeed from "@/components/LiveFeed";
 import FanComments from "@/components/FanComments";
 import ThemeToggle from "@/components/ThemeToggle";
-import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown } from "lucide-react";
+import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows } from "lucide-react";
 import { toast } from "sonner";
 
 const CATEGORY_TABS = [
@@ -244,6 +244,28 @@ const Index = () => {
             보상 안내 보기
           </span>
         </Link>
+
+        {/* Navigation Links */}
+        <div className="grid grid-cols-2 gap-2">
+          <Link
+            to="/seasons"
+            className="glass-sm p-3 text-center text-sm font-medium text-neon-cyan hover:border-neon-cyan/50 transition-all"
+          >
+            <span className="inline-flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              시즌 아카이브
+            </span>
+          </Link>
+          <Link
+            to="/compare"
+            className="glass-sm p-3 text-center text-sm font-medium text-neon-purple hover:border-neon-purple/50 transition-all"
+          >
+            <span className="inline-flex items-center gap-2">
+              <GitCompareArrows className="w-4 h-4" />
+              크리에이터 비교
+            </span>
+          </Link>
+        </div>
 
         {/* Fan Comments */}
         <FanComments />
