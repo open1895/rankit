@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import RankingCard from "@/components/RankingCard";
 import CountdownTimer from "@/components/CountdownTimer";
 import LiveFeed from "@/components/LiveFeed";
-import { Crown, TrendingUp, Ticket, UserPlus } from "lucide-react";
+import { Crown, TrendingUp, Ticket, UserPlus, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -167,6 +167,17 @@ const Index = () => {
           <span className="inline-flex items-center gap-2">
             <UserPlus className="w-4 h-4" />
             크리에이터로 등록하기
+          </span>
+        </Link>
+
+        {/* Rewards CTA */}
+        <Link
+          to="/support"
+          className="block w-full glass-sm p-3 text-center text-sm font-medium text-neon-cyan hover:border-neon-cyan/50 transition-all"
+        >
+          <span className="inline-flex items-center gap-2">
+            <Trophy className="w-4 h-4" />
+            보상 안내 보기
           </span>
         </Link>
 
