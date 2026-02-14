@@ -1,19 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Share2, Download, Copy, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { initKakao, shareToKakao } from "@/lib/kakao";
 
 interface ShareCardProps {
   creatorId: string;
   creatorName: string;
+  rank?: number;
+  votesCount?: number;
   onClose: () => void;
 }
 
-const ShareCard = ({ creatorId, creatorName, onClose }: ShareCardProps) => {
+const ShareCard = ({ creatorId, creatorName, rank, votesCount, onClose }: ShareCardProps) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [kakaoReady, setKakaoReady] = useState(false);
+
+  useEffect(() => {
+    const ready = initKakao();
+    setKakaoReady(ready);
+  }, []);
 
   const generateCard = async () => {
     setLoading(true);
@@ -64,7 +73,18 @@ const ShareCard = ({ creatorId, creatorName, onClose }: ShareCardProps) => {
   };
 
   const handleShareKakao = () => {
-    window.open(`https://story.kakao.com/share?url=${encodeURIComponent(shareUrl)}`, "_blank");
+    const rankText = rank ? `현재 ${rank}위` : "";
+    const votesText = votesCount ? ` · ${votesCount.toLocaleString()}표` : "";
+    const description = `${rankText}${votesText} — 팬 투표로 결정되는 크리에이터 랭킹!`;
+
+    shareToKakao({
+      title: `🏆 ${creatorName} - Rank It`,
+      description,
+      imageUrl: imageUrl || `${window.location.origin}/og-image.png`,
+      webUrl: shareUrl,
+      mobileWebUrl: shareUrl,
+      buttonTitle: "투표하러 가기 🗳️",
+    });
   };
 
   const handleShareFacebook = () => {
@@ -168,9 +188,9 @@ const ShareCard = ({ creatorId, creatorName, onClose }: ShareCardProps) => {
           </button>
           <button
             onClick={handleShareKakao}
-            className="glass-sm p-3 text-center text-sm font-medium hover:border-neon-purple/50 transition-all rounded-xl"
+            className="glass-sm p-3 text-center text-sm font-medium hover:border-[hsl(50_100%_50%)]/50 transition-all rounded-xl border border-[hsl(50_100%_50%)]/20 bg-[hsl(50_100%_50%)]/5"
           >
-            💬 카카오
+            💬 카카오톡
           </button>
           <button
             onClick={handleShareFacebook}
