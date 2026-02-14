@@ -32,6 +32,9 @@ import {
   CartesianGrid,
   Area,
   AreaChart,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 
 interface CommentItem {
@@ -58,6 +61,8 @@ const CreatorProfile = () => {
   const [totalCreators, setTotalCreators] = useState(0);
   const [showShare, setShowShare] = useState(false);
   const [comments, setComments] = useState<CommentItem[]>([]);
+  const [activityData, setActivityData] = useState({ posts: 0, postComments: 0, postLikes: 0 });
+  const [maxValues, setMaxValues] = useState({ maxSubs: 1, maxVotes: 1, maxActivity: 1 });
 
   useEffect(() => {
     if (!id) return;
@@ -103,6 +108,35 @@ const CreatorProfile = () => {
       setRankHistory(historyRes.data || []);
       setComments(commentsRes.data || []);
       setTotalCreators(countRes.count || 0);
+
+      // Fetch activity data for influence chart
+      const creatorId = c.id;
+      const [postsRes, postCommentsRes, postLikesRes, allCreatorsRes] = await Promise.all([
+        supabase.from("posts").select("id", { count: "exact", head: true }).eq("creator_id", creatorId),
+        supabase.from("post_comments").select("id, post_id").then(async (res) => {
+          if (!res.data) return 0;
+          const postIds = (await supabase.from("posts").select("id").eq("creator_id", creatorId)).data?.map(p => p.id) || [];
+          return res.data.filter(pc => postIds.includes(pc.post_id)).length;
+        }),
+        supabase.from("posts").select("id, likes_count").eq("creator_id", creatorId),
+        supabase.from("creators").select("subscriber_count, votes_count"),
+      ]);
+
+      const totalLikes = postLikesRes.data?.reduce((sum, p) => sum + p.likes_count, 0) || 0;
+      const postCount = postsRes.count || 0;
+      const commentCount = typeof postCommentsRes === "number" ? postCommentsRes : 0;
+      setActivityData({ posts: postCount, postComments: commentCount, postLikes: totalLikes });
+
+      // Compute max values for normalization
+      if (allCreatorsRes.data) {
+        const allData = allCreatorsRes.data;
+        setMaxValues({
+          maxSubs: Math.max(1, ...allData.map(cr => cr.subscriber_count)),
+          maxVotes: Math.max(1, ...allData.map(cr => cr.votes_count)),
+          maxActivity: 1, // Will be computed below
+        });
+      }
+
       setLoading(false);
     };
 
@@ -175,6 +209,24 @@ const CreatorProfile = () => {
   }
 
   const topPercent = totalCreators > 0 ? Math.round((creator.rank / totalCreators) * 100) : 0;
+
+  // Compute influence score components (normalized 0-100 scale for display)
+  const activityScore = activityData.postComments + activityData.posts * 2 + activityData.postLikes;
+  const subsNorm = maxValues.maxSubs > 0 ? (creator.subscriber_count / maxValues.maxSubs) * 100 : 0;
+  const votesNorm = maxValues.maxVotes > 0 ? (creator.votes_count / maxValues.maxVotes) * 100 : 0;
+  // For activity, use raw score as percentage (capped at 100)
+  const activityNorm = Math.min(100, activityScore * 5);
+
+  const influenceTotal = subsNorm * 0.4 + votesNorm * 0.4 + activityNorm * 0.2;
+  const subsContrib = influenceTotal > 0 ? (subsNorm * 0.4 / influenceTotal) * 100 : 33;
+  const votesContrib = influenceTotal > 0 ? (votesNorm * 0.4 / influenceTotal) * 100 : 33;
+  const activityContrib = influenceTotal > 0 ? (activityNorm * 0.2 / influenceTotal) * 100 : 34;
+
+  const pieData = [
+    { name: "구독자", value: Math.round(subsContrib), color: "hsl(270 91% 65%)" },
+    { name: "투표", value: Math.round(votesContrib), color: "hsl(187 94% 42%)" },
+    { name: "커뮤니티", value: Math.round(activityContrib), color: "hsl(142 71% 45%)" },
+  ];
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -290,19 +342,65 @@ const CreatorProfile = () => {
 
         {/* Influence Score Breakdown */}
         <div className="glass p-4 space-y-3">
-          <h3 className="text-sm font-semibold">📊 영향력 지수 구성</h3>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="glass-sm p-3 text-center space-y-1">
-              <div className="text-lg font-bold text-neon-purple">{creator.subscriber_count.toLocaleString()}</div>
-              <div className="text-[10px] text-muted-foreground">구독자 (40%)</div>
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-neon-purple" />
+            <h3 className="text-sm font-semibold">📊 영향력 지수 구성</h3>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* Donut Chart */}
+            <div className="relative w-32 h-32 shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={35}
+                    outerRadius={55}
+                    paddingAngle={3}
+                    dataKey="value"
+                    strokeWidth={0}
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-lg font-bold gradient-text">{Math.round(influenceTotal)}</div>
+                  <div className="text-[8px] text-muted-foreground">점수</div>
+                </div>
+              </div>
             </div>
-            <div className="glass-sm p-3 text-center space-y-1">
-              <div className="text-lg font-bold text-neon-cyan">{creator.votes_count.toLocaleString()}</div>
-              <div className="text-[10px] text-muted-foreground">투표 (40%)</div>
+
+            {/* Legend + Stats */}
+            <div className="flex-1 space-y-2.5">
+              {pieData.map((item, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                  <span className="text-[11px] text-muted-foreground flex-1">{item.name}</span>
+                  <span className="text-xs font-bold" style={{ color: item.color }}>{item.value}%</span>
+                </div>
+              ))}
             </div>
-            <div className="glass-sm p-3 text-center space-y-1">
-              <div className="text-lg font-bold text-green-400">{comments.length}</div>
-              <div className="text-[10px] text-muted-foreground">활동 (20%)</div>
+          </div>
+
+          {/* Detail Stats */}
+          <div className="grid grid-cols-3 gap-2 pt-1">
+            <div className="glass-sm p-2.5 text-center space-y-0.5">
+              <div className="text-sm font-bold text-neon-purple">{creator.subscriber_count.toLocaleString()}</div>
+              <div className="text-[9px] text-muted-foreground">구독자</div>
+            </div>
+            <div className="glass-sm p-2.5 text-center space-y-0.5">
+              <div className="text-sm font-bold text-neon-cyan">{creator.votes_count.toLocaleString()}</div>
+              <div className="text-[9px] text-muted-foreground">투표</div>
+            </div>
+            <div className="glass-sm p-2.5 text-center space-y-0.5">
+              <div className="text-sm font-bold text-green-400">{activityScore}</div>
+              <div className="text-[9px] text-muted-foreground">활동점수</div>
             </div>
           </div>
         </div>
