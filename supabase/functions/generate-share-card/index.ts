@@ -5,12 +5,40 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Simple in-memory rate limiter (per isolate)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string, maxRequests: number, windowMs: number): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  if (entry.count >= maxRequests) return false;
+  entry.count++;
+  return true;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    const rawIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("cf-connecting-ip") ||
+      "unknown";
+
+    // Rate limit: max 3 share card generations per hour per IP
+    if (!checkRateLimit(rawIp, 3, 3600_000)) {
+      return new Response(
+        JSON.stringify({ error: "공유 카드 생성 요청이 너무 많습니다. 1시간 후 다시 시도해주세요." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { creator_id } = await req.json();
     if (!creator_id) {
       return new Response(JSON.stringify({ error: "creator_id is required" }), {
@@ -24,7 +52,8 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "LOVABLE_API_KEY not configured" }), {
+      console.error("LOVABLE_API_KEY not configured");
+      return new Response(JSON.stringify({ error: "서버 설정 오류가 발생했습니다." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -40,7 +69,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (creatorError || !creator) {
-      return new Response(JSON.stringify({ error: "Creator not found" }), {
+      return new Response(JSON.stringify({ error: "크리에이터를 찾을 수 없습니다." }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -76,19 +105,19 @@ Style: Futuristic, glassmorphism card, neon purple (#8B5CF6) and cyan (#06B6D4) 
       console.error("AI gateway error:", aiResponse.status, errText);
 
       if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited, please try again later." }), {
+        return new Response(JSON.stringify({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted." }), {
+        return new Response(JSON.stringify({ error: "AI 크레딧이 소진되었습니다." }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      return new Response(JSON.stringify({ error: "Failed to generate image" }), {
+      return new Response(JSON.stringify({ error: "이미지 생성에 실패했습니다." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -98,7 +127,7 @@ Style: Futuristic, glassmorphism card, neon purple (#8B5CF6) and cyan (#06B6D4) 
     const imageDataUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!imageDataUrl) {
-      return new Response(JSON.stringify({ error: "No image generated" }), {
+      return new Response(JSON.stringify({ error: "이미지 생성에 실패했습니다." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -118,7 +147,7 @@ Style: Futuristic, glassmorphism card, neon purple (#8B5CF6) and cyan (#06B6D4) 
 
     if (uploadError) {
       console.error("Upload error:", uploadError);
-      return new Response(JSON.stringify({ error: "Failed to save image" }), {
+      return new Response(JSON.stringify({ error: "이미지 저장에 실패했습니다." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -132,7 +161,7 @@ Style: Futuristic, glassmorphism card, neon purple (#8B5CF6) and cyan (#06B6D4) 
     );
   } catch (err) {
     console.error("generate-share-card error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: "요청을 처리할 수 없습니다." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
