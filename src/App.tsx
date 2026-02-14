@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import CreatorProfile from "./pages/CreatorProfile";
 import CreatorBoard from "./pages/CreatorBoard";
+import MyPage from "./pages/MyPage";
 import Support from "./pages/Support";
 import SeasonArchive from "./pages/SeasonArchive";
 import CompareCreators from "./pages/CompareCreators";
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/creator/:id" element={<CreatorProfile />} />
               <Route path="/creator/:id/board" element={<CreatorBoard />} />
+              <Route path="/mypage" element={<MyPage />} />
               <Route path="/support" element={<Support />} />
               <Route path="/seasons" element={<SeasonArchive />} />
               <Route path="/compare" element={<CompareCreators />} />
