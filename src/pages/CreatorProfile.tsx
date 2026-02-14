@@ -92,6 +92,7 @@ const CreatorProfile = () => {
         category: c.category,
         avatar_url: c.avatar_url,
         votes_count: c.votes_count,
+        subscriber_count: (c as any).subscriber_count ?? 0,
         rank: c.rank,
         previousRank: c.rank,
         is_verified: c.is_verified,
@@ -262,20 +263,35 @@ const CreatorProfile = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <div className="glass-sm p-4 text-center space-y-1">
             <div className="text-2xl font-bold gradient-text">{creator.rank}</div>
             <div className="text-[11px] text-muted-foreground">현재 순위</div>
-          </div>
-          <div className="glass-sm p-4 text-center space-y-1">
-            <div className="text-2xl font-bold text-neon-purple">{creator.votes_count.toLocaleString()}</div>
-            <div className="text-[11px] text-muted-foreground">총 투표수</div>
           </div>
           <div className="glass-sm p-4 text-center space-y-1">
             <div className="text-2xl font-bold text-neon-cyan">
               {topPercent <= 0 ? "—" : `${topPercent}%`}
             </div>
             <div className="text-[11px] text-muted-foreground">상위 퍼센트</div>
+          </div>
+        </div>
+
+        {/* Influence Score Breakdown */}
+        <div className="glass p-4 space-y-3">
+          <h3 className="text-sm font-semibold">📊 영향력 지수 구성</h3>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="glass-sm p-3 text-center space-y-1">
+              <div className="text-lg font-bold text-neon-purple">{creator.subscriber_count.toLocaleString()}</div>
+              <div className="text-[10px] text-muted-foreground">구독자 (40%)</div>
+            </div>
+            <div className="glass-sm p-3 text-center space-y-1">
+              <div className="text-lg font-bold text-neon-cyan">{creator.votes_count.toLocaleString()}</div>
+              <div className="text-[10px] text-muted-foreground">투표 (40%)</div>
+            </div>
+            <div className="glass-sm p-3 text-center space-y-1">
+              <div className="text-lg font-bold text-green-400">{comments.length}</div>
+              <div className="text-[10px] text-muted-foreground">활동 (20%)</div>
+            </div>
           </div>
         </div>
 

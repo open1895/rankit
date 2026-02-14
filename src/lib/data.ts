@@ -4,6 +4,7 @@ export interface Creator {
   category: string;
   avatar_url: string;
   votes_count: number;
+  subscriber_count: number;
   rank: number;
   previousRank: number;
   is_verified: boolean;

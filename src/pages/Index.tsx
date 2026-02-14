@@ -36,6 +36,7 @@ const Index = () => {
           category: c.category,
           avatar_url: c.avatar_url,
           votes_count: c.votes_count,
+          subscriber_count: c.subscriber_count ?? 0,
           rank: c.rank,
           previousRank: c.rank,
           is_verified: c.is_verified,

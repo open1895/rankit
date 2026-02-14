@@ -23,6 +23,7 @@ const Onboarding = () => {
 
   const [name, setName] = useState("");
   const [channelLink, setChannelLink] = useState("");
+  const [subscriberCount, setSubscriberCount] = useState("");
   const [category, setCategory] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -72,6 +73,7 @@ const Onboarding = () => {
         channel_link: channelLink.trim(),
         category,
         avatar_url: avatarUrl,
+        subscriber_count: parseInt(subscriberCount) || 0,
       });
 
       if (error) throw error;
@@ -172,6 +174,20 @@ const Onboarding = () => {
               maxLength={300}
               className="glass-sm bg-card/30 border-glass-border focus:border-neon-purple/50"
             />
+          </div>
+
+          {/* Subscriber Count */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">구독자 수</label>
+            <Input
+              type="number"
+              value={subscriberCount}
+              onChange={(e) => setSubscriberCount(e.target.value)}
+              placeholder="예: 150000"
+              min={0}
+              className="glass-sm bg-card/30 border-glass-border focus:border-neon-purple/50"
+            />
+            <p className="text-[10px] text-muted-foreground">영향력 지수에 40% 반영됩니다</p>
           </div>
 
           {/* Category */}

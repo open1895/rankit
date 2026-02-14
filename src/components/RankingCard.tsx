@@ -92,11 +92,18 @@ const RankingCard = ({ creator, creators, onVote }: RankingCardProps) => {
             )}
           </div>
           <span className="text-xs text-muted-foreground">{creator.category}</span>
-          <div className="flex items-center gap-1 mt-1">
-            <Heart className="w-3 h-3 text-neon-purple" />
-            <span className="text-xs font-medium text-neon-purple">
-              {creator.votes_count.toLocaleString()}표
-            </span>
+          <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-1">
+              <Heart className="w-3 h-3 text-neon-purple" />
+              <span className="text-xs font-medium text-neon-purple">
+                {creator.votes_count.toLocaleString()}표
+              </span>
+            </div>
+            {creator.subscriber_count > 0 && (
+              <span className="text-[10px] text-muted-foreground">
+                · 구독 {creator.subscriber_count.toLocaleString()}
+              </span>
+            )}
           </div>
           {votesUntilNext && votesUntilNext <= 500 && (
             <p className="text-[10px] text-neon-red font-semibold animate-pulse-neon mt-0.5">
