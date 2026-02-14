@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Creator } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
 import RankingCard from "@/components/RankingCard";
 import CountdownTimer from "@/components/CountdownTimer";
 import LiveFeed from "@/components/LiveFeed";
-import { Crown, TrendingUp, Ticket } from "lucide-react";
+import { Crown, TrendingUp, Ticket, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -157,6 +158,17 @@ const Index = () => {
             </>
           )}
         </button>
+
+        {/* Register CTA */}
+        <Link
+          to="/onboarding"
+          className="block w-full glass-sm p-3 text-center text-sm font-medium text-neon-purple hover:border-neon-purple/50 transition-all"
+        >
+          <span className="inline-flex items-center gap-2">
+            <UserPlus className="w-4 h-4" />
+            크리에이터로 등록하기
+          </span>
+        </Link>
 
         {/* Rankings */}
         <div className="space-y-3">
