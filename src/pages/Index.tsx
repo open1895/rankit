@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import RankingCard from "@/components/RankingCard";
 import CountdownTimer from "@/components/CountdownTimer";
 import LiveFeed from "@/components/LiveFeed";
+import FanComments from "@/components/FanComments";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
@@ -180,6 +181,9 @@ const Index = () => {
             보상 안내 보기
           </span>
         </Link>
+
+        {/* Fan Comments */}
+        <FanComments />
 
         {/* Rankings */}
         <div className="space-y-3">
