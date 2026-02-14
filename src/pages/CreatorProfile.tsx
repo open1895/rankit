@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Creator } from "@/lib/data";
@@ -54,6 +54,8 @@ type RankHistoryPoint = {
   votes_count: number;
 };
 
+type FanPeriod = "all" | "weekly" | "monthly";
+
 const CreatorProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -66,6 +68,8 @@ const CreatorProfile = () => {
   const [activityData, setActivityData] = useState({ posts: 0, postComments: 0, postLikes: 0 });
   const [maxValues, setMaxValues] = useState({ maxSubs: 1, maxVotes: 1, maxActivity: 1 });
   const [fanRanking, setFanRanking] = useState<{ nickname: string; score: number; votes: number; posts: number; comments: number }[]>([]);
+  const [fanPeriod, setFanPeriod] = useState<FanPeriod>("all");
+  const [fanLoading, setFanLoading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -140,46 +144,6 @@ const CreatorProfile = () => {
         });
       }
 
-      // Build fan ranking from comments + posts
-      const fanMap = new Map<string, { votes: number; posts: number; comments: number }>();
-
-      // From comments (vote messages)
-      (commentsRes.data || []).forEach((c) => {
-        const entry = fanMap.get(c.nickname) || { votes: 0, posts: 0, comments: 0 };
-        entry.votes += c.vote_count;
-        fanMap.set(c.nickname, entry);
-      });
-
-      // From posts
-      const postsForFans = await supabase.from("posts").select("nickname").eq("creator_id", creatorId);
-      (postsForFans.data || []).forEach((p) => {
-        const entry = fanMap.get(p.nickname) || { votes: 0, posts: 0, comments: 0 };
-        entry.posts += 1;
-        fanMap.set(p.nickname, entry);
-      });
-
-      // From post_comments
-      const postIds = (await supabase.from("posts").select("id").eq("creator_id", creatorId)).data?.map(p => p.id) || [];
-      if (postIds.length > 0) {
-        const pcRes = await supabase.from("post_comments").select("nickname, post_id");
-        (pcRes.data || []).filter(pc => postIds.includes(pc.post_id)).forEach((pc) => {
-          const entry = fanMap.get(pc.nickname) || { votes: 0, posts: 0, comments: 0 };
-          entry.comments += 1;
-          fanMap.set(pc.nickname, entry);
-        });
-      }
-
-      const ranking = Array.from(fanMap.entries())
-        .map(([nickname, data]) => ({
-          nickname,
-          score: data.votes * 3 + data.posts * 2 + data.comments,
-          ...data,
-        }))
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 10);
-
-      setFanRanking(ranking);
-
       setLoading(false);
     };
 
@@ -214,6 +178,70 @@ const CreatorProfile = () => {
       supabase.removeChannel(channel);
     };
   }, [id, navigate]);
+
+  // Fan ranking fetcher with period filter
+  const fetchFanRanking = useCallback(async (period: FanPeriod) => {
+    if (!id) return;
+    setFanLoading(true);
+
+    const cutoff = period === "weekly"
+      ? new Date(Date.now() - 7 * 86400000).toISOString()
+      : period === "monthly"
+        ? new Date(Date.now() - 30 * 86400000).toISOString()
+        : null;
+
+    const fanMap = new Map<string, { votes: number; posts: number; comments: number }>();
+
+    // From comments (vote messages)
+    let commentsQuery = supabase.from("comments").select("nickname, vote_count").eq("creator_id", id);
+    if (cutoff) commentsQuery = commentsQuery.gte("created_at", cutoff);
+    const { data: commentsData } = await commentsQuery;
+    (commentsData || []).forEach((c) => {
+      const entry = fanMap.get(c.nickname) || { votes: 0, posts: 0, comments: 0 };
+      entry.votes += c.vote_count;
+      fanMap.set(c.nickname, entry);
+    });
+
+    // From posts
+    let postsQuery = supabase.from("posts").select("nickname").eq("creator_id", id);
+    if (cutoff) postsQuery = postsQuery.gte("created_at", cutoff);
+    const { data: postsData } = await postsQuery;
+    (postsData || []).forEach((p) => {
+      const entry = fanMap.get(p.nickname) || { votes: 0, posts: 0, comments: 0 };
+      entry.posts += 1;
+      fanMap.set(p.nickname, entry);
+    });
+
+    // From post_comments
+    const { data: allPosts } = await supabase.from("posts").select("id").eq("creator_id", id);
+    const postIds = (allPosts || []).map(p => p.id);
+    if (postIds.length > 0) {
+      let pcQuery = supabase.from("post_comments").select("nickname, post_id");
+      if (cutoff) pcQuery = pcQuery.gte("created_at", cutoff);
+      const { data: pcData } = await pcQuery;
+      (pcData || []).filter(pc => postIds.includes(pc.post_id)).forEach((pc) => {
+        const entry = fanMap.get(pc.nickname) || { votes: 0, posts: 0, comments: 0 };
+        entry.comments += 1;
+        fanMap.set(pc.nickname, entry);
+      });
+    }
+
+    const ranking = Array.from(fanMap.entries())
+      .map(([nickname, data]) => ({
+        nickname,
+        score: data.votes * 3 + data.posts * 2 + data.comments,
+        ...data,
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+
+    setFanRanking(ranking);
+    setFanLoading(false);
+  }, [id]);
+
+  useEffect(() => {
+    fetchFanRanking(fanPeriod);
+  }, [fanPeriod, fetchFanRanking]);
 
   const handleVote = async () => {
     if (!id) return;
@@ -561,9 +589,26 @@ const CreatorProfile = () => {
             <Medal className="w-4 h-4 text-neon-purple" />
             <h3 className="text-sm font-semibold">🏅 팬 랭킹 TOP 10</h3>
           </div>
-          {fanRanking.length === 0 ? (
+          <div className="flex items-center gap-2">
+            {([["all", "전체"], ["weekly", "주간"], ["monthly", "월간"]] as const).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setFanPeriod(key)}
+                className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${
+                  fanPeriod === key
+                    ? "bg-primary text-primary-foreground"
+                    : "glass-sm text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {fanLoading ? (
+            <div className="text-center py-8 text-muted-foreground text-xs">로딩 중...</div>
+          ) : fanRanking.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground text-xs">
-              아직 팬 활동 데이터가 없어요.
+              {fanPeriod === "all" ? "아직 팬 활동 데이터가 없어요." : fanPeriod === "weekly" ? "이번 주 활동 데이터가 없어요." : "이번 달 활동 데이터가 없어요."}
               <br />
               투표하고 게시판에 참여해보세요! 🔥
             </div>
