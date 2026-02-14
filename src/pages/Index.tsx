@@ -6,6 +6,7 @@ import RankingCard from "@/components/RankingCard";
 import CountdownTimer from "@/components/CountdownTimer";
 import LiveFeed from "@/components/LiveFeed";
 import FanComments from "@/components/FanComments";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
@@ -173,11 +174,14 @@ const Index = () => {
             <Crown className="w-6 h-6 text-neon-purple" />
             <h1 className="text-lg font-bold gradient-text">Rank It</h1>
           </div>
-          <div className="flex items-center gap-2 glass-sm px-3 py-1.5">
-            <Ticket className="w-4 h-4 text-neon-cyan" />
-            <span className="text-xs font-medium">
-              잔여 투표권: <span className="text-neon-cyan font-bold">{Math.max(0, 1 - todayVoted.size + extraVotes)}</span>
-            </span>
+          <div className="flex items-center gap-2">
+            <div className="glass-sm px-3 py-1.5 flex items-center gap-2">
+              <Ticket className="w-4 h-4 text-neon-cyan" />
+              <span className="text-xs font-medium">
+                잔여 투표권: <span className="text-neon-cyan font-bold">{Math.max(0, 1 - todayVoted.size + extraVotes)}</span>
+              </span>
+            </div>
+            <ThemeToggle />
           </div>
         </div>
       </header>

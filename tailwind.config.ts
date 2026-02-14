@@ -118,6 +118,16 @@ export default {
           "40%": { transform: "scale(1) translateY(-30px)", opacity: "1" },
           "100%": { transform: "scale(0.8) translateY(-80px)", opacity: "0" },
         },
+        "rank-up": {
+          "0%": { backgroundColor: "hsl(142 71% 45% / 0)", transform: "scale(1)" },
+          "30%": { backgroundColor: "hsl(142 71% 45% / 0.15)", transform: "scale(1.02)" },
+          "100%": { backgroundColor: "hsl(142 71% 45% / 0)", transform: "scale(1)" },
+        },
+        "rank-down": {
+          "0%": { backgroundColor: "hsl(0 84% 60% / 0)", transform: "scale(1)" },
+          "30%": { backgroundColor: "hsl(0 84% 60% / 0.15)", transform: "scale(1.02)" },
+          "100%": { backgroundColor: "hsl(0 84% 60% / 0)", transform: "scale(1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -131,6 +141,8 @@ export default {
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
         "marquee": "marquee 15s linear infinite",
         "score-float": "score-float 1.8s ease-out forwards",
+        "rank-up": "rank-up 1.5s ease-out",
+        "rank-down": "rank-down 1.5s ease-out",
       },
     },
   },

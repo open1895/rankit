@@ -38,22 +38,37 @@ const ShareCard = ({ creatorId, creatorName, onClose }: ShareCardProps) => {
     }
   };
 
+  const shareUrl = `${window.location.origin}/creator/${creatorId}`;
+  const shareText = `${creatorName}에게 투표했어요! 🏆 Rank It에서 확인하세요!`;
+
   const handleCopyLink = () => {
-    const shareUrl = `${window.location.origin}/creator/${creatorId}`;
     navigator.clipboard.writeText(shareUrl);
     toast.success("링크가 복사되었습니다!");
   };
 
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `Rank It - ${creatorName}`, text: shareText, url: shareUrl });
+      } catch {
+        // User cancelled
+      }
+    } else {
+      handleCopyLink();
+    }
+  };
+
   const handleShareTwitter = () => {
-    const shareUrl = `${window.location.origin}/creator/${creatorId}`;
-    const text = encodeURIComponent(`${creatorName}에게 투표했어요! 🏆 Rank It에서 확인하세요!`);
+    const text = encodeURIComponent(shareText);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(shareUrl)}`, "_blank");
   };
 
   const handleShareKakao = () => {
-    const shareUrl = `${window.location.origin}/creator/${creatorId}`;
-    const text = encodeURIComponent(`${creatorName}에게 투표했어요! 🏆 Rank It에서 확인하세요! ${shareUrl}`);
     window.open(`https://story.kakao.com/share?url=${encodeURIComponent(shareUrl)}`, "_blank");
+  };
+
+  const handleShareFacebook = () => {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank");
   };
 
   const handleDownload = async () => {
@@ -140,16 +155,28 @@ const ShareCard = ({ creatorId, creatorName, onClose }: ShareCardProps) => {
         {/* Social Share Buttons */}
         <div className="grid grid-cols-2 gap-2">
           <button
+            onClick={handleNativeShare}
+            className="glass-sm p-3 text-center text-sm font-medium hover:border-neon-cyan/50 transition-all rounded-xl"
+          >
+            📲 공유하기
+          </button>
+          <button
             onClick={handleShareTwitter}
             className="glass-sm p-3 text-center text-sm font-medium hover:border-neon-cyan/50 transition-all rounded-xl"
           >
-            𝕏 트위터 공유
+            𝕏 트위터
           </button>
           <button
             onClick={handleShareKakao}
             className="glass-sm p-3 text-center text-sm font-medium hover:border-neon-purple/50 transition-all rounded-xl"
           >
-            💬 카카오 공유
+            💬 카카오
+          </button>
+          <button
+            onClick={handleShareFacebook}
+            className="glass-sm p-3 text-center text-sm font-medium hover:border-neon-cyan/50 transition-all rounded-xl"
+          >
+            📘 페이스북
           </button>
         </div>
       </div>
