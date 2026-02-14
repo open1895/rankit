@@ -351,7 +351,11 @@ const CreatorProfile = () => {
                 </span>
               )}
             </div>
-            <p className="text-sm text-muted-foreground mt-1">{creator.category}</p>
+            {creator.category && (
+              <span className="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-full bg-neon-purple/15 text-neon-purple text-sm font-medium border border-neon-purple/30">
+                {creator.category}
+              </span>
+            )}
           </div>
 
           {/* Channel Link */}
