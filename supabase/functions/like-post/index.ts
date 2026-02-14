@@ -5,47 +5,38 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function hashIp(ip: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(ip);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-// Simple in-memory rate limiter (per isolate)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(ip: string, maxRequests: number, windowMs: number): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + windowMs });
-    return true;
-  }
-  if (entry.count >= maxRequests) return false;
-  entry.count++;
-  return true;
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const rawIp =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      req.headers.get("cf-connecting-ip") ||
-      "unknown";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Rate limit: max 10 likes per minute per IP
-    if (!checkRateLimit(rawIp, 10, 60_000)) {
-      return new Response(
-        JSON.stringify({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Verify auth
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "로그인이 필요합니다." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(
+      authHeader.replace("Bearer ", "")
+    );
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "인증에 실패했습니다." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userId = claimsData.claims.sub as string;
 
     const { post_id } = await req.json();
     if (!post_id) {
@@ -55,23 +46,28 @@ Deno.serve(async (req) => {
       });
     }
 
-    const likerIp = await hashIp(rawIp);
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+    // Check if already liked by this user
+    const { data: existing } = await supabase
+      .from("post_likes")
+      .select("id")
+      .eq("post_id", post_id)
+      .eq("user_id", userId)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      return new Response(
+        JSON.stringify({ error: "already_liked", message: "이미 좋아요를 누르셨습니다." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const { error } = await supabase
       .from("post_likes")
-      .insert({ post_id, liker_ip: likerIp });
+      .insert({ post_id, liker_ip: userId, user_id: userId });
 
     if (error) {
-      if (error.code === "23505") {
-        return new Response(
-          JSON.stringify({ error: "already_liked", message: "이미 좋아요를 누르셨습니다." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
       console.error("Like insert error:", error);
       return new Response(JSON.stringify({ error: "좋아요 처리 중 오류가 발생했습니다." }), {
         status: 500,

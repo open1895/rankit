@@ -5,20 +5,39 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function hashIp(ip: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(ip);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+    // Verify auth
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "로그인이 필요합니다." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(
+      authHeader.replace("Bearer ", "")
+    );
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "인증에 실패했습니다." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userId = claimsData.claims.sub as string;
+
     const { creator_id, referral_code } = await req.json();
     if (!creator_id) {
       return new Response(JSON.stringify({ error: "creator_id is required" }), {
@@ -27,24 +46,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    const rawIp =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      req.headers.get("cf-connecting-ip") ||
-      "unknown";
-    const voterIp = await hashIp(rawIp);
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Check if this IP already voted for this creator in the last 24 hours
+    // Check if user already voted for this creator in the last 24 hours
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
     const { data: existingVotes, error: checkError } = await supabase
       .from("votes")
       .select("id")
       .eq("creator_id", creator_id)
-      .eq("voter_ip", voterIp)
+      .eq("user_id", userId)
       .gte("created_at", twentyFourHoursAgo)
       .limit(1);
 
@@ -63,10 +74,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Insert vote
+    // Insert vote with user_id (voter_ip kept for backward compat, set to empty)
     const { error: insertError } = await supabase
       .from("votes")
-      .insert({ creator_id, voter_ip: voterIp });
+      .insert({ creator_id, user_id: userId, voter_ip: userId });
 
     if (insertError) {
       console.error("Vote insert error:", insertError);
@@ -79,16 +90,14 @@ Deno.serve(async (req) => {
     // Handle referral bonus
     let referralBonus = false;
     if (referral_code && typeof referral_code === "string" && referral_code.length >= 6) {
-      // Check if this IP already used this referral code
       const { data: existingUse } = await supabase
         .from("referral_uses")
         .select("id")
         .eq("referral_code", referral_code)
-        .eq("used_by_ip", voterIp)
+        .eq("used_by_ip", userId)
         .limit(1);
 
       if (!existingUse || existingUse.length === 0) {
-        // Check if referral code exists
         const { data: codeData } = await supabase
           .from("referral_codes")
           .select("id, bonus_votes_earned")
@@ -96,13 +105,11 @@ Deno.serve(async (req) => {
           .limit(1);
 
         if (codeData && codeData.length > 0) {
-          // Record the referral use
           await supabase.from("referral_uses").insert({
             referral_code,
-            used_by_ip: voterIp,
+            used_by_ip: userId,
           });
 
-          // Increment bonus votes for referrer
           await supabase
             .from("referral_codes")
             .update({ bonus_votes_earned: codeData[0].bonus_votes_earned + 3 })

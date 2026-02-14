@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,7 @@ const getDailyKey = () => `activity_${new Date().toISOString().slice(0, 10)}`;
 const CreatorBoard = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [creatorName, setCreatorName] = useState("");
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -221,6 +223,11 @@ const CreatorBoard = () => {
   };
 
   const handleLike = async (postId: string) => {
+    if (!user) {
+      toast.error("좋아요를 누르려면 로그인이 필요합니다.");
+      navigate("/auth");
+      return;
+    }
     if (likingPosts.has(postId)) return;
     setLikingPosts((prev) => new Set(prev).add(postId));
 

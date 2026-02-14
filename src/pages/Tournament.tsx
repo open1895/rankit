@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Crown, Swords, Trophy, ArrowLeft, Zap } from "lucide-react";
 import { toast } from "sonner";
@@ -92,7 +93,15 @@ const Tournament = () => {
     fetch();
   }, []);
 
+  const { user } = useAuth();
+  const navigateAuth = useNavigate();
+
   const handleVote = async (matchId: string, creatorId: string) => {
+    if (!user) {
+      toast.error("투표하려면 로그인이 필요합니다.");
+      navigateAuth("/auth");
+      return;
+    }
     if (votedMatches.has(matchId)) {
       toast.error("이미 이 매치에 투표하셨습니다.");
       return;
