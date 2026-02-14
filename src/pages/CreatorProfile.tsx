@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Creator } from "@/lib/data";
 import { Button } from "@/components/ui/button";
+import ShareCard from "@/components/ShareCard";
 import {
   ArrowLeft,
   Crown,
@@ -13,6 +14,7 @@ import {
   ExternalLink,
   CheckCircle2,
   BarChart3,
+  Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -40,6 +42,7 @@ const CreatorProfile = () => {
   const [rankHistory, setRankHistory] = useState<RankHistoryPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCreators, setTotalCreators] = useState(0);
+  const [showShare, setShowShare] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -122,6 +125,7 @@ const CreatorProfile = () => {
       return;
     }
     toast.success("투표 완료! 🎉");
+    setShowShare(true);
   };
 
   if (loading || !creator) {
@@ -217,14 +221,23 @@ const CreatorProfile = () => {
             </a>
           )}
 
-          {/* Vote Button */}
-          <Button
-            onClick={handleVote}
-            className="w-full h-12 text-base font-bold gradient-primary text-primary-foreground rounded-xl neon-glow-purple hover:opacity-90 transition-opacity"
-          >
-            <Heart className="w-5 h-5 mr-2" />
-            투표하기
-          </Button>
+          {/* Buttons */}
+          <div className="flex gap-2">
+            <Button
+              onClick={handleVote}
+              className="flex-1 h-12 text-base font-bold gradient-primary text-primary-foreground rounded-xl neon-glow-purple hover:opacity-90 transition-opacity"
+            >
+              <Heart className="w-5 h-5 mr-2" />
+              투표하기
+            </Button>
+            <Button
+              onClick={() => setShowShare(true)}
+              variant="outline"
+              className="h-12 px-4 rounded-xl glass-sm border-glass-border hover:border-neon-cyan/50"
+            >
+              <Share2 className="w-5 h-5 text-neon-cyan" />
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -352,6 +365,15 @@ const CreatorProfile = () => {
           )}
         </div>
       </main>
+
+      {/* Share Modal */}
+      {showShare && id && creator && (
+        <ShareCard
+          creatorId={id}
+          creatorName={creator.name}
+          onClose={() => setShowShare(false)}
+        />
+      )}
     </div>
   );
 };
