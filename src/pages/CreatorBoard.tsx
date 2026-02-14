@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ScorePopup from "@/components/ScorePopup";
 import DailyActivityBar from "@/components/DailyActivityBar";
+import DailyRewardBadge from "@/components/DailyRewardBadge";
 import {
   ArrowLeft,
   Crown,
@@ -311,6 +312,7 @@ const CreatorBoard = () => {
       <main className="container max-w-lg mx-auto px-4 py-6 space-y-4">
         {/* Daily Activity Bar */}
         <DailyActivityBar currentPoints={dailyPoints} maxPoints={DAILY_MAX_POINTS} />
+        <DailyRewardBadge isMaxed={dailyPoints >= DAILY_MAX_POINTS} />
 
         {/* Sort Tabs */}
         <div className="flex items-center gap-2">
