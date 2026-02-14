@@ -1,40 +1,105 @@
-import { useState } from "react";
-import { MOCK_CREATORS, Creator } from "@/lib/data";
+import { useState, useEffect } from "react";
+import { Creator } from "@/lib/data";
+import { supabase } from "@/integrations/supabase/client";
 import RankingCard from "@/components/RankingCard";
 import CountdownTimer from "@/components/CountdownTimer";
 import LiveFeed from "@/components/LiveFeed";
 import { Crown, TrendingUp, Ticket } from "lucide-react";
+import { toast } from "sonner";
 
 const Index = () => {
-  const [creators, setCreators] = useState<Creator[]>(MOCK_CREATORS);
+  const [creators, setCreators] = useState<Creator[]>([]);
   const [extraVotes, setExtraVotes] = useState(0);
   const [isCharging, setIsCharging] = useState(false);
   const [todayVoted, setTodayVoted] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
 
-  const handleVote = (id: string) => {
-    if (todayVoted.has(id) && extraVotes <= 0) return;
+  // Fetch creators from DB
+  useEffect(() => {
+    const fetchCreators = async () => {
+      const { data, error } = await supabase
+        .from("creators")
+        .select("*")
+        .order("rank", { ascending: true });
 
-    setCreators(prev => {
-      const updated = prev.map(c =>
-        c.id === id ? { ...c, votes: c.votes + 1 } : c
+      if (error) {
+        console.error("Failed to fetch creators:", error);
+        return;
+      }
+
+      setCreators(
+        (data || []).map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          category: c.category,
+          avatar_url: c.avatar_url,
+          votes_count: c.votes_count,
+          rank: c.rank,
+          previousRank: c.rank,
+          is_verified: c.is_verified,
+        }))
       );
-      return updated
-        .sort((a, b) => b.votes - a.votes)
-        .map((c, i) => ({ ...c, previousRank: c.rank, rank: i + 1 }));
+      setLoading(false);
+    };
+
+    fetchCreators();
+
+    // Realtime subscription
+    const channel = supabase
+      .channel("creators-ranking")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "creators" },
+        (payload) => {
+          const updated = payload.new as any;
+          setCreators((prev) => {
+            const newList = prev.map((c) =>
+              c.id === updated.id
+                ? { ...c, previousRank: c.rank, votes_count: updated.votes_count, rank: updated.rank }
+                : c
+            );
+            return newList.sort((a, b) => a.rank - b.rank);
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const handleVote = async (id: string) => {
+    if (todayVoted.has(id) && extraVotes <= 0) {
+      toast.error("투표권이 부족합니다! 광고를 시청하고 추가 투표권을 받으세요.");
+      return;
+    }
+
+    const { data, error } = await supabase.functions.invoke("vote", {
+      body: { creator_id: id },
     });
 
+    if (error || (data && data.error)) {
+      const msg = data?.message || error?.message || "투표에 실패했습니다.";
+      toast.error(msg);
+      return;
+    }
+
+    toast.success("투표 완료! 🎉");
+
     if (todayVoted.has(id)) {
-      setExtraVotes(v => v - 1);
+      setExtraVotes((v) => v - 1);
     } else {
-      setTodayVoted(prev => new Set(prev).add(id));
+      setTodayVoted((prev) => new Set(prev).add(id));
     }
   };
 
   const handleChargeVotes = () => {
     setIsCharging(true);
     setTimeout(() => {
-      setExtraVotes(v => v + 3);
+      setExtraVotes((v) => v + 3);
       setIsCharging(false);
+      toast.success("추가 투표권 3장을 받았습니다! 🎬");
     }, 2000);
   };
 
@@ -95,15 +160,19 @@ const Index = () => {
 
         {/* Rankings */}
         <div className="space-y-3">
-          {creators.map((creator, i) => (
-            <div
-              key={creator.id}
-              style={{ animationDelay: `${i * 60}ms` }}
-              className="animate-slide-up"
-            >
-              <RankingCard creator={creator} onVote={handleVote} />
-            </div>
-          ))}
+          {loading ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">로딩 중...</div>
+          ) : (
+            creators.map((creator, i) => (
+              <div
+                key={creator.id}
+                style={{ animationDelay: `${i * 60}ms` }}
+                className="animate-slide-up"
+              >
+                <RankingCard creator={creator} creators={creators} onVote={handleVote} />
+              </div>
+            ))
+          )}
         </div>
       </main>
 
