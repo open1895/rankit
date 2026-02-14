@@ -71,20 +71,33 @@ const Index = () => {
     };
   }, []);
 
-  const handleVote = async (id: string) => {
+  const handleVote = async (id: string): Promise<boolean> => {
     if (todayVoted.has(id) && extraVotes <= 0) {
       toast.error("투표권이 부족합니다! 광고를 시청하고 추가 투표권을 받으세요.");
-      return;
+      return false;
     }
 
     const { data, error } = await supabase.functions.invoke("vote", {
       body: { creator_id: id },
     });
 
-    if (error || (data && data.error)) {
-      const msg = data?.message || error?.message || "투표에 실패했습니다.";
+    if (error) {
+      // Try to parse error context for edge function HTTP errors
+      let msg = "투표에 실패했습니다.";
+      try {
+        const ctx = JSON.parse(error.context?.body || "{}");
+        if (ctx.message) msg = ctx.message;
+      } catch {
+        // fallback
+      }
+      if (data?.message) msg = data.message;
       toast.error(msg);
-      return;
+      return false;
+    }
+
+    if (data && data.error) {
+      toast.error(data.message || "투표에 실패했습니다.");
+      return false;
     }
 
     toast.success("투표 완료! 🎉");
@@ -94,6 +107,7 @@ const Index = () => {
     } else {
       setTodayVoted((prev) => new Set(prev).add(id));
     }
+    return true;
   };
 
   const handleChargeVotes = () => {
