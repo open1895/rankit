@@ -14,7 +14,7 @@ import WeeklyMissions from "@/components/WeeklyMissions";
 import NotificationBell from "@/components/NotificationBell";
 import WeeklyHighlights from "@/components/WeeklyHighlights";
 import ScrollReveal from "@/components/ScrollReveal";
-import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, LogOut } from "lucide-react";
+import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User } from "lucide-react";
 import { toast } from "sonner";
 
 const CATEGORY_TABS = [
@@ -34,7 +34,7 @@ const CATEGORY_TABS = [
 const PAGE_SIZE = 20;
 
 const Index = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [creators, setCreators] = useState<Creator[]>([]);
   const [extraVotes, setExtraVotes] = useState(0);
@@ -201,12 +201,12 @@ const Index = () => {
               </span>
             </div>
             {user ? (
-              <button
-                onClick={() => signOut()}
-                className="glass-sm px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              <Link
+                to="/mypage"
+                className="glass-sm px-2.5 py-1.5 text-xs text-neon-cyan hover:text-foreground transition-colors flex items-center gap-1"
               >
-                <LogOut className="w-3.5 h-3.5" />
-              </button>
+                <User className="w-3.5 h-3.5" />
+              </Link>
             ) : (
               <Link
                 to="/auth"
