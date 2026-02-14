@@ -4,6 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Creator } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import ShareCard from "@/components/ShareCard";
+import FanBadge from "@/components/FanBadge";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
 import {
   ArrowLeft,
   Crown,
@@ -15,6 +18,7 @@ import {
   CheckCircle2,
   BarChart3,
   Share2,
+  MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -29,11 +33,20 @@ import {
   AreaChart,
 } from "recharts";
 
-interface RankHistoryPoint {
+interface CommentItem {
+  id: string;
+  nickname: string;
+  message: string;
+  vote_count: number;
+  post_count: number;
+  created_at: string;
+}
+
+type RankHistoryPoint = {
   recorded_at: string;
   rank: number;
   votes_count: number;
-}
+};
 
 const CreatorProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,12 +56,13 @@ const CreatorProfile = () => {
   const [loading, setLoading] = useState(true);
   const [totalCreators, setTotalCreators] = useState(0);
   const [showShare, setShowShare] = useState(false);
+  const [comments, setComments] = useState<CommentItem[]>([]);
 
   useEffect(() => {
     if (!id) return;
 
     const fetchData = async () => {
-      const [creatorRes, historyRes, countRes] = await Promise.all([
+      const [creatorRes, historyRes, countRes, commentsRes] = await Promise.all([
         supabase.from("creators").select("*").eq("id", id).single(),
         supabase
           .from("rank_history")
@@ -57,6 +71,12 @@ const CreatorProfile = () => {
           .order("recorded_at", { ascending: true })
           .limit(50),
         supabase.from("creators").select("id", { count: "exact", head: true }),
+        supabase
+          .from("comments")
+          .select("*")
+          .eq("creator_id", id)
+          .order("created_at", { ascending: false })
+          .limit(50),
       ]);
 
       if (creatorRes.error || !creatorRes.data) {
@@ -79,6 +99,7 @@ const CreatorProfile = () => {
       });
 
       setRankHistory(historyRes.data || []);
+      setComments(commentsRes.data || []);
       setTotalCreators(countRes.count || 0);
       setLoading(false);
     };
@@ -362,6 +383,37 @@ const CreatorProfile = () => {
                 />
               </AreaChart>
             </ResponsiveContainer>
+          )}
+        </div>
+
+        {/* Comments Section */}
+        <div className="glass p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <MessageCircle className="w-4 h-4 text-neon-cyan" />
+            <h3 className="text-sm font-semibold">응원 메시지</h3>
+            <span className="text-xs text-muted-foreground">({comments.length})</span>
+          </div>
+          {comments.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground text-xs">
+              아직 응원 메시지가 없어요.
+              <br />
+              첫 번째 응원을 남겨보세요! 💬
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {comments.map((c) => (
+                <div key={c.id} className="glass-sm px-3 py-2.5 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-neon-purple">{c.nickname}</span>
+                    <FanBadge voteCount={c.vote_count} postCount={c.post_count} />
+                    <span className="text-[10px] text-muted-foreground ml-auto shrink-0">
+                      {formatDistanceToNow(new Date(c.created_at), { locale: ko, addSuffix: true })}
+                    </span>
+                  </div>
+                  <p className="text-xs text-foreground/90">{c.message}</p>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </main>
