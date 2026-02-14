@@ -12,6 +12,7 @@ import StreakTracker from "@/components/StreakTracker";
 import WeeklyMissions from "@/components/WeeklyMissions";
 import NotificationBell from "@/components/NotificationBell";
 import WeeklyHighlights from "@/components/WeeklyHighlights";
+import ScrollReveal from "@/components/ScrollReveal";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -198,52 +199,59 @@ const Index = () => {
 
       <main className="container max-w-lg mx-auto px-4 py-6 space-y-5">
         {/* Hero Section */}
-        <section className="text-center space-y-3 py-2">
-          <div className="inline-flex items-center gap-1.5 glass-sm px-4 py-1.5 text-xs font-semibold text-neon-cyan animate-breathe">
-            <Sparkles className="w-3.5 h-3.5" />
-            시즌 12 진행 중
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
-            이번 주{" "}
-            <span className="gradient-text neon-text-purple">TOP 크리에이터</span>
-            는?
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            당신의 한 표가 순위를 바꿉니다
-          </p>
-        </section>
+        <ScrollReveal>
+          <section className="text-center space-y-3 py-2">
+            <div className="inline-flex items-center gap-1.5 glass-sm px-4 py-1.5 text-xs font-semibold text-neon-cyan animate-breathe">
+              <Sparkles className="w-3.5 h-3.5" />
+              시즌 12 진행 중
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
+              이번 주{" "}
+              <span className="gradient-text neon-text-purple">TOP 크리에이터</span>
+              는?
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              당신의 한 표가 순위를 바꿉니다
+            </p>
+          </section>
+        </ScrollReveal>
 
         {/* Countdown */}
+        <ScrollReveal delay={100}>
         <CountdownTimer />
+        </ScrollReveal>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={handleChargeVotes}
-            disabled={isCharging}
-            className="glass-sm glass-hover p-3 flex items-center justify-center gap-2 text-sm font-medium text-neon-cyan active:scale-[0.98]"
-          >
-            {isCharging ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs">시청 중...</span>
-              </div>
-            ) : (
-              <>
-                <span>🎬</span>
-                <span className="text-xs">투표권 +3</span>
-              </>
-            )}
-          </button>
-          <Link
-            to="/onboarding"
-            className="glass-sm glass-hover p-3 flex items-center justify-center gap-2 text-sm font-medium text-neon-purple"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span className="text-xs">크리에이터 등록</span>
-          </Link>
-        </div>
+        <ScrollReveal delay={150}>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={handleChargeVotes}
+              disabled={isCharging}
+              className="glass-sm glass-hover p-3 flex items-center justify-center gap-2 text-sm font-medium text-neon-cyan active:scale-[0.98]"
+            >
+              {isCharging ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin" />
+                  <span className="text-xs">시청 중...</span>
+                </div>
+              ) : (
+                <>
+                  <span>🎬</span>
+                  <span className="text-xs">투표권 +3</span>
+                </>
+              )}
+            </button>
+            <Link
+              to="/onboarding"
+              className="glass-sm glass-hover p-3 flex items-center justify-center gap-2 text-sm font-medium text-neon-purple"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span className="text-xs">크리에이터 등록</span>
+            </Link>
+          </div>
+        </ScrollReveal>
 
+        <ScrollReveal delay={200}>
         <Link
           to="/support"
           className="block w-full glass-sm glass-hover p-3 text-center text-sm font-medium text-neon-cyan"
@@ -253,46 +261,50 @@ const Index = () => {
             보상 안내 보기
           </span>
         </Link>
+        </ScrollReveal>
 
         {/* Engagement Section */}
         <div className="section-divider" />
 
-        <StreakTracker />
-        <WeeklyMissions />
-        <ReferralSystem />
+        <ScrollReveal><StreakTracker /></ScrollReveal>
+        <ScrollReveal delay={100}><WeeklyMissions /></ScrollReveal>
+        <ScrollReveal delay={200}><ReferralSystem /></ScrollReveal>
 
         <div className="section-divider" />
 
         {/* Weekly Highlights */}
-        <WeeklyHighlights />
+        <ScrollReveal><WeeklyHighlights /></ScrollReveal>
 
         {/* Navigation Links */}
-        <div className="grid grid-cols-4 gap-2">
-          {[
-            { to: "/seasons", icon: Calendar, label: "아카이브", color: "text-neon-cyan" },
-            { to: "/compare", icon: GitCompareArrows, label: "비교", color: "text-neon-purple" },
-            { to: "/fans", icon: Star, label: "팬 랭킹", color: "text-neon-cyan" },
-            { to: "/tournament", icon: Swords, label: "대결", color: "text-neon-purple" },
-          ].map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={`glass-sm glass-hover p-3 text-center ${item.color}`}
-            >
-              <span className="flex flex-col items-center gap-1.5">
-                <item.icon className="w-5 h-5" />
-                <span className="text-[10px] font-medium">{item.label}</span>
-              </span>
-            </Link>
-          ))}
-        </div>
+        <ScrollReveal>
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { to: "/seasons", icon: Calendar, label: "아카이브", color: "text-neon-cyan" },
+              { to: "/compare", icon: GitCompareArrows, label: "비교", color: "text-neon-purple" },
+              { to: "/fans", icon: Star, label: "팬 랭킹", color: "text-neon-cyan" },
+              { to: "/tournament", icon: Swords, label: "대결", color: "text-neon-purple" },
+            ].map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`glass-sm glass-hover p-3 text-center ${item.color}`}
+              >
+                <span className="flex flex-col items-center gap-1.5">
+                  <item.icon className="w-5 h-5" />
+                  <span className="text-[10px] font-medium">{item.label}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </ScrollReveal>
 
         {/* Fan Comments */}
-        <FanComments />
+        <ScrollReveal><FanComments /></ScrollReveal>
 
         <div className="section-divider" />
 
         {/* Search & Filter Section */}
+        <ScrollReveal>
         <section className="space-y-3">
           <div className="flex items-center gap-2 mb-1">
             <TrendingUp className="w-4 h-4 text-neon-purple" />
@@ -345,6 +357,7 @@ const Index = () => {
             </div>
           )}
         </section>
+        </ScrollReveal>
 
         {/* Rankings */}
         <div className="space-y-3">
