@@ -1,24 +1,34 @@
 import { useState, useEffect } from "react";
-import { getRandomVoteEvent, VoteEvent } from "@/lib/data";
+import { LOCATIONS, VoteEvent } from "@/lib/data";
+import { supabase } from "@/integrations/supabase/client";
 import { Zap } from "lucide-react";
 
 const LiveFeed = () => {
-  const [events, setEvents] = useState<VoteEvent[]>([]);
   const [currentEvent, setCurrentEvent] = useState<VoteEvent | null>(null);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const event = getRandomVoteEvent();
-      setCurrentEvent(event);
-      setEvents(prev => [event, ...prev].slice(0, 20));
-    }, 5000);
+    // Subscribe to realtime changes on creators table
+    const channel = supabase
+      .channel("live-votes")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "creators" },
+        (payload) => {
+          const updated = payload.new as { name: string; id: string };
+          const location = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
+          setCurrentEvent({
+            id: Math.random().toString(36).substr(2, 9),
+            fanLocation: location,
+            creatorName: updated.name,
+            timestamp: new Date(),
+          });
+        }
+      )
+      .subscribe();
 
-    // Initial event
-    const initial = getRandomVoteEvent();
-    setCurrentEvent(initial);
-    setEvents([initial]);
-
-    return () => clearInterval(interval);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (!currentEvent) return null;

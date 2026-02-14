@@ -4,20 +4,19 @@ import { Trophy, TrendingUp, TrendingDown, Minus, CheckCircle2, Heart } from "lu
 
 interface RankingCardProps {
   creator: Creator;
+  creators: Creator[];
   onVote: (id: string) => void;
 }
 
-const RankingCard = ({ creator, onVote }: RankingCardProps) => {
+const RankingCard = ({ creator, creators, onVote }: RankingCardProps) => {
   const [isVoting, setIsVoting] = useState(false);
-  const votesUntilNext = getVotesUntilNext(creator);
+  const votesUntilNext = getVotesUntilNext(creator, creators);
   const rankDiff = creator.previousRank - creator.rank;
 
   const handleVote = () => {
     setIsVoting(true);
-    setTimeout(() => {
-      onVote(creator.id);
-      setIsVoting(false);
-    }, 600);
+    onVote(creator.id);
+    setTimeout(() => setIsVoting(false), 600);
   };
 
   const rankStyle = creator.rank === 1
@@ -28,7 +27,7 @@ const RankingCard = ({ creator, onVote }: RankingCardProps) => {
     ? "rank-bronze"
     : "text-muted-foreground";
 
-  const initials = creator.name.slice(0, 2);
+  const initials = creator.avatar_url || creator.name.slice(0, 2);
 
   return (
     <div className={`glass p-4 flex items-center gap-3 sm:gap-4 transition-all duration-300 hover:border-neon-purple/40 group ${creator.rank <= 3 ? "neon-glow-purple" : ""}`}>
@@ -66,7 +65,7 @@ const RankingCard = ({ creator, onVote }: RankingCardProps) => {
           )}
           {creator.rank > 3 && initials}
         </div>
-        {creator.isVerified && (
+        {creator.is_verified && (
           <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-neon-cyan flex items-center justify-center">
             <CheckCircle2 className="w-3.5 h-3.5 text-background" />
           </div>
@@ -77,7 +76,7 @@ const RankingCard = ({ creator, onVote }: RankingCardProps) => {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <span className="font-semibold text-sm truncate">{creator.name}</span>
-          {creator.isVerified && creator.rank <= 10 && (
+          {creator.is_verified && creator.rank <= 10 && (
             <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-neon-cyan/20 text-neon-cyan font-medium whitespace-nowrap">
               Official ✓
             </span>
@@ -87,7 +86,7 @@ const RankingCard = ({ creator, onVote }: RankingCardProps) => {
         <div className="flex items-center gap-1 mt-1">
           <Heart className="w-3 h-3 text-neon-purple" />
           <span className="text-xs font-medium text-neon-purple">
-            {creator.votes.toLocaleString()}표
+            {creator.votes_count.toLocaleString()}표
           </span>
         </div>
         {votesUntilNext && votesUntilNext <= 500 && (

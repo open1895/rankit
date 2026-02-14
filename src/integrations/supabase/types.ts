@@ -14,7 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      creators: {
+        Row: {
+          avatar_url: string
+          category: string
+          created_at: string
+          id: string
+          is_verified: boolean
+          name: string
+          rank: number
+          votes_count: number
+        }
+        Insert: {
+          avatar_url?: string
+          category?: string
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          name: string
+          rank?: number
+          votes_count?: number
+        }
+        Update: {
+          avatar_url?: string
+          category?: string
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          name?: string
+          rank?: number
+          votes_count?: number
+        }
+        Relationships: []
+      }
+      votes: {
+        Row: {
+          created_at: string
+          creator_id: string
+          id: string
+          voter_ip: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          id?: string
+          voter_ip: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          id?: string
+          voter_ip?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votes_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
