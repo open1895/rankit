@@ -79,6 +79,8 @@ const FanComments = () => {
     );
   }
 
+  const marqueeComments = [...comments, ...comments];
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 px-1">
@@ -86,30 +88,31 @@ const FanComments = () => {
         <h3 className="text-sm font-semibold gradient-text">실시간 팬들의 한마디</h3>
       </div>
 
-      <div ref={scrollRef} className="glass p-3 space-y-2 overflow-hidden relative">
-        {comments.map((comment, i) => (
-          <div
-            key={comment.id}
-            className="animate-slide-up glass-sm px-3 py-2 flex items-center gap-2 text-xs"
-            style={{ animationDelay: `${i * 80}ms` }}
-          >
-            <span className="text-neon-cyan font-semibold shrink-0">
-              [{comment.creator_name}]
-            </span>
-            <FanBadge voteCount={comment.vote_count} postCount={comment.post_count} />
-            <span className="truncate text-foreground/90 flex-1">
-              {comment.message.length > 20
-                ? comment.message.slice(0, 20) + "…"
-                : comment.message}
-            </span>
-            <span className="text-muted-foreground shrink-0">
-              {formatDistanceToNow(new Date(comment.created_at), {
-                locale: ko,
-                addSuffix: true,
-              })}
-            </span>
-          </div>
-        ))}
+      <div className="glass p-3 overflow-hidden relative">
+        <div className="flex gap-3 animate-marquee">
+          {marqueeComments.map((comment, i) => (
+            <div
+              key={`${comment.id}-${i}`}
+              className="glass-sm px-3 py-2 flex items-center gap-2 text-xs whitespace-nowrap shrink-0"
+            >
+              <span className="text-neon-cyan font-semibold">
+                [{comment.creator_name}]
+              </span>
+              <FanBadge voteCount={comment.vote_count} postCount={comment.post_count} />
+              <span className="text-foreground/90">
+                {comment.message.length > 20
+                  ? comment.message.slice(0, 20) + "…"
+                  : comment.message}
+              </span>
+              <span className="text-muted-foreground">
+                {formatDistanceToNow(new Date(comment.created_at), {
+                  locale: ko,
+                  addSuffix: true,
+                })}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
