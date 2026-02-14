@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Creator } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,12 +9,32 @@ import FanComments from "@/components/FanComments";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
+const CATEGORY_TABS = [
+  { label: "전체", value: "all" },
+  { label: "🎮 게임", value: "게임" },
+  { label: "🍽️ 먹방", value: "먹방" },
+  { label: "💄 뷰티", value: "뷰티" },
+  { label: "🎵 음악", value: "음악" },
+  { label: "💪 운동", value: "운동" },
+  { label: "✈️ 여행", value: "여행" },
+  { label: "💻 테크", value: "테크" },
+  { label: "🎨 아트", value: "아트" },
+  { label: "📚 교육", value: "교육" },
+  { label: "💃 댄스", value: "댄스" },
+];
+
 const Index = () => {
   const [creators, setCreators] = useState<Creator[]>([]);
   const [extraVotes, setExtraVotes] = useState(0);
   const [isCharging, setIsCharging] = useState(false);
   const [todayVoted, setTodayVoted] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const filteredCreators = useMemo(() => {
+    if (selectedCategory === "all") return creators;
+    return creators.filter((c) => c.category.includes(selectedCategory));
+  }, [creators, selectedCategory]);
 
   // Fetch creators from DB
   useEffect(() => {
@@ -200,12 +220,33 @@ const Index = () => {
         {/* Fan Comments */}
         <FanComments />
 
+        {/* Category Tabs */}
+        <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+          <div className="flex gap-2 pb-1 w-max">
+            {CATEGORY_TABS.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setSelectedCategory(tab.value)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 ${
+                  selectedCategory === tab.value
+                    ? "bg-neon-purple text-white shadow-lg shadow-neon-purple/30"
+                    : "glass-sm text-muted-foreground hover:text-foreground hover:border-neon-purple/30"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Rankings */}
         <div className="space-y-3">
           {loading ? (
             <div className="text-center py-8 text-muted-foreground text-sm">로딩 중...</div>
+          ) : filteredCreators.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">해당 카테고리의 크리에이터가 없습니다</div>
           ) : (
-            creators.map((creator, i) => (
+            filteredCreators.map((creator, i) => (
               <div
                 key={creator.id}
                 style={{ animationDelay: `${i * 60}ms` }}
@@ -215,8 +256,8 @@ const Index = () => {
                   creator={creator}
                   creators={creators}
                   onVote={handleVote}
-                  maxSubs={Math.max(...creators.map(c => c.subscriber_count), 1)}
-                  maxVotes={Math.max(...creators.map(c => c.votes_count), 1)}
+                  maxSubs={Math.max(...filteredCreators.map(c => c.subscriber_count), 1)}
+                  maxVotes={Math.max(...filteredCreators.map(c => c.votes_count), 1)}
                 />
               </div>
             ))
