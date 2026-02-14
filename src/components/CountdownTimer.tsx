@@ -16,7 +16,7 @@ const CountdownTimer = () => {
       <div className="flex items-center justify-center gap-2 mb-4">
         <Clock className="w-4 h-4 text-neon-cyan" />
         <span className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
-          시즌 종료까지
+          주간 투표 마감까지
         </span>
       </div>
       <div className="flex items-center justify-center gap-3">
