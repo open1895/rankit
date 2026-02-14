@@ -49,7 +49,8 @@ Deno.serve(async (req) => {
       .limit(1);
 
     if (checkError) {
-      return new Response(JSON.stringify({ error: checkError.message }), {
+      console.error("Vote check error:", checkError);
+      return new Response(JSON.stringify({ error: "투표 처리 중 오류가 발생했습니다." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -68,7 +69,8 @@ Deno.serve(async (req) => {
       .insert({ creator_id, voter_ip: voterIp });
 
     if (insertError) {
-      return new Response(JSON.stringify({ error: insertError.message }), {
+      console.error("Vote insert error:", insertError);
+      return new Response(JSON.stringify({ error: "투표 처리 중 오류가 발생했습니다." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -79,7 +81,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
+    console.error("Vote unexpected error:", err);
+    return new Response(JSON.stringify({ error: "요청을 처리할 수 없습니다." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
