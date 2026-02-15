@@ -25,6 +25,7 @@ import {
   MessageSquare,
   Medal,
   Star,
+  Edit3,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -63,7 +64,7 @@ const CreatorProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [creator, setCreator] = useState<(Creator & { channel_link?: string }) | null>(null);
+  const [creator, setCreator] = useState<(Creator & { channel_link?: string; user_id?: string }) | null>(null);
   const [rankHistory, setRankHistory] = useState<RankHistoryPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCreators, setTotalCreators] = useState(0);
@@ -114,6 +115,7 @@ const CreatorProfile = () => {
         previousRank: c.rank,
         is_verified: c.is_verified,
         channel_link: (c as any).channel_link,
+        user_id: (c as any).user_id,
       });
 
       setRankHistory(historyRes.data || []);
@@ -379,6 +381,18 @@ const CreatorProfile = () => {
               <ExternalLink className="w-3.5 h-3.5" />
               채널 방문하기
             </a>
+          )}
+
+          {/* Owner Edit Button */}
+          {user && creator.user_id === user.id && (
+            <Button
+              onClick={() => navigate("/mypage")}
+              variant="outline"
+              className="w-full glass-sm border-neon-cyan/30 hover:border-neon-cyan/60 text-neon-cyan text-sm rounded-xl"
+            >
+              <Edit3 className="w-4 h-4 mr-2" />
+              프로필 수정
+            </Button>
           )}
 
           {/* Buttons */}
