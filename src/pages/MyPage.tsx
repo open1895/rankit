@@ -19,6 +19,8 @@ import {
   ExternalLink,
   Check,
   ChevronDown,
+  Search,
+  Link2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -83,6 +85,13 @@ const MyPage = () => {
   const [savingCreator, setSavingCreator] = useState(false);
   const creatorAvatarRef = useRef<HTMLInputElement>(null);
   const [uploadingCreatorAvatar, setUploadingCreatorAvatar] = useState(false);
+
+  // Claim creator state
+  const [showClaimSearch, setShowClaimSearch] = useState(false);
+  const [claimSearchQuery, setClaimSearchQuery] = useState("");
+  const [claimResults, setClaimResults] = useState<{ id: string; name: string; category: string; avatar_url: string }[]>([]);
+  const [claimSearching, setClaimSearching] = useState(false);
+  const [claiming, setClaiming] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -308,6 +317,56 @@ const MyPage = () => {
       toast.success("크리에이터 아바타가 변경되었습니다! 🎉");
     }
     setUploadingCreatorAvatar(false);
+  };
+
+  const handleClaimSearch = async () => {
+    const q = claimSearchQuery.trim();
+    if (q.length < 2) {
+      toast.error("2글자 이상 입력해주세요.");
+      return;
+    }
+    setClaimSearching(true);
+    const { data } = await supabase
+      .from("creators")
+      .select("id, name, category, avatar_url")
+      .ilike("name", `%${q}%`)
+      .limit(10);
+
+    // Filter to only unclaimed creators (user_id is null) - we can't filter by user_id in query since it's not in types yet
+    setClaimResults(data || []);
+    setClaimSearching(false);
+  };
+
+  const handleClaimCreator = async (creatorId: string) => {
+    if (!user) return;
+    setClaiming(true);
+
+    const { data, error } = await supabase.functions.invoke("claim-creator", {
+      body: { creator_id: creatorId },
+    });
+
+    if (error || data?.error) {
+      toast.error(data?.error || error?.message || "연동에 실패했습니다.");
+    } else {
+      toast.success(data?.message || "크리에이터가 연동되었습니다! 🎉");
+      setShowClaimSearch(false);
+      setClaimSearchQuery("");
+      setClaimResults([]);
+      // Refetch creator data
+      const { data: creatorData } = await (supabase as any)
+        .from("creators")
+        .select("id, name, channel_link, category, subscriber_count, avatar_url")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (creatorData) {
+        setMyCreator(creatorData);
+        setCreatorName(creatorData.name);
+        setCreatorLink(creatorData.channel_link);
+        setCreatorCategory(creatorData.category);
+        setCreatorSubscribers(String(creatorData.subscriber_count || ""));
+      }
+    }
+    setClaiming(false);
   };
 
   if (authLoading || loading) {
@@ -669,6 +728,121 @@ const MyPage = () => {
                 <div className="text-xs text-muted-foreground">
                   구독자: {(myCreator.subscriber_count || 0).toLocaleString()}명
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Claim Creator Section - shown when no linked creator */}
+        {!myCreator && (
+          <div className="glass p-6 space-y-4 animate-fade-in-up" style={{ animationDelay: "50ms" }}>
+            <div className="flex items-center gap-2">
+              <Link2 className="w-4 h-4 text-neon-cyan" />
+              <h3 className="text-sm font-bold gradient-text">크리에이터 연동</h3>
+            </div>
+
+            {!showClaimSearch ? (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  이미 등록된 크리에이터 프로필이 있나요? 본인 계정에 연동하여 프로필을 관리하세요.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setShowClaimSearch(true)}
+                    variant="outline"
+                    className="flex-1 glass-sm border-glass-border hover:border-neon-cyan/50 text-sm"
+                  >
+                    <Search className="w-4 h-4 mr-2" />
+                    기존 크리에이터 찾기
+                  </Button>
+                  <Button
+                    onClick={() => navigate("/onboarding")}
+                    className="flex-1 gradient-primary text-primary-foreground text-sm"
+                  >
+                    <Crown className="w-4 h-4 mr-2" />
+                    새로 등록하기
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Input
+                    value={claimSearchQuery}
+                    onChange={(e) => setClaimSearchQuery(e.target.value)}
+                    placeholder="크리에이터 이름 검색..."
+                    className="h-9 glass-sm border-glass-border text-sm flex-1"
+                    maxLength={50}
+                    onKeyDown={(e) => e.key === "Enter" && handleClaimSearch()}
+                  />
+                  <Button
+                    onClick={handleClaimSearch}
+                    disabled={claimSearching}
+                    size="sm"
+                    className="h-9 gradient-primary text-primary-foreground"
+                  >
+                    {claimSearching ? (
+                      <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Search className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+
+                {claimResults.length > 0 && (
+                  <div className="space-y-2">
+                    {claimResults.map((c) => (
+                      <div
+                        key={c.id}
+                        className="glass-sm p-3 flex items-center gap-3"
+                      >
+                        <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0 overflow-hidden">
+                          {c.avatar_url ? (
+                            <img src={c.avatar_url} alt={c.name} className="w-full h-full object-cover" />
+                          ) : (
+                            c.name.slice(0, 2)
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate">{c.name}</div>
+                          <div className="text-[10px] text-muted-foreground">{c.category}</div>
+                        </div>
+                        <Button
+                          onClick={() => handleClaimCreator(c.id)}
+                          disabled={claiming}
+                          size="sm"
+                          className="h-8 text-xs gradient-primary text-primary-foreground shrink-0"
+                        >
+                          {claiming ? (
+                            <div className="w-3 h-3 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <>
+                              <Link2 className="w-3 h-3 mr-1" />
+                              연동
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {claimResults.length === 0 && claimSearchQuery && !claimSearching && (
+                  <p className="text-xs text-muted-foreground text-center py-2">
+                    검색 결과가 없습니다.
+                  </p>
+                )}
+
+                <button
+                  onClick={() => {
+                    setShowClaimSearch(false);
+                    setClaimSearchQuery("");
+                    setClaimResults([]);
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  ← 돌아가기
+                </button>
               </div>
             )}
           </div>

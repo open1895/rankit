@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.generate-highlights]
 verify_jwt = false
+
+[functions.claim-creator]
+verify_jwt = false
