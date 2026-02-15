@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, ChangeEvent } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,6 +29,7 @@ import {
   Edit3,
   Save,
   X,
+  Camera,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -81,6 +82,9 @@ const CreatorProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", category: "", channel_link: "" });
   const [editSaving, setEditSaving] = useState(false);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -273,6 +277,22 @@ const CreatorProfile = () => {
     setShowShare(true);
   };
 
+  const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("JPG, PNG, WEBP, GIF 파일만 업로드 가능합니다.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("이미지는 2MB 이하만 가능합니다.");
+      return;
+    }
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
   const handleSaveEdit = async () => {
     if (!creator || !user || creator.user_id !== user.id) return;
     const { name, category, channel_link } = editForm;
@@ -289,17 +309,49 @@ const CreatorProfile = () => {
       return;
     }
     setEditSaving(true);
+
+    let newAvatarUrl = creator.avatar_url;
+
+    // Upload avatar if changed
+    if (avatarFile) {
+      const ext = avatarFile.name.split(".").pop()?.toLowerCase() || "jpg";
+      const filePath = `${user.id}/avatar.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, avatarFile, { upsert: true });
+      if (uploadError) {
+        toast.error("아바타 업로드에 실패했습니다.");
+        setEditSaving(false);
+        return;
+      }
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      newAvatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+    }
+
     const { error } = await supabase
       .from("creators")
-      .update({ name: name.trim(), category: category.trim(), channel_link: channel_link.trim() })
+      .update({
+        name: name.trim(),
+        category: category.trim(),
+        channel_link: channel_link.trim(),
+        avatar_url: newAvatarUrl,
+      })
       .eq("id", creator.id);
     setEditSaving(false);
     if (error) {
       toast.error("수정에 실패했습니다.");
       return;
     }
-    setCreator(prev => prev ? { ...prev, name: name.trim(), category: category.trim(), channel_link: channel_link.trim() } : prev);
+    setCreator(prev => prev ? {
+      ...prev,
+      name: name.trim(),
+      category: category.trim(),
+      channel_link: channel_link.trim(),
+      avatar_url: newAvatarUrl,
+    } : prev);
     setIsEditing(false);
+    setAvatarFile(null);
+    setAvatarPreview(null);
     toast.success("프로필이 수정되었습니다! ✅");
   };
 
@@ -371,16 +423,48 @@ const CreatorProfile = () => {
           {/* Avatar */}
           <div className="flex justify-center">
             <div className="relative">
-              {creator.avatar_url ? (
-                <img
-                  src={creator.avatar_url}
-                  alt={creator.name}
-                  className="w-20 h-20 rounded-full object-cover ring-3 ring-neon-purple/30 ring-offset-2 ring-offset-background"
-                />
+              {isEditing ? (
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  className="relative group"
+                >
+                  {(avatarPreview || creator.avatar_url) ? (
+                    <img
+                      src={avatarPreview || creator.avatar_url}
+                      alt={creator.name}
+                      className="w-20 h-20 rounded-full object-cover ring-3 ring-neon-cyan/50 ring-offset-2 ring-offset-background"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full gradient-primary flex items-center justify-center text-xl font-bold text-primary-foreground">
+                      {creator.name.slice(0, 2)}
+                    </div>
+                  )}
+                  <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Camera className="w-6 h-6 text-white" />
+                  </div>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
+                </button>
               ) : (
-                <div className="w-20 h-20 rounded-full gradient-primary flex items-center justify-center text-xl font-bold text-primary-foreground shadow-xl shadow-primary/30">
-                  {creator.rank <= 3 ? <Trophy className="w-8 h-8" /> : creator.name.slice(0, 2)}
-                </div>
+                <>
+                  {creator.avatar_url ? (
+                    <img
+                      src={creator.avatar_url}
+                      alt={creator.name}
+                      className="w-20 h-20 rounded-full object-cover ring-3 ring-neon-purple/30 ring-offset-2 ring-offset-background"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full gradient-primary flex items-center justify-center text-xl font-bold text-primary-foreground shadow-xl shadow-primary/30">
+                      {creator.rank <= 3 ? <Trophy className="w-8 h-8" /> : creator.name.slice(0, 2)}
+                    </div>
+                  )}
+                </>
               )}
               {creator.is_verified && (
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-neon-cyan flex items-center justify-center">
@@ -430,7 +514,7 @@ const CreatorProfile = () => {
                     {editSaving ? "저장 중..." : "저장"}
                   </Button>
                   <Button
-                    onClick={() => setIsEditing(false)}
+                    onClick={() => { setIsEditing(false); setAvatarFile(null); setAvatarPreview(null); }}
                     variant="outline"
                     className="rounded-xl glass-sm border-glass-border"
                   >
@@ -479,6 +563,8 @@ const CreatorProfile = () => {
                   category: creator.category,
                   channel_link: creator.channel_link || "",
                 });
+                setAvatarFile(null);
+                setAvatarPreview(null);
                 setIsEditing(true);
               }}
               variant="outline"
