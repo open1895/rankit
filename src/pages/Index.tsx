@@ -14,6 +14,7 @@ import WeeklyMissions from "@/components/WeeklyMissions";
 import NotificationBell from "@/components/NotificationBell";
 import WeeklyHighlights from "@/components/WeeklyHighlights";
 import ScrollReveal from "@/components/ScrollReveal";
+import SEOHead from "@/components/SEOHead";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User } from "lucide-react";
 import { toast } from "sonner";
 
@@ -183,6 +184,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
+      <SEOHead
+        title="홈"
+        description="팬의 투표로 결정되는 크리에이터 영향력 순위! 게임, 먹방, 뷰티, 음악 등 다양한 카테고리에서 당신의 한 표가 순위를 바꿉니다."
+        path="/"
+      />
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">

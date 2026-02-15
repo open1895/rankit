@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
+import SEOHead from "@/components/SEOHead";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ScorePopup from "@/components/ScorePopup";
@@ -307,6 +308,12 @@ const CreatorBoard = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
+      <SEOHead
+        title={creatorName ? `${creatorName} 게시판` : "크리에이터 게시판"}
+        description={creatorName ? `${creatorName}의 팬 게시판에서 소통하세요!` : "크리에이터 팬 게시판"}
+        path={`/creator/${id}/board`}
+        noIndex
+      />
       <ScorePopup score={scorePopup.score} label={scorePopup.label} trigger={scorePopup.trigger} />
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">

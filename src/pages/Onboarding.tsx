@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Crown, Upload, Zap, ArrowLeft, Camera, Check, ChevronDown } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
 
 const CATEGORIES = [
@@ -116,6 +117,7 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg">
+      <SEOHead title="크리에이터 등록" description="Rank It에 크리에이터로 등록하고 팬들의 투표를 받아보세요!" path="/onboarding" noIndex />
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center gap-3">

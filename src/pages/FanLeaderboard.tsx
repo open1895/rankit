@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Crown, Medal, Trophy, Star } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import SEOHead from "@/components/SEOHead";
 
 interface FanEntry {
   nickname: string;
@@ -92,6 +93,7 @@ const FanLeaderboard = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
+      <SEOHead title="팬 랭킹" description="가장 열정적인 팬은 누구? Rank It 팬 리더보드에서 팬 활동 순위를 확인하세요." path="/fans" />
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">

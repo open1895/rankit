@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
+import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -394,6 +395,7 @@ const MyPage = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
+      <SEOHead title="마이페이지" description="내 프로필, 투표 기록, 크리에이터 관리 등을 확인하세요." path="/mypage" noIndex />
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center gap-3">

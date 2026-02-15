@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import ThemeToggle from "@/components/ThemeToggle";
+import SEOHead from "@/components/SEOHead";
 import { ArrowLeft, Crown, Monitor, Megaphone, Gift, Star, Trophy, Zap, Target, Award } from "lucide-react";
 
 const REWARDS = [
@@ -45,6 +46,7 @@ const Support = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
+      <SEOHead title="보상 안내" description="Rank It 상위 크리에이터에게 주어지는 특별 보상! 전광판 광고, SNS 홍보, 프리미엄 굿즈 등을 확인하세요." path="/support" />
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
