@@ -95,6 +95,7 @@ export type Database = {
           name: string
           rank: number
           subscriber_count: number
+          user_id: string | null
           votes_count: number
         }
         Insert: {
@@ -107,6 +108,7 @@ export type Database = {
           name: string
           rank?: number
           subscriber_count?: number
+          user_id?: string | null
           votes_count?: number
         }
         Update: {
@@ -119,6 +121,7 @@ export type Database = {
           name?: string
           rank?: number
           subscriber_count?: number
+          user_id?: string | null
           votes_count?: number
         }
         Relationships: []
