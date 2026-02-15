@@ -26,13 +26,34 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const rawIp =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      req.headers.get("cf-connecting-ip") ||
-      "unknown";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Rate limit: max 3 share card generations per hour per IP
-    if (!checkRateLimit(rawIp, 3, 3600_000)) {
+    // Verify authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "로그인이 필요합니다." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(
+      authHeader.replace("Bearer ", "")
+    );
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "인증에 실패했습니다." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userId = claimsData.claims.sub as string;
+
+    // Rate limit: max 3 share card generations per hour per user
+    if (!checkRateLimit(userId, 3, 3600_000)) {
       return new Response(
         JSON.stringify({ error: "공유 카드 생성 요청이 너무 많습니다. 1시간 후 다시 시도해주세요." }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
