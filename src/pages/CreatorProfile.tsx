@@ -74,6 +74,7 @@ const CreatorProfile = () => {
   const [loading, setLoading] = useState(true);
   const [totalCreators, setTotalCreators] = useState(0);
   const [showShare, setShowShare] = useState(false);
+  const [autoShareCard, setAutoShareCard] = useState(false);
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [activityData, setActivityData] = useState({ posts: 0, postComments: 0, postLikes: 0 });
   const [maxValues, setMaxValues] = useState({ maxSubs: 1, maxVotes: 1, maxActivity: 1 });
@@ -274,7 +275,8 @@ const CreatorProfile = () => {
       toast.error(data?.message || error?.message || "투표에 실패했습니다.");
       return;
     }
-    toast.success("투표 완료! 🎉");
+    toast.success("투표 완료! 🎉 공유 카드를 생성합니다...");
+    setAutoShareCard(true);
     setShowShare(true);
   };
 
@@ -909,7 +911,8 @@ const CreatorProfile = () => {
           creatorName={creator.name}
           rank={creator.rank}
           votesCount={creator.votes_count}
-          onClose={() => setShowShare(false)}
+          onClose={() => { setShowShare(false); setAutoShareCard(false); }}
+          autoGenerate={autoShareCard}
         />
       )}
     </div>
