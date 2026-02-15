@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,6 +10,7 @@ import FanBadge from "@/components/FanBadge";
 import CreatorChat from "@/components/CreatorChat";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
+import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
   Crown,
@@ -26,6 +27,8 @@ import {
   Medal,
   Star,
   Edit3,
+  Save,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -75,6 +78,9 @@ const CreatorProfile = () => {
   const [fanRanking, setFanRanking] = useState<{ nickname: string; score: number; votes: number; posts: number; comments: number }[]>([]);
   const [fanPeriod, setFanPeriod] = useState<FanPeriod>("all");
   const [fanLoading, setFanLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: "", category: "", channel_link: "" });
+  const [editSaving, setEditSaving] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -267,6 +273,36 @@ const CreatorProfile = () => {
     setShowShare(true);
   };
 
+  const handleSaveEdit = async () => {
+    if (!creator || !user || creator.user_id !== user.id) return;
+    const { name, category, channel_link } = editForm;
+    if (name.trim().length < 2 || name.length > 50) {
+      toast.error("이름은 2~50자로 입력해주세요.");
+      return;
+    }
+    if (category.trim().length < 1 || category.length > 20) {
+      toast.error("카테고리는 1~20자로 입력해주세요.");
+      return;
+    }
+    if (channel_link.trim().length < 5 || channel_link.length > 300) {
+      toast.error("채널 링크는 5~300자로 입력해주세요.");
+      return;
+    }
+    setEditSaving(true);
+    const { error } = await supabase
+      .from("creators")
+      .update({ name: name.trim(), category: category.trim(), channel_link: channel_link.trim() })
+      .eq("id", creator.id);
+    setEditSaving(false);
+    if (error) {
+      toast.error("수정에 실패했습니다.");
+      return;
+    }
+    setCreator(prev => prev ? { ...prev, name: name.trim(), category: category.trim(), channel_link: channel_link.trim() } : prev);
+    setIsEditing(false);
+    toast.success("프로필이 수정되었습니다! ✅");
+  };
+
   if (loading || !creator) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -355,23 +391,74 @@ const CreatorProfile = () => {
           </div>
 
           <div>
-            <div className="flex items-center justify-center gap-2">
-              <h2 className="text-xl font-bold">{creator.name}</h2>
-              {creator.is_verified && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-neon-cyan/20 text-neon-cyan font-medium">
-                  Official ✓
-                </span>
-              )}
-            </div>
-            {creator.category && (
-              <span className="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-full bg-neon-purple/15 text-neon-purple text-sm font-medium border border-neon-purple/30">
-                {creator.category}
-              </span>
+            {isEditing ? (
+              <div className="space-y-3 text-left">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">이름</label>
+                  <Input
+                    value={editForm.name}
+                    onChange={(e) => setEditForm(f => ({ ...f, name: e.target.value }))}
+                    className="glass-sm border-glass-border"
+                    maxLength={50}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">카테고리</label>
+                  <Input
+                    value={editForm.category}
+                    onChange={(e) => setEditForm(f => ({ ...f, category: e.target.value }))}
+                    className="glass-sm border-glass-border"
+                    maxLength={20}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">채널 링크</label>
+                  <Input
+                    value={editForm.channel_link}
+                    onChange={(e) => setEditForm(f => ({ ...f, channel_link: e.target.value }))}
+                    className="glass-sm border-glass-border"
+                    maxLength={300}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleSaveEdit}
+                    disabled={editSaving}
+                    className="flex-1 gradient-primary text-primary-foreground rounded-xl"
+                  >
+                    <Save className="w-4 h-4 mr-1" />
+                    {editSaving ? "저장 중..." : "저장"}
+                  </Button>
+                  <Button
+                    onClick={() => setIsEditing(false)}
+                    variant="outline"
+                    className="rounded-xl glass-sm border-glass-border"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-center gap-2">
+                  <h2 className="text-xl font-bold">{creator.name}</h2>
+                  {creator.is_verified && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-neon-cyan/20 text-neon-cyan font-medium">
+                      Official ✓
+                    </span>
+                  )}
+                </div>
+                {creator.category && (
+                  <span className="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-full bg-neon-purple/15 text-neon-purple text-sm font-medium border border-neon-purple/30">
+                    {creator.category}
+                  </span>
+                )}
+              </>
             )}
           </div>
 
           {/* Channel Link */}
-          {creator.channel_link && (
+          {!isEditing && creator.channel_link && (
             <a
               href={creator.channel_link}
               target="_blank"
@@ -384,9 +471,16 @@ const CreatorProfile = () => {
           )}
 
           {/* Owner Edit Button */}
-          {user && creator.user_id === user.id && (
+          {!isEditing && user && creator.user_id === user.id && (
             <Button
-              onClick={() => navigate("/mypage")}
+              onClick={() => {
+                setEditForm({
+                  name: creator.name,
+                  category: creator.category,
+                  channel_link: creator.channel_link || "",
+                });
+                setIsEditing(true);
+              }}
               variant="outline"
               className="w-full glass-sm border-neon-cyan/30 hover:border-neon-cyan/60 text-neon-cyan text-sm rounded-xl"
             >
