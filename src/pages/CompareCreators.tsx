@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Crown, Search, X, GitCompareArrows, Heart, Users, Trophy } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import SEOHead from "@/components/SEOHead";
 import {
   BarChart,
   Bar,
@@ -144,6 +145,7 @@ const CompareCreators = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24" onClick={() => { setShowListA(false); setShowListB(false); }}>
+      <SEOHead title="크리에이터 비교" description="두 크리에이터의 순위, 투표수, 구독자를 한눈에 비교해보세요." path="/compare" />
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
+import SEOHead from "@/components/SEOHead";
 import { Crown, Swords, Trophy, ArrowLeft, Zap } from "lucide-react";
 import { toast } from "sonner";
 
@@ -142,6 +143,7 @@ const Tournament = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
+      <SEOHead title="크리에이터 대결" description="크리에이터 1:1 토너먼트! 좋아하는 크리에이터에게 투표하고 최강자를 가려보세요." path="/tournament" />
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">

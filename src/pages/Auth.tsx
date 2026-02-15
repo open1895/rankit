@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
 import { Crown, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -65,6 +66,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg flex flex-col">
+      <SEOHead title="로그인" description="Rank It에 로그인하여 크리에이터에게 투표하고 팬 랭킹에 참여하세요." path="/auth" noIndex />
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
           <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground transition-colors">

@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
+import SEOHead from "@/components/SEOHead";
 import { Creator } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import ShareCard from "@/components/ShareCard";
@@ -400,6 +401,12 @@ const CreatorProfile = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
+      <SEOHead
+        title={`${creator.name} - 크리에이터 프로필`}
+        description={`${creator.name}의 랭킹, 투표 현황, 팬 활동을 확인하세요. 현재 ${creator.rank}위, ${creator.votes_count}표 획득!`}
+        path={`/creator/${creator.id}`}
+        ogImage={creator.avatar_url || undefined}
+      />
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center gap-3">

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Crown, Trophy, Calendar, ChevronRight } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import SEOHead from "@/components/SEOHead";
 
 interface Season {
   id: string;
@@ -78,6 +79,7 @@ const SeasonArchive = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
+      <SEOHead title="시즌 아카이브" description="역대 시즌별 크리에이터 최종 랭킹을 확인하세요. Rank It의 모든 시즌 기록이 여기에!" path="/seasons" />
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
