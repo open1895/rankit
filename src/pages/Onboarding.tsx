@@ -97,6 +97,7 @@ const Onboarding = () => {
         category,
         avatar_url: avatarUrl,
         subscriber_count: parseInt(subscriberCount) || 0,
+        user_id: user.id,
       });
 
       if (error) throw error;
