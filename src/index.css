@@ -377,3 +377,37 @@ html *::before, html *::after {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Celebration Effect Animations */
+@keyframes confetti {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--vx), var(--vy)) rotate(var(--rot)) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes flash {
+  0% { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+
+@keyframes celebMsg {
+  0% { opacity: 0; transform: scale(0.5) translateY(20px); }
+  20% { opacity: 1; transform: scale(1.1) translateY(0); }
+  40% { transform: scale(1) translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: scale(0.9) translateY(-20px); }
+}
+
+@keyframes rankUpPulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--neon-cyan) / 0.4); }
+  50% { box-shadow: 0 0 20px 8px hsl(var(--neon-cyan) / 0.2); }
+}
+
+.animate-rank-up-pulse {
+  animation: rankUpPulse 1s ease-in-out 2;
+}

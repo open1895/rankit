@@ -7,6 +7,7 @@ import SEOHead from "@/components/SEOHead";
 import { Creator } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import ShareCard from "@/components/ShareCard";
+import CelebrationEffect from "@/components/CelebrationEffect";
 import FanBadge from "@/components/FanBadge";
 import CreatorChat from "@/components/CreatorChat";
 import { formatDistanceToNow } from "date-fns";
@@ -75,6 +76,9 @@ const CreatorProfile = () => {
   const [totalCreators, setTotalCreators] = useState(0);
   const [showShare, setShowShare] = useState(false);
   const [autoShareCard, setAutoShareCard] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationMsg, setCelebrationMsg] = useState("");
+  const [showRankUpHint, setShowRankUpHint] = useState(false);
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [activityData, setActivityData] = useState({ posts: 0, postComments: 0, postLikes: 0 });
   const [maxValues, setMaxValues] = useState({ maxSubs: 1, maxVotes: 1, maxActivity: 1 });
@@ -268,13 +272,26 @@ const CreatorProfile = () => {
       return;
     }
     if (!id) return;
+
+    // Show rank-up hint before vote
+    setShowRankUpHint(true);
+    setTimeout(() => setShowRankUpHint(false), 3000);
+
+    const prevRank = creator?.rank;
     const { data, error } = await supabase.functions.invoke("vote", {
       body: { creator_id: id },
     });
     if (error || data?.error) {
+      setShowRankUpHint(false);
       toast.error(data?.message || error?.message || "투표에 실패했습니다.");
       return;
     }
+
+    // Trigger celebration effect
+    setShowRankUpHint(false);
+    setCelebrationMsg("투표 완료! 🎉");
+    setShowCelebration(true);
+
     toast.success("투표 완료! 🎉 공유 카드를 생성합니다...");
     setAutoShareCard(true);
     setShowShare(true);
@@ -582,6 +599,21 @@ const CreatorProfile = () => {
               <Edit3 className="w-4 h-4 mr-2" />
               프로필 수정
             </Button>
+          )}
+
+          {/* Rank-up hint */}
+          {showRankUpHint && (
+            <div className="glass-sm p-3 rounded-xl border border-[hsl(var(--neon-cyan)/0.3)] animate-fade-in text-center space-y-1">
+              <div className="text-sm font-bold text-[hsl(var(--neon-cyan))]">📊 순위 상승 가능성 분석</div>
+              <div className="flex items-center justify-center gap-3">
+                <div className="text-xs text-muted-foreground">현재 <span className="font-bold text-foreground">#{creator.rank}</span></div>
+                <TrendingUp className="w-4 h-4 text-[hsl(var(--neon-cyan))] animate-bounce" />
+                <div className="text-xs text-[hsl(var(--neon-cyan))] font-bold">순위 상승 중...</div>
+              </div>
+              <div className="w-full h-1.5 bg-[hsl(var(--muted))] rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-cyan))] rounded-full animate-[pulse_1s_ease-in-out_infinite]" style={{ width: "70%" }} />
+              </div>
+            </div>
           )}
 
           {/* Buttons */}
@@ -913,8 +945,18 @@ const CreatorProfile = () => {
           votesCount={creator.votes_count}
           onClose={() => { setShowShare(false); setAutoShareCard(false); }}
           autoGenerate={autoShareCard}
+          onShareBonus={() => {
+            toast.success("공유 보너스 투표권 +1! 🎁");
+          }}
         />
       )}
+
+      {/* Celebration Effect */}
+      <CelebrationEffect
+        show={showCelebration}
+        message={celebrationMsg}
+        onComplete={() => setShowCelebration(false)}
+      />
     </div>
   );
 };
