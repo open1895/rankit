@@ -850,11 +850,78 @@ const MyPage = () => {
           </div>
         )}
 
-        {/* Vote History */}
+        {/* Growth Journal - 성장 기록장 */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Heart className="w-4 h-4 text-neon-purple" />
-            <h3 className="text-sm font-bold gradient-text">투표 기록</h3>
+            <h3 className="text-sm font-bold gradient-text">성장 기록장</h3>
+          </div>
+
+          {/* Creator stats summary */}
+          {votes.length > 0 && (() => {
+            const creatorVoteCounts = votes.reduce<Record<string, { name: string; avatar: string; category: string; count: number }>>((acc, v) => {
+              if (!acc[v.creator_id]) {
+                acc[v.creator_id] = { name: v.creator_name || "알 수 없음", avatar: v.creator_avatar || "", category: v.creator_category || "", count: 0 };
+              }
+              acc[v.creator_id].count++;
+              return acc;
+            }, {});
+            const sorted = Object.entries(creatorVoteCounts).sort((a, b) => b[1].count - a[1].count);
+            const topCreator = sorted[0];
+            return (
+              <div className="glass p-4 space-y-3">
+                <div className="text-xs text-muted-foreground">내가 가장 많이 응원한 크리에이터</div>
+                {topCreator && (
+                  <button
+                    onClick={() => navigate(`/creator/${topCreator[0]}`)}
+                    className="w-full glass-sm glass-hover p-3 flex items-center gap-3 text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0 overflow-hidden">
+                      {topCreator[1].avatar ? (
+                        <img src={topCreator[1].avatar} alt={topCreator[1].name} className="w-full h-full object-cover" />
+                      ) : (
+                        topCreator[1].name.slice(0, 2)
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold truncate">{topCreator[1].name}</div>
+                      <div className="text-[10px] text-muted-foreground">{topCreator[1].category}</div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div className="text-lg font-bold text-neon-purple">{topCreator[1].count}</div>
+                      <div className="text-[10px] text-muted-foreground">투표</div>
+                    </div>
+                  </button>
+                )}
+                {/* All supported creators */}
+                <div className="text-xs text-muted-foreground mt-2">응원 크리에이터 ({sorted.length}명)</div>
+                <div className="grid grid-cols-3 gap-2">
+                  {sorted.slice(0, 6).map(([cid, info]) => (
+                    <button
+                      key={cid}
+                      onClick={() => navigate(`/creator/${cid}`)}
+                      className="glass-sm p-2 text-center space-y-1 hover:border-neon-purple/30 transition-all"
+                    >
+                      <div className="w-8 h-8 mx-auto rounded-full gradient-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground overflow-hidden">
+                        {info.avatar ? (
+                          <img src={info.avatar} alt={info.name} className="w-full h-full object-cover" />
+                        ) : (
+                          info.name.slice(0, 2)
+                        )}
+                      </div>
+                      <div className="text-[10px] font-medium truncate">{info.name}</div>
+                      <div className="text-[10px] text-neon-cyan font-bold">{info.count}표</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Vote timeline */}
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-neon-cyan" />
+            <h4 className="text-xs font-bold text-muted-foreground">투표 타임라인</h4>
           </div>
 
           {votes.length === 0 ? (
@@ -874,6 +941,7 @@ const MyPage = () => {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Calendar className="w-3 h-3" />
                   {date}
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--neon-purple)/0.15)] text-[hsl(var(--neon-purple))] font-medium">{records.length}표</span>
                 </div>
                 {records.map((vote) => (
                   <button
