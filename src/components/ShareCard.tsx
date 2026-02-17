@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Share2, Download, Copy, X, Loader2 } from "lucide-react";
+import { Share2, Download, Copy, X, Loader2, Sparkles, Trophy, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { initKakao, shareToKakao } from "@/lib/kakao";
@@ -118,95 +118,165 @@ const ShareCard = ({ creatorId, creatorName, rank, votesCount, onClose, autoGene
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-      <div className="glass w-full max-w-sm p-5 space-y-4 relative">
-        {/* Close */}
-        <button onClick={onClose} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground">
-          <X className="w-5 h-5" />
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-md p-4 animate-fade-in">
+      {/* Ambient glow effects */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-[hsl(var(--neon-purple))] rounded-full opacity-10 blur-[100px] animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-[hsl(var(--neon-cyan))] rounded-full opacity-10 blur-[80px] animate-pulse" style={{ animationDelay: "1s" }} />
+      </div>
 
-        <div className="text-center space-y-1">
-          <h3 className="text-lg font-bold gradient-text">SNS 공유하기</h3>
-          <p className="text-xs text-muted-foreground">{creatorName}의 순위를 공유하세요!</p>
-        </div>
+      <div className="relative w-full max-w-sm animate-scale-in">
+        {/* Outer glow border */}
+        <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-[hsl(var(--neon-purple))] via-[hsl(var(--neon-cyan)/0.3)] to-[hsl(var(--neon-purple)/0.5)] opacity-60 blur-[1px]" />
+        
+        {/* Main card */}
+        <div className="relative rounded-2xl bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] backdrop-blur-xl p-5 space-y-4 overflow-hidden">
+          {/* Inner decorative mesh */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[hsl(var(--neon-purple)/0.15)] to-transparent rounded-bl-full" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-[hsl(var(--neon-cyan)/0.1)] to-transparent rounded-tr-full" />
 
-        {/* Card Preview */}
-        <div className="glass-sm p-3 min-h-[160px] flex items-center justify-center">
-          {loading ? (
-            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-              <Loader2 className="w-6 h-6 animate-spin text-neon-purple" />
-              <span className="text-xs">카드 생성 중...</span>
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 z-10 p-1.5 rounded-full bg-[hsl(var(--muted)/0.5)] text-muted-foreground hover:text-foreground hover:bg-[hsl(var(--muted))] transition-all"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          {/* Header */}
+          <div className="relative text-center space-y-1.5 pt-1">
+            <div className="flex items-center justify-center gap-2">
+              <Sparkles className="w-4 h-4 text-[hsl(var(--neon-cyan))]" />
+              <h3 className="text-lg font-bold bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-cyan))] bg-clip-text text-transparent">
+                SNS 공유하기
+              </h3>
+              <Sparkles className="w-4 h-4 text-[hsl(var(--neon-purple))]" />
             </div>
-          ) : imageUrl ? (
-            <img src={imageUrl} alt="Share card" className="w-full rounded-lg" />
-          ) : error ? (
-            <div className="text-center space-y-2">
-              <p className="text-xs text-muted-foreground">카드 생성에 실패했습니다</p>
-              <Button variant="outline" size="sm" onClick={generateCard}>
-                다시 시도
-              </Button>
-            </div>
-          ) : (
-            <Button
-              onClick={generateCard}
-              className="gradient-primary text-primary-foreground rounded-xl hover:opacity-90"
-            >
-              <Share2 className="w-4 h-4 mr-2" />
-              공유 카드 생성하기
-            </Button>
-          )}
-        </div>
-
-        {/* Actions */}
-        {imageUrl && (
-          <div className="flex gap-2">
-            <Button
-              onClick={handleDownload}
-              variant="outline"
-              size="sm"
-              className="flex-1 glass-sm border-glass-border"
-            >
-              <Download className="w-4 h-4 mr-1" />
-              저장
-            </Button>
-            <Button
-              onClick={handleCopyLink}
-              variant="outline"
-              size="sm"
-              className="flex-1 glass-sm border-glass-border"
-            >
-              <Copy className="w-4 h-4 mr-1" />
-              링크 복사
-            </Button>
+            <p className="text-xs text-muted-foreground">{creatorName}의 순위를 친구에게 알려주세요!</p>
           </div>
-        )}
 
-        {/* Social Share Buttons */}
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={handleNativeShare}
-            className="glass-sm p-3 text-center text-sm font-medium hover:border-neon-cyan/50 transition-all rounded-xl"
-          >
-            📲 공유하기
-          </button>
-          <button
-            onClick={handleShareTwitter}
-            className="glass-sm p-3 text-center text-sm font-medium hover:border-neon-cyan/50 transition-all rounded-xl"
-          >
-            𝕏 트위터
-          </button>
-          <button
-            onClick={handleShareKakao}
-            className="glass-sm p-3 text-center text-sm font-medium hover:border-[hsl(50_100%_50%)]/50 transition-all rounded-xl border border-[hsl(50_100%_50%)]/20 bg-[hsl(50_100%_50%)]/5"
-          >
-            💬 카카오톡
-          </button>
-          <button
-            onClick={handleShareFacebook}
-            className="glass-sm p-3 text-center text-sm font-medium hover:border-neon-cyan/50 transition-all rounded-xl"
-          >
-            📘 페이스북
-          </button>
+          {/* Stats mini bar */}
+          {(rank || votesCount) && (
+            <div className="relative flex items-center justify-center gap-4 py-2">
+              {rank && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[hsl(var(--neon-purple)/0.1)] border border-[hsl(var(--neon-purple)/0.2)]">
+                  <Trophy className="w-3.5 h-3.5 text-[hsl(var(--neon-purple))]" />
+                  <span className="text-xs font-bold text-[hsl(var(--neon-purple))]">#{rank}</span>
+                </div>
+              )}
+              {votesCount !== undefined && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[hsl(var(--neon-cyan)/0.1)] border border-[hsl(var(--neon-cyan)/0.2)]">
+                  <span className="text-xs font-bold text-[hsl(var(--neon-cyan))]">{votesCount.toLocaleString()}표</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Card Preview */}
+          <div className="relative rounded-xl border border-[hsl(var(--glass-border))] bg-[hsl(var(--background)/0.5)] p-3 min-h-[160px] flex items-center justify-center overflow-hidden">
+            {/* Shimmer effect on loading */}
+            {loading && (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[hsl(var(--neon-purple)/0.05)] to-transparent animate-[shimmer_2s_infinite] pointer-events-none" />
+            )}
+
+            {loading ? (
+              <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-full bg-[hsl(var(--neon-purple)/0.2)] blur-md animate-pulse" />
+                  <Loader2 className="relative w-8 h-8 animate-spin text-[hsl(var(--neon-purple))]" />
+                </div>
+                <div className="space-y-1 text-center">
+                  <span className="text-sm font-medium text-foreground/80">AI가 카드를 생성 중...</span>
+                  <span className="text-xs block text-muted-foreground">잠시만 기다려주세요 ✨</span>
+                </div>
+              </div>
+            ) : imageUrl ? (
+              <img
+                src={imageUrl}
+                alt="Share card"
+                className="w-full rounded-lg shadow-lg shadow-[hsl(var(--neon-purple)/0.15)] transition-transform hover:scale-[1.02]"
+              />
+            ) : error ? (
+              <div className="text-center space-y-3 py-2">
+                <p className="text-sm text-muted-foreground">카드 생성에 실패했습니다 😢</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={generateCard}
+                  className="border-[hsl(var(--neon-purple)/0.3)] hover:border-[hsl(var(--neon-purple)/0.6)] hover:bg-[hsl(var(--neon-purple)/0.1)]"
+                >
+                  다시 시도
+                </Button>
+              </div>
+            ) : (
+              <button
+                onClick={generateCard}
+                className="group relative px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-cyan))] opacity-90 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[hsl(var(--neon-cyan))] to-[hsl(var(--neon-purple))] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-[1px] rounded-[10px] bg-[hsl(var(--glass))] opacity-0 group-hover:opacity-20 transition-opacity" />
+                <span className="relative flex items-center gap-2 text-primary-foreground">
+                  <Sparkles className="w-4 h-4" />
+                  공유 카드 생성하기
+                  <Share2 className="w-4 h-4" />
+                </span>
+              </button>
+            )}
+          </div>
+
+          {/* Action buttons */}
+          {imageUrl && (
+            <div className="flex gap-2">
+              <button
+                onClick={handleDownload}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border border-[hsl(var(--glass-border))] bg-[hsl(var(--glass)/0.5)] hover:border-[hsl(var(--neon-cyan)/0.4)] hover:bg-[hsl(var(--neon-cyan)/0.05)] transition-all"
+              >
+                <Download className="w-4 h-4 text-[hsl(var(--neon-cyan))]" />
+                <span>저장</span>
+              </button>
+              <button
+                onClick={handleCopyLink}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border border-[hsl(var(--glass-border))] bg-[hsl(var(--glass)/0.5)] hover:border-[hsl(var(--neon-purple)/0.4)] hover:bg-[hsl(var(--neon-purple)/0.05)] transition-all"
+              >
+                <Copy className="w-4 h-4 text-[hsl(var(--neon-purple))]" />
+                <span>링크 복사</span>
+              </button>
+            </div>
+          )}
+
+          {/* Social share grid */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={handleNativeShare}
+              className="group relative flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium border border-[hsl(var(--glass-border))] bg-[hsl(var(--glass)/0.3)] hover:border-[hsl(var(--neon-cyan)/0.4)] hover:shadow-[0_0_15px_hsl(var(--neon-cyan)/0.1)] transition-all duration-300"
+            >
+              <span className="text-base">📲</span>
+              <span>공유하기</span>
+              <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-50 transition-opacity" />
+            </button>
+            <button
+              onClick={handleShareTwitter}
+              className="group relative flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium border border-[hsl(var(--glass-border))] bg-[hsl(var(--glass)/0.3)] hover:border-[hsl(210_100%_50%/0.4)] hover:shadow-[0_0_15px_hsl(210_100%_50%/0.1)] transition-all duration-300"
+            >
+              <span className="text-base font-bold">𝕏</span>
+              <span>트위터</span>
+            </button>
+            <button
+              onClick={handleShareKakao}
+              className="group relative flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium border border-[hsl(50_100%_50%/0.25)] bg-[hsl(50_100%_50%/0.05)] hover:border-[hsl(50_100%_50%/0.5)] hover:bg-[hsl(50_100%_50%/0.1)] hover:shadow-[0_0_15px_hsl(50_100%_50%/0.1)] transition-all duration-300"
+            >
+              <span className="text-base">💬</span>
+              <span>카카오톡</span>
+            </button>
+            <button
+              onClick={handleShareFacebook}
+              className="group relative flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium border border-[hsl(var(--glass-border))] bg-[hsl(var(--glass)/0.3)] hover:border-[hsl(220_90%_55%/0.4)] hover:shadow-[0_0_15px_hsl(220_90%_55%/0.1)] transition-all duration-300"
+            >
+              <span className="text-base">📘</span>
+              <span>페이스북</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
