@@ -49,7 +49,6 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, maxSubs, maxVotes
     setTimeout(() => {
       setIsVoting(false);
       if (success) {
-        // Calculate gap after vote
         const gap = getVotesUntilNext(creator, creators);
         setVoteGap(gap);
         setShowVoteModal(true);
@@ -57,6 +56,11 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, maxSubs, maxVotes
       }
     }, 600);
   };
+
+  // Find the creator directly above in rank
+  const sorted = [...creators].sort((a, b) => a.rank - b.rank);
+  const idx = sorted.findIndex(c => c.id === creator.id);
+  const aboveCreator = idx > 0 ? sorted[idx - 1] : null;
 
   const handleBonusVote = () => {
     onBonusVote?.();
@@ -188,7 +192,8 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, maxSubs, maxVotes
       {/* Vote Result Modal */}
       <VoteResultModal
         show={showVoteModal}
-        creatorName={creator.name}
+        creator={creator}
+        aboveCreator={aboveCreator}
         gap={voteGap}
         siteUrl={siteUrl}
         onClose={() => setShowVoteModal(false)}
