@@ -6,7 +6,18 @@ interface MiniInfluenceChartProps {
   chzzkFollowers: number;
   instagramFollowers: number;
   tiktokFollowers: number;
+  lastStatsUpdated?: string | null;
 }
+
+const getTimeAgo = (dateStr: string | null | undefined): string | null => {
+  if (!dateStr) return null;
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  if (hours < 1) return "방금 전";
+  if (hours < 24) return `${hours}시간 전`;
+  const days = Math.floor(hours / 24);
+  return `${days}일 전`;
+};
 
 const formatCount = (n: number) => {
   if (n >= 10000) return `${(n / 10000).toFixed(1)}만`;
@@ -27,6 +38,7 @@ const MiniInfluenceChart = ({
   chzzkFollowers,
   instagramFollowers,
   tiktokFollowers,
+  lastStatsUpdated,
 }: MiniInfluenceChartProps) => {
   const counts: Record<string, number> = {
     youtube: youtubeSubscribers,
@@ -68,6 +80,11 @@ const MiniInfluenceChart = ({
             <span className="font-semibold">Total Score</span>
             <span className="font-bold text-primary">{displayScore.toLocaleString()}</span>
           </div>
+          {lastStatsUpdated && (
+            <p className="text-[10px] text-muted-foreground mt-1.5">
+              최근 업데이트: {getTimeAgo(lastStatsUpdated)}
+            </p>
+          )}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

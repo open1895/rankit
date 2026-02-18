@@ -101,6 +101,7 @@ const Index = () => {
           instagram_followers: c.instagram_followers ?? 0,
           tiktok_followers: c.tiktok_followers ?? 0,
           rankit_score: c.rankit_score ?? 0,
+          last_stats_updated: c.last_stats_updated ?? null,
         }))
       );
       setLoading(false);
