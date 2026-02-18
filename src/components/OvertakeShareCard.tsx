@@ -118,7 +118,7 @@ const OvertakeShareCard = ({
   const initials = (name: string) => name.slice(0, 2);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-6 overflow-y-auto" onClick={onClose}>
       {/* Backdrop */}
       <div className="absolute inset-0 bg-background/80 backdrop-blur-md" />
 
