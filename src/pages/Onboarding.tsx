@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Crown, Upload, Zap, ArrowLeft, Camera, Check, ChevronDown } from "lucide-react";
+import { Upload, Zap, ArrowLeft, Camera, Check, ChevronDown } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import RankitLogo from "@/components/RankitLogo";
 import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
 
@@ -125,8 +126,8 @@ const Onboarding = () => {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2 flex-1">
-            <Crown className="w-5 h-5 text-neon-purple" />
-            <span className="text-lg font-bold gradient-text">크리에이터 등록</span>
+            <RankitLogo size="sm" />
+            <span className="text-sm text-muted-foreground font-medium">크리에이터 등록</span>
           </div>
           <ThemeToggle />
         </div>
@@ -139,9 +140,10 @@ const Onboarding = () => {
             <Zap className="w-3 h-3" />
             30초 빠른 등록
           </div>
-          <h2 className="text-2xl font-bold">
-            <span className="gradient-text">Rank It</span>에 참여하세요
-          </h2>
+          <div className="flex justify-center">
+            <RankitLogo size="lg" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground">에 참여하세요</h2>
           <p className="text-sm text-muted-foreground">
             등록만 하면 팬들의 투표를 받을 수 있어요
           </p>

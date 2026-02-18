@@ -308,15 +308,19 @@ const OvertakeShareCard = ({
               <br />지금 바로 투표하세요!
             </p>
 
-            {/* Footer: Logo */}
+            {/* Footer: Rankit Logo Watermark */}
             <div className="flex items-center justify-center gap-2 pt-1">
               <div className="w-5 h-5 rounded-md flex items-center justify-center"
                 style={{ background: "linear-gradient(135deg, hsl(270 91% 65%), hsl(187 94% 42%))" }}>
-                <Crown className="w-3 h-3" style={{ color: "white" }} />
+                <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 19V5" />
+                  <path d="M5 12l7-7 7 7" />
+                  <path d="M8 5l4-3 4 3" strokeWidth="1.5" />
+                </svg>
               </div>
-              <span className="text-[10px] font-bold tracking-wide"
+              <span className="text-[10px] font-extrabold tracking-wider"
                 style={{ background: "linear-gradient(135deg, hsl(270 91% 65%), hsl(187 94% 42%))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                RANK IT
+                Rank<span style={{ fontWeight: 300 }}>it</span>
               </span>
               <span className="text-[8px]" style={{ color: "hsl(215 20% 55% / 0.5)" }}>·</span>
               <span className="text-[8px]" style={{ color: "hsl(215 20% 55% / 0.5)" }}>fan-powered ranking</span>
