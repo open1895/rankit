@@ -76,7 +76,8 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, maxSubs, maxVotes
     ? "rank-bronze"
     : "text-muted-foreground";
 
-  const initials = creator.avatar_url || creator.name.slice(0, 2);
+  const isImageUrl = creator.avatar_url?.startsWith("http");
+  const initials = (!isImageUrl && creator.avatar_url) || creator.name.slice(0, 2);
   const isTop3 = creator.rank <= 3;
 
   return (
@@ -113,14 +114,24 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, maxSubs, maxVotes
 
         {/* Avatar */}
         <div className="relative shrink-0">
-          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold transition-transform duration-300 group-hover:scale-105 ${
-            isTop3
-              ? "gradient-primary text-primary-foreground shadow-lg shadow-primary/30"
-              : "gradient-primary text-primary-foreground"
-          }`}>
-            {isTop3 && <Trophy className="w-5 h-5" />}
-            {!isTop3 && initials}
-          </div>
+          {isImageUrl ? (
+            <img
+              src={creator.avatar_url}
+              alt={creator.name}
+              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover transition-transform duration-300 group-hover:scale-105 ${
+                isTop3 ? "ring-2 ring-primary shadow-lg shadow-primary/30" : ""
+              }`}
+            />
+          ) : (
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold transition-transform duration-300 group-hover:scale-105 ${
+              isTop3
+                ? "gradient-primary text-primary-foreground shadow-lg shadow-primary/30"
+                : "gradient-primary text-primary-foreground"
+            }`}>
+              {isTop3 && <Trophy className="w-5 h-5" />}
+              {!isTop3 && initials}
+            </div>
+          )}
           {creator.is_verified && (
             <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-neon-cyan flex items-center justify-center shadow-md shadow-secondary/30">
               <CheckCircle2 className="w-3.5 h-3.5 text-background" />
