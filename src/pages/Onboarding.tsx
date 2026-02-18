@@ -38,11 +38,25 @@ const Onboarding = () => {
   const [submitting, setSubmitting] = useState(false);
   const [youtubeChannelId, setYoutubeChannelId] = useState("");
   const [chzzkChannelId, setChzzkChannelId] = useState("");
+  const [instagramFollowers, setInstagramFollowers] = useState("");
+  const [tiktokFollowers, setTiktokFollowers] = useState("");
+  const [hasExistingCreator, setHasExistingCreator] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
       toast.error("크리에이터 등록은 로그인 후 이용 가능합니다.");
       navigate("/auth");
+      return;
+    }
+    if (user) {
+      // Check if user already has a creator profile
+      supabase.from("creators").select("id").eq("user_id", user.id).maybeSingle().then(({ data }) => {
+        if (data) {
+          setHasExistingCreator(true);
+          toast.error("이미 등록된 크리에이터가 있습니다.");
+          navigate(`/creator/${data.id}`);
+        }
+      });
     }
   }, [authLoading, user, navigate]);
 
@@ -104,6 +118,8 @@ const Onboarding = () => {
         user_id: user.id,
         youtube_channel_id: youtubeChannelId.trim(),
         chzzk_channel_id: chzzkChannelId.trim(),
+        instagram_followers: parseInt(instagramFollowers) || 0,
+        tiktok_followers: parseInt(tiktokFollowers) || 0,
       });
 
       if (error) throw error;
@@ -247,6 +263,36 @@ const Onboarding = () => {
               className="glass-sm bg-card/30 border-glass-border focus:border-neon-purple/50"
             />
             <p className="text-[10px] text-muted-foreground">치지직 채널 URL의 ID 부분 (자동 팔로워 연동용)</p>
+          </div>
+
+          {/* SNS Follower Counts */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">플랫폼별 팔로워 수</label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">인스타그램</label>
+                <Input
+                  type="number"
+                  value={instagramFollowers}
+                  onChange={(e) => setInstagramFollowers(e.target.value)}
+                  placeholder="0"
+                  min={0}
+                  className="glass-sm bg-card/30 border-glass-border focus:border-neon-purple/50"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">틱톡</label>
+                <Input
+                  type="number"
+                  value={tiktokFollowers}
+                  onChange={(e) => setTiktokFollowers(e.target.value)}
+                  placeholder="0"
+                  min={0}
+                  className="glass-sm bg-card/30 border-glass-border focus:border-neon-purple/50"
+                />
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground">인스타 ×1.2, 틱톡 ×0.8 가중치로 Rankit Score에 반영됩니다</p>
           </div>
 
           {/* Category Dropdown */}
