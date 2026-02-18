@@ -247,13 +247,13 @@ const Index = () => {
               <Sparkles className="w-3.5 h-3.5" />
               시즌 12 진행 중
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold leading-tight">
-              당신의 한 표가{" "}
-              <span className="gradient-text neon-text-purple">크리에이터의 미래</span>
-              를 바꿉니다
+            <h2 className="text-xl sm:text-2xl font-bold leading-tight text-center">
+              혼자 하면 팬이지만,
+              <br />
+              <span className="gradient-text neon-text-purple">모이면 역사</span>가 됩니다.
             </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              <span className="text-neon-cyan font-semibold">1위</span>를 전광판으로 보내주세요! 🏆
+            <p className="text-sm text-muted-foreground leading-relaxed text-center">
+              지금, 당신이 다음 <span className="text-neon-cyan font-semibold">스타</span>를 만드세요. ✨
             </p>
           </section>
         </ScrollReveal>
