@@ -4,19 +4,25 @@ import { Creator, getVotesUntilNext } from "@/lib/data";
 import { Trophy, TrendingUp, TrendingDown, Minus, CheckCircle2, Heart } from "lucide-react";
 import CommentInput from "./CommentInput";
 import MiniInfluenceChart from "./MiniInfluenceChart";
+import VoteResultModal from "./VoteResultModal";
+import CelebrationEffect from "./CelebrationEffect";
 
 interface RankingCardProps {
   creator: Creator;
   creators: Creator[];
   onVote: (id: string) => Promise<boolean>;
+  onBonusVote?: () => void;
   maxSubs: number;
   maxVotes: number;
 }
 
-const RankingCard = ({ creator, creators, onVote, maxSubs, maxVotes }: RankingCardProps) => {
+const RankingCard = ({ creator, creators, onVote, onBonusVote, maxSubs, maxVotes }: RankingCardProps) => {
   const [isVoting, setIsVoting] = useState(false);
   const [showCommentInput, setShowCommentInput] = useState(false);
+  const [showVoteModal, setShowVoteModal] = useState(false);
+  const [voteGap, setVoteGap] = useState<number | null>(null);
   const [rankAnim, setRankAnim] = useState<"up" | "down" | null>(null);
+  const [showOvertake, setShowOvertake] = useState(false);
   const prevRankRef = useRef(creator.rank);
   const votesUntilNext = getVotesUntilNext(creator, creators);
   const rankDiff = creator.previousRank - creator.rank;
@@ -25,6 +31,12 @@ const RankingCard = ({ creator, creators, onVote, maxSubs, maxVotes }: RankingCa
     if (prevRankRef.current !== creator.rank) {
       const direction = creator.rank < prevRankRef.current ? "up" : "down";
       setRankAnim(direction);
+
+      // Overtake detection - rank went up
+      if (direction === "up") {
+        setShowOvertake(true);
+      }
+
       prevRankRef.current = creator.rank;
       const timer = setTimeout(() => setRankAnim(null), 1500);
       return () => clearTimeout(timer);
@@ -37,10 +49,20 @@ const RankingCard = ({ creator, creators, onVote, maxSubs, maxVotes }: RankingCa
     setTimeout(() => {
       setIsVoting(false);
       if (success) {
+        // Calculate gap after vote
+        const gap = getVotesUntilNext(creator, creators);
+        setVoteGap(gap);
+        setShowVoteModal(true);
         setShowCommentInput(true);
       }
     }, 600);
   };
+
+  const handleBonusVote = () => {
+    onBonusVote?.();
+  };
+
+  const siteUrl = typeof window !== "undefined" ? window.location.origin : "";
 
   const rankStyle = creator.rank === 1
     ? "rank-gold"
@@ -51,11 +73,17 @@ const RankingCard = ({ creator, creators, onVote, maxSubs, maxVotes }: RankingCa
     : "text-muted-foreground";
 
   const initials = creator.avatar_url || creator.name.slice(0, 2);
-
   const isTop3 = creator.rank <= 3;
 
   return (
     <div className="space-y-0">
+      {/* Overtake celebration */}
+      <CelebrationEffect
+        show={showOvertake}
+        message="역전 성공! 🎉"
+        onComplete={() => setShowOvertake(false)}
+      />
+
       <div className={`glass glass-hover p-3 sm:p-4 flex items-center gap-2 sm:gap-4 transition-all duration-300 group ${isTop3 ? "neon-glow-purple" : ""} ${rankAnim === "up" ? "animate-rank-up" : rankAnim === "down" ? "animate-rank-down" : ""}`}>
         {/* Rank */}
         <div className="flex flex-col items-center w-8 sm:w-10 shrink-0">
@@ -120,7 +148,7 @@ const RankingCard = ({ creator, creators, onVote, maxSubs, maxVotes }: RankingCa
               </span>
             )}
           </div>
-          {votesUntilNext && votesUntilNext <= 500 && (
+          {votesUntilNext !== null && votesUntilNext <= 500 && (
             <p className="text-[10px] text-neon-red font-semibold animate-pulse-neon mt-0.5">
               🔥 다음 순위까지 단 {votesUntilNext}표!
             </p>
@@ -156,6 +184,16 @@ const RankingCard = ({ creator, creators, onVote, maxSubs, maxVotes }: RankingCa
           onClose={() => setShowCommentInput(false)}
         />
       )}
+
+      {/* Vote Result Modal */}
+      <VoteResultModal
+        show={showVoteModal}
+        creatorName={creator.name}
+        gap={voteGap}
+        siteUrl={siteUrl}
+        onClose={() => setShowVoteModal(false)}
+        onBonusVote={handleBonusVote}
+      />
     </div>
   );
 };

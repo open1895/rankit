@@ -418,6 +418,7 @@ const Index = () => {
                     creator={creator}
                     creators={creators}
                     onVote={handleVote}
+                    onBonusVote={() => setExtraVotes((v) => v + 1)}
                     maxSubs={Math.max(...filteredCreators.map(c => c.subscriber_count), 1)}
                     maxVotes={Math.max(...filteredCreators.map(c => c.votes_count), 1)}
                   />
