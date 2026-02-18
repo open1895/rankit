@@ -7,6 +7,7 @@ import RankingCard from "@/components/RankingCard";
 import CountdownTimer from "@/components/CountdownTimer";
 import LiveFeed from "@/components/LiveFeed";
 import FanComments from "@/components/FanComments";
+import FanMarquee from "@/components/FanMarquee";
 import ThemeToggle from "@/components/ThemeToggle";
 import ReferralSystem from "@/components/ReferralSystem";
 import StreakTracker from "@/components/StreakTracker";
@@ -226,6 +227,8 @@ const Index = () => {
           </div>
         </div>
       </header>
+      {/* 실시간 팬들의 한마디 - Sliding Marquee */}
+      <FanMarquee />
 
       <main className="container max-w-lg mx-auto px-4 py-6 space-y-5">
         {/* Hero Section */}
