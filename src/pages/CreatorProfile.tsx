@@ -132,6 +132,11 @@ const CreatorProfile = () => {
         is_verified: c.is_verified,
         channel_link: (c as any).channel_link,
         user_id: (c as any).user_id,
+        youtube_subscribers: (c as any).youtube_subscribers ?? 0,
+        chzzk_followers: (c as any).chzzk_followers ?? 0,
+        instagram_followers: (c as any).instagram_followers ?? 0,
+        tiktok_followers: (c as any).tiktok_followers ?? 0,
+        rankit_score: (c as any).rankit_score ?? 0,
       });
 
       setRankHistory(historyRes.data || []);

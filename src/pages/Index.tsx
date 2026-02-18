@@ -96,6 +96,11 @@ const Index = () => {
           rank: c.rank,
           previousRank: c.rank,
           is_verified: c.is_verified,
+          youtube_subscribers: c.youtube_subscribers ?? 0,
+          chzzk_followers: c.chzzk_followers ?? 0,
+          instagram_followers: c.instagram_followers ?? 0,
+          tiktok_followers: c.tiktok_followers ?? 0,
+          rankit_score: c.rankit_score ?? 0,
         }))
       );
       setLoading(false);
@@ -428,8 +433,6 @@ const Index = () => {
                     creators={creators}
                     onVote={handleVote}
                     onBonusVote={() => setExtraVotes((v) => v + 1)}
-                    maxSubs={Math.max(...filteredCreators.map(c => c.subscriber_count), 1)}
-                    maxVotes={Math.max(...filteredCreators.map(c => c.votes_count), 1)}
                   />
                 </div>
               ))}
