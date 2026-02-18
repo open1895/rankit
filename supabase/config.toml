@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.points]
 verify_jwt = false
+
+[functions.fetch-social-stats]
+verify_jwt = false

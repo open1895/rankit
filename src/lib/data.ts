@@ -13,6 +13,7 @@ export interface Creator {
   instagram_followers: number;
   tiktok_followers: number;
   rankit_score: number;
+  last_stats_updated?: string | null;
 }
 
 export interface VoteEvent {

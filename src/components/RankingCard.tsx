@@ -170,6 +170,7 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote }: RankingCardProp
           chzzkFollowers={creator.chzzk_followers}
           instagramFollowers={creator.instagram_followers}
           tiktokFollowers={creator.tiktok_followers}
+          lastStatsUpdated={creator.last_stats_updated}
         />
 
         {/* Vote Button */}
