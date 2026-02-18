@@ -12,11 +12,9 @@ interface RankingCardProps {
   creators: Creator[];
   onVote: (id: string) => Promise<boolean>;
   onBonusVote?: () => void;
-  maxSubs: number;
-  maxVotes: number;
 }
 
-const RankingCard = ({ creator, creators, onVote, onBonusVote, maxSubs, maxVotes }: RankingCardProps) => {
+const RankingCard = ({ creator, creators, onVote, onBonusVote }: RankingCardProps) => {
   const [isVoting, setIsVoting] = useState(false);
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [showVoteModal, setShowVoteModal] = useState(false);
@@ -157,11 +155,6 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, maxSubs, maxVotes
                 {creator.votes_count.toLocaleString()}표
               </span>
             </div>
-            {creator.subscriber_count > 0 && (
-              <span className="text-[10px] text-muted-foreground">
-                · 구독 {creator.subscriber_count.toLocaleString()}
-              </span>
-            )}
           </div>
           {votesUntilNext !== null && votesUntilNext <= 500 && (
             <p className="text-[10px] text-neon-red font-semibold animate-pulse-neon mt-0.5">
@@ -170,12 +163,13 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, maxSubs, maxVotes
           )}
         </div>
 
-        {/* Mini Influence Chart */}
+        {/* Rankit Score with platform breakdown */}
         <MiniInfluenceChart
-          subscriberCount={creator.subscriber_count}
-          votesCount={creator.votes_count}
-          maxSubs={maxSubs}
-          maxVotes={maxVotes}
+          rankitScore={creator.rankit_score}
+          youtubeSubscribers={creator.youtube_subscribers}
+          chzzkFollowers={creator.chzzk_followers}
+          instagramFollowers={creator.instagram_followers}
+          tiktokFollowers={creator.tiktok_followers}
         />
 
         {/* Vote Button */}

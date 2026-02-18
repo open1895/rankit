@@ -8,6 +8,11 @@ export interface Creator {
   rank: number;
   previousRank: number;
   is_verified: boolean;
+  youtube_subscribers: number;
+  chzzk_followers: number;
+  instagram_followers: number;
+  tiktok_followers: number;
+  rankit_score: number;
 }
 
 export interface VoteEvent {
