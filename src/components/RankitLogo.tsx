@@ -28,14 +28,22 @@ const RankitLogo = ({ size = "md", className = "" }: RankitLogoProps) => {
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
+          <linearGradient id="boltGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#06B6D4" />
+            <stop offset="100%" stopColor="#A855F7" />
+          </linearGradient>
         </defs>
         <text x="10" y="35" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="32" fill="currentColor" className="text-foreground">
           Rank
         </text>
-        <text x="95" y="35" fontFamily="Arial, sans-serif" fontWeight="300" fontSize="32" fill="#A855F7" filter="url(#glow)">
+        {/* Lightning bolt between Rank and it */}
+        <g transform="translate(88, 8)" filter="url(#glow)">
+          <path d="M8 0 L3 10 L7 10 L4 18 L12 7 L8 7 L11 0 Z" fill="url(#boltGradient)" />
+        </g>
+        <text x="105" y="35" fontFamily="Arial, sans-serif" fontWeight="300" fontSize="32" fill="#A855F7" filter="url(#glow)">
           it
         </text>
-        <path d="M125 15 L130 8 L135 15" stroke="#06B6D4" strokeWidth="3" fill="none" filter="url(#glow)" />
+        <path d="M135 15 L140 8 L145 15" stroke="#06B6D4" strokeWidth="3" fill="none" filter="url(#glow)" />
       </svg>
     </div>
   );
