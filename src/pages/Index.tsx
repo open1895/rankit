@@ -4,6 +4,7 @@ import { Creator } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import RankingCard from "@/components/RankingCard";
+import RankitLogo from "@/components/RankitLogo";
 import CountdownTimer from "@/components/CountdownTimer";
 import LiveFeed from "@/components/LiveFeed";
 import FanComments from "@/components/FanComments";
@@ -206,12 +207,7 @@ const Index = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
-              <Crown className="w-4.5 h-4.5 text-primary-foreground" />
-            </div>
-            <h1 className="text-lg font-bold gradient-text tracking-tight">Rank It</h1>
-          </div>
+          <RankitLogo size="md" />
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <div className="glass-sm px-2 py-1 flex items-center gap-1">
               <Ticket className="w-3.5 h-3.5 text-neon-cyan" />
