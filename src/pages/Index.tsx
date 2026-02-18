@@ -145,11 +145,21 @@ const Index = () => {
 
     if (error) {
       let msg = "투표에 실패했습니다.";
-      try {
-        const ctx = JSON.parse(error.context?.body || "{}");
-        if (ctx.message) msg = ctx.message;
-      } catch {}
-      if (data?.message) msg = data.message;
+      // Handle edge function error responses (429, 400, etc.)
+      if (data?.message) {
+        msg = data.message;
+      } else {
+        try {
+          const bodyStr = typeof error.context === "string" ? error.context : error.context?.body;
+          if (bodyStr) {
+            const ctx = JSON.parse(bodyStr);
+            if (ctx.message) msg = ctx.message;
+          }
+        } catch {}
+        if (error.message && !error.message.includes("FunctionsHttpError")) {
+          msg = error.message;
+        }
+      }
       toast.error(msg);
       return false;
     }
