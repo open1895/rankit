@@ -37,8 +37,8 @@ const RankitLogo = ({ size = "md", className = "" }: RankitLogoProps) => {
           Rank
         </text>
         {/* Lightning bolt between Rank and it */}
-        <g transform="translate(88, 8)" filter="url(#glow)">
-          <path d="M8 0 L3 10 L7 10 L4 18 L12 7 L8 7 L11 0 Z" fill="url(#boltGradient)" />
+        <g transform="translate(85, 5) scale(1.5)" filter="url(#glow)">
+          <path d="M7 0 L2 9 L6 9 L3 16 L12 6 L8 6 L11 0 Z" fill="url(#boltGradient)" />
         </g>
         <text x="105" y="35" fontFamily="Arial, sans-serif" fontWeight="300" fontSize="32" fill="#A855F7" filter="url(#glow)">
           it
