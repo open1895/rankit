@@ -328,9 +328,6 @@ const Index = () => {
           </div>
         </ScrollReveal>
 
-        {/* Fan Comments */}
-        <ScrollReveal><FanComments /></ScrollReveal>
-
         <div className="section-divider" />
 
         {/* Search & Filter Section */}
@@ -387,6 +384,11 @@ const Index = () => {
             </div>
           )}
         </section>
+        </ScrollReveal>
+
+        {/* 실시간 응원 톡 */}
+        <ScrollReveal>
+          <FanComments />
         </ScrollReveal>
 
         {/* Rankings */}
