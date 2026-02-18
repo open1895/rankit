@@ -86,7 +86,7 @@ const CreatorProfile = () => {
   const [fanPeriod, setFanPeriod] = useState<FanPeriod>("all");
   const [fanLoading, setFanLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ name: "", category: "", channel_link: "" });
+  const [editForm, setEditForm] = useState({ name: "", category: "", channel_link: "", youtube_channel_id: "", chzzk_channel_id: "" });
   const [editSaving, setEditSaving] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -360,6 +360,8 @@ const CreatorProfile = () => {
         category: category.trim(),
         channel_link: channel_link.trim(),
         avatar_url: newAvatarUrl,
+        youtube_channel_id: editForm.youtube_channel_id.trim(),
+        chzzk_channel_id: editForm.chzzk_channel_id.trim(),
       })
       .eq("id", creator.id);
     setEditSaving(false);
@@ -535,6 +537,26 @@ const CreatorProfile = () => {
                     maxLength={300}
                   />
                 </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">YouTube 채널 ID</label>
+                  <Input
+                    value={editForm.youtube_channel_id}
+                    onChange={(e) => setEditForm(f => ({ ...f, youtube_channel_id: e.target.value }))}
+                    className="glass-sm border-glass-border"
+                    maxLength={100}
+                    placeholder="UCxxxxxxxxxxxxxxxxxxxxxx"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">치지직 채널 ID</label>
+                  <Input
+                    value={editForm.chzzk_channel_id}
+                    onChange={(e) => setEditForm(f => ({ ...f, chzzk_channel_id: e.target.value }))}
+                    className="glass-sm border-glass-border"
+                    maxLength={100}
+                    placeholder="abcdef1234567890"
+                  />
+                </div>
                 <div className="flex gap-2">
                   <Button
                     onClick={handleSaveEdit}
@@ -593,6 +615,8 @@ const CreatorProfile = () => {
                   name: creator.name,
                   category: creator.category,
                   channel_link: creator.channel_link || "",
+                  youtube_channel_id: (creator as any).youtube_channel_id || "",
+                  chzzk_channel_id: (creator as any).chzzk_channel_id || "",
                 });
                 setAvatarFile(null);
                 setAvatarPreview(null);

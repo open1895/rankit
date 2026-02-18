@@ -36,6 +36,8 @@ const Onboarding = () => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [youtubeChannelId, setYoutubeChannelId] = useState("");
+  const [chzzkChannelId, setChzzkChannelId] = useState("");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -100,6 +102,8 @@ const Onboarding = () => {
         avatar_url: avatarUrl,
         subscriber_count: parseInt(subscriberCount) || 0,
         user_id: user.id,
+        youtube_channel_id: youtubeChannelId.trim(),
+        chzzk_channel_id: chzzkChannelId.trim(),
       });
 
       if (error) throw error;
@@ -217,6 +221,32 @@ const Onboarding = () => {
               className="glass-sm bg-card/30 border-glass-border focus:border-neon-purple/50"
             />
             <p className="text-[10px] text-muted-foreground">영향력 지수에 40% 반영됩니다</p>
+          </div>
+
+          {/* YouTube Channel ID */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">YouTube 채널 ID</label>
+            <Input
+              value={youtubeChannelId}
+              onChange={(e) => setYoutubeChannelId(e.target.value)}
+              placeholder="예: UCxxxxxxxxxxxxxxxxxxxxxx"
+              maxLength={100}
+              className="glass-sm bg-card/30 border-glass-border focus:border-neon-purple/50"
+            />
+            <p className="text-[10px] text-muted-foreground">YouTube 채널 URL의 ID 부분 (자동 구독자 연동용)</p>
+          </div>
+
+          {/* Chzzk Channel ID */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">치지직 채널 ID</label>
+            <Input
+              value={chzzkChannelId}
+              onChange={(e) => setChzzkChannelId(e.target.value)}
+              placeholder="예: abcdef1234567890"
+              maxLength={100}
+              className="glass-sm bg-card/30 border-glass-border focus:border-neon-purple/50"
+            />
+            <p className="text-[10px] text-muted-foreground">치지직 채널 URL의 ID 부분 (자동 팔로워 연동용)</p>
           </div>
 
           {/* Category Dropdown */}
