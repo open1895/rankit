@@ -86,7 +86,7 @@ const CreatorProfile = () => {
   const [fanPeriod, setFanPeriod] = useState<FanPeriod>("all");
   const [fanLoading, setFanLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ name: "", category: "", channel_link: "", youtube_channel_id: "", chzzk_channel_id: "" });
+  const [editForm, setEditForm] = useState({ name: "", category: "", channel_link: "", youtube_channel_id: "", chzzk_channel_id: "", instagram_id: "", tiktok_id: "", youtube_subscribers: "", chzzk_followers: "", instagram_followers: "", tiktok_followers: "" });
   const [editSaving, setEditSaving] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -362,6 +362,10 @@ const CreatorProfile = () => {
         avatar_url: newAvatarUrl,
         youtube_channel_id: editForm.youtube_channel_id.trim(),
         chzzk_channel_id: editForm.chzzk_channel_id.trim(),
+        youtube_subscribers: parseInt(editForm.youtube_subscribers) || 0,
+        chzzk_followers: parseInt(editForm.chzzk_followers) || 0,
+        instagram_followers: parseInt(editForm.instagram_followers) || 0,
+        tiktok_followers: parseInt(editForm.tiktok_followers) || 0,
       })
       .eq("id", creator.id);
     setEditSaving(false);
@@ -557,6 +561,52 @@ const CreatorProfile = () => {
                     placeholder="abcdef1234567890"
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">YouTube 구독자</label>
+                    <Input
+                      type="number"
+                      value={editForm.youtube_subscribers}
+                      onChange={(e) => setEditForm(f => ({ ...f, youtube_subscribers: e.target.value }))}
+                      className="glass-sm border-glass-border"
+                      placeholder="0"
+                      min={0}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">치지직 팔로워</label>
+                    <Input
+                      type="number"
+                      value={editForm.chzzk_followers}
+                      onChange={(e) => setEditForm(f => ({ ...f, chzzk_followers: e.target.value }))}
+                      className="glass-sm border-glass-border"
+                      placeholder="0"
+                      min={0}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">인스타그램 팔로워</label>
+                    <Input
+                      type="number"
+                      value={editForm.instagram_followers}
+                      onChange={(e) => setEditForm(f => ({ ...f, instagram_followers: e.target.value }))}
+                      className="glass-sm border-glass-border"
+                      placeholder="0"
+                      min={0}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">틱톡 팔로워</label>
+                    <Input
+                      type="number"
+                      value={editForm.tiktok_followers}
+                      onChange={(e) => setEditForm(f => ({ ...f, tiktok_followers: e.target.value }))}
+                      className="glass-sm border-glass-border"
+                      placeholder="0"
+                      min={0}
+                    />
+                  </div>
+                </div>
                 <div className="flex gap-2">
                   <Button
                     onClick={handleSaveEdit}
@@ -617,6 +667,12 @@ const CreatorProfile = () => {
                   channel_link: creator.channel_link || "",
                   youtube_channel_id: (creator as any).youtube_channel_id || "",
                   chzzk_channel_id: (creator as any).chzzk_channel_id || "",
+                  instagram_id: "",
+                  tiktok_id: "",
+                  youtube_subscribers: String((creator as any).youtube_subscribers || 0),
+                  chzzk_followers: String((creator as any).chzzk_followers || 0),
+                  instagram_followers: String((creator as any).instagram_followers || 0),
+                  tiktok_followers: String((creator as any).tiktok_followers || 0),
                 });
                 setAvatarFile(null);
                 setAvatarPreview(null);
