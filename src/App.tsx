@@ -17,6 +17,7 @@ import SeasonArchive from "./pages/SeasonArchive";
 import CompareCreators from "./pages/CompareCreators";
 import FanLeaderboard from "./pages/FanLeaderboard";
 import Tournament from "./pages/Tournament";
+import PointShop from "./pages/PointShop";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
                 <Route path="/compare" element={<CompareCreators />} />
                 <Route path="/fans" element={<FanLeaderboard />} />
                 <Route path="/tournament" element={<Tournament />} />
+                <Route path="/shop" element={<PointShop />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

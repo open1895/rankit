@@ -84,6 +84,44 @@ export type Database = {
           },
         ]
       }
+      creator_earnings: {
+        Row: {
+          created_at: string
+          creator_id: string
+          id: string
+          pending_amount: number
+          settled_amount: number
+          total_earnings: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          id?: string
+          pending_amount?: number
+          settled_amount?: number
+          total_earnings?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          id?: string
+          pending_amount?: number
+          settled_amount?: number
+          total_earnings?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_earnings_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: true
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creators: {
         Row: {
           avatar_url: string
@@ -123,6 +161,68 @@ export type Database = {
           subscriber_count?: number
           user_id?: string | null
           votes_count?: number
+        }
+        Relationships: []
+      }
+      point_purchases: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          price_paid: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          price_paid: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          price_paid?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "point_purchases_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "shop_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      point_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string
+          id?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          id?: string
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -407,6 +507,80 @@ export type Database = {
         }
         Relationships: []
       }
+      settlement_requests: {
+        Row: {
+          amount: number
+          bank_info: string
+          created_at: string
+          creator_id: string
+          id: string
+          processed_at: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          bank_info?: string
+          created_at?: string
+          creator_id: string
+          id?: string
+          processed_at?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          bank_info?: string
+          created_at?: string
+          creator_id?: string
+          id?: string
+          processed_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "settlement_requests_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shop_items: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          image_url: string
+          is_active: boolean
+          name: string
+          price: number
+          stock: number | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          name: string
+          price: number
+          stock?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          stock?: number | null
+        }
+        Relationships: []
+      }
       tournament_matches: {
         Row: {
           created_at: string
@@ -547,6 +721,33 @@ export type Database = {
           is_active?: boolean
           round?: number
           title?: string
+        }
+        Relationships: []
+      }
+      user_points: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          total_earned: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_earned?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_earned?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

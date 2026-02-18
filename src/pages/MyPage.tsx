@@ -22,6 +22,12 @@ import {
   ChevronDown,
   Search,
   Link2,
+  Coins,
+  ShoppingBag,
+  Play,
+  Wallet,
+  TrendingUp,
+  Banknote,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -94,6 +100,15 @@ const MyPage = () => {
   const [claimSearching, setClaimSearching] = useState(false);
   const [claiming, setClaiming] = useState(false);
 
+  // Points & earnings
+  const [pointBalance, setPointBalance] = useState(0);
+  const [totalEarned, setTotalEarned] = useState(0);
+  const [creatorEarnings, setCreatorEarnings] = useState<{ total_earnings: number; settled_amount: number; pending_amount: number } | null>(null);
+  const [watchingAd, setWatchingAd] = useState(false);
+  const [requestingSettlement, setRequestingSettlement] = useState(false);
+  const [bankInfo, setBankInfo] = useState("");
+  const [showSettlementForm, setShowSettlementForm] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
@@ -104,7 +119,7 @@ const MyPage = () => {
     if (!user) return;
 
     const fetchData = async () => {
-      const [profileRes, votesRes, creatorRes] = await Promise.all([
+      const [profileRes, votesRes, creatorRes, pointsRes] = await Promise.all([
         supabase
           .from("profiles")
           .select("display_name, avatar_url")
@@ -121,11 +136,21 @@ const MyPage = () => {
           .select("id, name, channel_link, category, subscriber_count, avatar_url")
           .eq("user_id", user.id)
           .maybeSingle(),
+        supabase
+          .from("user_points")
+          .select("balance, total_earned")
+          .eq("user_id", user.id)
+          .maybeSingle(),
       ]);
 
       if (profileRes.data) {
         setProfile(profileRes.data);
         setEditName(profileRes.data.display_name);
+      }
+
+      if (pointsRes.data) {
+        setPointBalance(pointsRes.data.balance);
+        setTotalEarned(pointsRes.data.total_earned);
       }
 
       if (creatorRes.data) {
@@ -135,6 +160,14 @@ const MyPage = () => {
         setCreatorLink(c.channel_link);
         setCreatorCategory(c.category);
         setCreatorSubscribers(String(c.subscriber_count || ""));
+
+        // Fetch creator earnings
+        const { data: earningsData } = await (supabase as any)
+          .from("creator_earnings")
+          .select("total_earnings, settled_amount, pending_amount")
+          .eq("creator_id", c.id)
+          .maybeSingle();
+        if (earningsData) setCreatorEarnings(earningsData);
       }
 
       if (votesRes.data && votesRes.data.length > 0) {
@@ -370,6 +403,49 @@ const MyPage = () => {
     setClaiming(false);
   };
 
+  const handleWatchAd = async () => {
+    if (!user || watchingAd) return;
+    setWatchingAd(true);
+    await new Promise((r) => setTimeout(r, 3000));
+    const { data, error } = await supabase.functions.invoke("points", {
+      body: { action: "earn_ad_reward" },
+    });
+    if (error || data?.error) {
+      toast.error(data?.error || "보상 지급에 실패했습니다.");
+    } else {
+      setPointBalance(data.balance);
+      setTotalEarned((prev) => prev + data.earned);
+      toast.success(`🎉 +${data.earned} RP 획득!`);
+    }
+    setWatchingAd(false);
+  };
+
+  const handleSettlement = async () => {
+    if (!user || !myCreator || !creatorEarnings || requestingSettlement) return;
+    if (!bankInfo.trim()) {
+      toast.error("은행 정보를 입력해주세요.");
+      return;
+    }
+    setRequestingSettlement(true);
+    const { data, error } = await supabase.functions.invoke("points", {
+      body: {
+        action: "request_settlement",
+        creator_id: myCreator.id,
+        amount: creatorEarnings.pending_amount,
+        bank_info: bankInfo.trim(),
+      },
+    });
+    if (error || data?.error) {
+      toast.error(data?.error || "정산 신청에 실패했습니다.");
+    } else {
+      toast.success("정산 신청이 접수되었습니다! 💰");
+      setCreatorEarnings((prev) => prev ? { ...prev, pending_amount: 0 } : prev);
+      setShowSettlementForm(false);
+      setBankInfo("");
+    }
+    setRequestingSettlement(false);
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -518,7 +594,55 @@ const MyPage = () => {
             </div>
           </div>
 
-          {/* Sign Out */}
+          {/* Point Dashboard */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Coins className="w-4 h-4 text-yellow-400" />
+                <span className="text-xs font-bold">내 포인트 (RP)</span>
+              </div>
+              <button
+                onClick={() => navigate("/shop")}
+                className="flex items-center gap-1 text-[10px] text-neon-cyan hover:underline"
+              >
+                <ShoppingBag className="w-3 h-3" />
+                포인트 샵
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="glass-sm p-3 text-center space-y-1">
+                <div className="text-xl font-bold neon-text-cyan" style={{ color: "hsl(var(--neon-cyan))" }}>
+                  {pointBalance.toLocaleString()}
+                </div>
+                <div className="text-[11px] text-muted-foreground">보유 RP</div>
+              </div>
+              <div className="glass-sm p-3 text-center space-y-1">
+                <div className="text-xl font-bold gradient-text">
+                  {totalEarned.toLocaleString()}
+                </div>
+                <div className="text-[11px] text-muted-foreground">총 획득 RP</div>
+              </div>
+            </div>
+            {/* Ad reward button */}
+            <button
+              onClick={handleWatchAd}
+              disabled={watchingAd}
+              className="w-full glass-sm glass-hover p-3 flex items-center gap-3 text-left"
+            >
+              <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shrink-0">
+                <Play className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-bold">광고 시청하고 +50 RP</div>
+                <div className="text-[10px] text-muted-foreground">하루 최대 5회</div>
+              </div>
+              {watchingAd && (
+                <div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin" />
+              )}
+            </button>
+          </div>
+
+
           <Button
             onClick={handleSignOut}
             variant="outline"
@@ -735,7 +859,94 @@ const MyPage = () => {
           </div>
         )}
 
-        {/* Claim Creator Section - shown when no linked creator */}
+        {/* Creator Earnings & Settlement */}
+        {myCreator && (
+          <div className="glass p-6 space-y-4 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+            <div className="flex items-center gap-2">
+              <Wallet className="w-4 h-4 text-neon-cyan" />
+              <h3 className="text-sm font-bold gradient-text">크리에이터 수익</h3>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div className="glass-sm p-3 text-center space-y-1">
+                <div className="text-sm font-bold" style={{ color: "hsl(var(--neon-cyan))" }}>
+                  {((creatorEarnings?.total_earnings || 0)).toLocaleString()}
+                </div>
+                <div className="text-[10px] text-muted-foreground">총 수익(원)</div>
+              </div>
+              <div className="glass-sm p-3 text-center space-y-1">
+                <div className="text-sm font-bold gradient-text">
+                  {((creatorEarnings?.pending_amount || 0)).toLocaleString()}
+                </div>
+                <div className="text-[10px] text-muted-foreground">정산 가능</div>
+              </div>
+              <div className="glass-sm p-3 text-center space-y-1">
+                <div className="text-sm font-bold text-muted-foreground">
+                  {((creatorEarnings?.settled_amount || 0)).toLocaleString()}
+                </div>
+                <div className="text-[10px] text-muted-foreground">정산 완료</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+              <TrendingUp className="w-3 h-3" />
+              <span>투표 수 기반으로 수익이 산정됩니다</span>
+            </div>
+
+            {!showSettlementForm ? (
+              <Button
+                onClick={() => setShowSettlementForm(true)}
+                disabled={!creatorEarnings || creatorEarnings.pending_amount < 10000}
+                className={`w-full h-10 text-sm font-bold rounded-xl ${
+                  creatorEarnings && creatorEarnings.pending_amount >= 10000
+                    ? "gradient-primary text-primary-foreground"
+                    : "glass-sm text-muted-foreground"
+                }`}
+              >
+                <Banknote className="w-4 h-4 mr-2" />
+                {creatorEarnings && creatorEarnings.pending_amount >= 10000
+                  ? "정산 신청하기"
+                  : "최소 10,000원 이상 시 정산 가능"}
+              </Button>
+            ) : (
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground">은행 정보 (은행명 + 계좌번호 + 예금주)</label>
+                  <Input
+                    value={bankInfo}
+                    onChange={(e) => setBankInfo(e.target.value)}
+                    placeholder="예: 카카오뱅크 3333-12-1234567 홍길동"
+                    className="h-9 glass-sm border-glass-border text-sm"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleSettlement}
+                    disabled={requestingSettlement || !bankInfo.trim()}
+                    className="flex-1 h-10 gradient-primary text-primary-foreground text-sm font-bold rounded-xl"
+                  >
+                    {requestingSettlement ? (
+                      <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Banknote className="w-4 h-4 mr-1.5" />
+                        {(creatorEarnings?.pending_amount || 0).toLocaleString()}원 정산 신청
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => { setShowSettlementForm(false); setBankInfo(""); }}
+                    variant="outline"
+                    className="h-10 px-4 glass-sm border-glass-border text-sm rounded-xl"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {!myCreator && (
           <div className="glass p-6 space-y-4 animate-fade-in-up" style={{ animationDelay: "50ms" }}>
             <div className="flex items-center gap-2">
