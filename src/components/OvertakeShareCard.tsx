@@ -41,13 +41,34 @@ const OvertakeShareCard = ({
     if (!cardRef.current) return null;
     try {
       setCapturing(true);
-      const dataUrl = await toPng(cardRef.current, {
-        quality: 0.95,
-        pixelRatio: 2,
-        backgroundColor: "#0d0a14",
-      });
-      const res = await fetch(dataUrl);
-      return await res.blob();
+      // html-to-image can fail on mobile; retry once and add timeout
+      const attempt = async () => {
+        const dataUrl = await toPng(cardRef.current!, {
+          quality: 0.9,
+          pixelRatio: 2,
+          backgroundColor: "#0d0a14",
+          skipFonts: true,
+          cacheBust: true,
+          filter: (node: HTMLElement) => {
+            // Skip elements that cause issues on mobile
+            if (node.tagName === 'FILTER' || node.tagName === 'feMerge') return false;
+            return true;
+          },
+        });
+        const res = await fetch(dataUrl);
+        return await res.blob();
+      };
+
+      // Add timeout to prevent infinite hang
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000));
+      const result = await Promise.race([attempt(), timeoutPromise]);
+      
+      if (!result) {
+        // Retry once
+        const retryResult = await Promise.race([attempt(), new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000))]);
+        return retryResult;
+      }
+      return result;
     } catch (err) {
       console.error("Card capture failed:", err);
       return null;
@@ -60,31 +81,25 @@ const OvertakeShareCard = ({
     try {
       const blob = await captureCard();
       
-      if (blob && navigator.share && navigator.canShare) {
-        const file = new File([blob], `rankit-${creator.name}-share.png`, { type: "image/png" });
-        const shareData = {
+      if (navigator.share) {
+        const shareData: ShareData = {
           title: "Rank It - 역전 임박!",
           text: shareTextSNS,
           url: siteUrl,
-          files: [file],
         };
-        
-        if (navigator.canShare(shareData)) {
-          await navigator.share(shareData);
+
+        // Try sharing with image if available
+        if (blob && navigator.canShare) {
+          const file = new File([blob], `rankit-${creator.name}-share.png`, { type: "image/png" });
+          const withFiles = { ...shareData, files: [file] };
+          if (navigator.canShare(withFiles)) {
+            await navigator.share(withFiles);
+          } else {
+            await navigator.share(shareData);
+          }
         } else {
-          // Fallback: share without image
-          await navigator.share({
-            title: "Rank It - 역전 임박!",
-            text: shareTextSNS,
-            url: siteUrl,
-          });
+          await navigator.share(shareData);
         }
-      } else if (navigator.share) {
-        await navigator.share({
-          title: "Rank It - 역전 임박!",
-          text: shareTextSNS,
-          url: siteUrl,
-        });
       } else {
         await navigator.clipboard.writeText(shareTextSNS);
         toast.success("공유 텍스트가 복사되었습니다!");
@@ -103,7 +118,7 @@ const OvertakeShareCard = ({
   const handleDownload = async () => {
     const blob = await captureCard();
     if (!blob) {
-      toast.error("이미지 생성에 실패했습니다.");
+      toast.error("이미지 생성에 실패했습니다. 스크린샷을 이용해주세요.");
       return;
     }
     const url = URL.createObjectURL(blob);
