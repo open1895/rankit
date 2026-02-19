@@ -140,7 +140,9 @@ const Index = () => {
       return false;
     }
 
-    if (todayVoted.has(id) && extraVotes <= 0) {
+    // Calculate remaining votes from current state
+    const currentRemaining = Math.max(0, 1 - todayVoted.size + extraVotes);
+    if (currentRemaining <= 0) {
       toast.error("투표권이 부족합니다! 광고를 시청하고 추가 투표권을 받으세요.");
       return false;
     }
