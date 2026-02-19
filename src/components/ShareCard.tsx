@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Share2, Download, Copy, X, Loader2, Sparkles, Trophy, ExternalLink } from "lucide-react";
+import { copyToClipboard } from "@/lib/clipboard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -57,9 +58,13 @@ const ShareCard = ({ creatorId, creatorName, rank, votesCount, onClose, autoGene
   const shareUrl = `${window.location.origin}/creator/${creatorId}`;
   const shareText = `${creatorName}에게 투표했어요! 🏆 Rank It에서 확인하세요!`;
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(shareUrl);
-    toast.success("링크가 복사되었습니다!");
+  const handleCopyLink = async () => {
+    const ok = await copyToClipboard(shareUrl);
+    if (ok) {
+      toast.success("링크가 복사되었습니다!");
+    } else {
+      toast.error("복사에 실패했습니다. 직접 복사해주세요: " + shareUrl);
+    }
   };
 
   const claimShareBonus = () => {
@@ -272,9 +277,13 @@ const ShareCard = ({ creatorId, creatorName, rank, votesCount, onClose, autoGene
               <span>트위터</span>
             </button>
             <button
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.href);
-                toast.success("링크가 복사되었습니다!");
+              onClick={async () => {
+                const ok = await copyToClipboard(window.location.href);
+                if (ok) {
+                  toast.success("링크가 복사되었습니다!");
+                } else {
+                  toast.error("복사에 실패했습니다.");
+                }
                 claimShareBonus();
               }}
               className="group relative flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium border border-[hsl(var(--glass-border))] bg-[hsl(var(--glass)/0.3)] hover:border-[hsl(var(--neon-cyan)/0.4)] hover:shadow-[0_0_15px_hsl(var(--neon-cyan)/0.1)] transition-all duration-300"

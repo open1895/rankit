@@ -2,6 +2,7 @@ import { useRef, useState, useCallback } from "react";
 import { Crown, Swords, Zap, Share2, X, Download, Loader2, Image } from "lucide-react";
 import { Creator } from "@/lib/data";
 import { toast } from "sonner";
+import { copyToClipboard } from "@/lib/clipboard";
 import { toPng } from "html-to-image";
 
 interface OvertakeShareCardProps {
@@ -108,11 +109,10 @@ const OvertakeShareCard = ({
         }
       } else {
         // Fallback: copy to clipboard
-        try {
-          await navigator.clipboard.writeText(shareTextSNS);
+        const ok = await copyToClipboard(shareTextSNS);
+        if (ok) {
           toast.success("공유 텍스트가 복사되었습니다!");
-        } catch {
-          // Clipboard API may fail in insecure contexts
+        } else {
           toast.info("공유 링크: " + siteUrl);
         }
       }
