@@ -31,6 +31,10 @@ const Footer = () => {
           링크 복사
         </button>
 
+        <a href="mailto:steelmind7777@naver.com" className="text-xs text-gray-500 hover:text-neon-cyan transition-colors">
+          steelmind7777@naver.com
+        </a>
+
         <p className="text-xs text-gray-500 text-center">
           © 2026 Creator Pulse. All rights reserved.
         </p>
