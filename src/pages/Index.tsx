@@ -16,6 +16,7 @@ import WeeklyMissions from "@/components/WeeklyMissions";
 import NotificationBell from "@/components/NotificationBell";
 import WeeklyHighlights from "@/components/WeeklyHighlights";
 import ScrollReveal from "@/components/ScrollReveal";
+import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User } from "lucide-react";
 import { toast } from "sonner";
@@ -455,6 +456,8 @@ const Index = () => {
 
       {/* Live Feed */}
       <LiveFeed />
+
+      <Footer />
     </div>
   );
 };
