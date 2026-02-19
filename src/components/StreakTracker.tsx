@@ -11,6 +11,16 @@ const STREAK_TIERS = [
   { days: 30, badge: "🌟 마스터 팬", color: "gradient-text" },
 ];
 
+function getTodayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getYesterdayISO() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
 const StreakTracker = () => {
   const [streak, setStreak] = useState(0);
   const [todayChecked, setTodayChecked] = useState(false);
@@ -22,16 +32,20 @@ const StreakTracker = () => {
     if (data) {
       const parsed = JSON.parse(data);
       const lastDate = parsed.lastDate;
-      const today = new Date().toDateString();
-      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      const today = getTodayISO();
+      const yesterday = getYesterdayISO();
 
-      if (lastDate === today) {
+      // Support legacy toDateString format by also comparing with new format
+      const lastDateNormalized = lastDate.length === 10 ? lastDate : (() => {
+        try { return new Date(lastDate).toISOString().slice(0, 10); } catch { return ""; }
+      })();
+
+      if (lastDateNormalized === today) {
         setStreak(parsed.streak);
         setTodayChecked(true);
-      } else if (lastDate === yesterday) {
+      } else if (lastDateNormalized === yesterday) {
         setStreak(parsed.streak);
       } else {
-        // Streak broken
         setStreak(0);
       }
     }
@@ -45,7 +59,7 @@ const StreakTracker = () => {
     setTodayChecked(true);
     localStorage.setItem(
       "streak_data",
-      JSON.stringify({ streak: newStreak, lastDate: new Date().toDateString() })
+      JSON.stringify({ streak: newStreak, lastDate: getTodayISO() })
     );
 
     // Check for tier reward
