@@ -270,6 +270,25 @@ const CreatorProfile = () => {
     fetchFanRanking(fanPeriod);
   }, [fanPeriod, fetchFanRanking]);
 
+  const [hasVotedToday, setHasVotedToday] = useState(false);
+
+  // Check if user already voted for this creator today
+  useEffect(() => {
+    if (!user || !id) return;
+    const checkVote = async () => {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data } = await supabase
+        .from("votes")
+        .select("id")
+        .eq("creator_id", id)
+        .eq("user_id", user.id)
+        .gte("created_at", twentyFourHoursAgo)
+        .limit(1);
+      setHasVotedToday(!!(data && data.length > 0));
+    };
+    checkVote();
+  }, [user, id]);
+
   const handleVote = async () => {
     if (!user) {
       toast.error("투표하려면 로그인이 필요합니다.");
@@ -277,6 +296,11 @@ const CreatorProfile = () => {
       return;
     }
     if (!id) return;
+
+    if (hasVotedToday) {
+      toast.error("투표권이 부족합니다! 이미 이 크리에이터에게 투표하셨습니다.");
+      return;
+    }
 
     // Show rank-up hint before vote
     setShowRankUpHint(true);
@@ -291,6 +315,9 @@ const CreatorProfile = () => {
       toast.error(data?.message || error?.message || "투표에 실패했습니다.");
       return;
     }
+
+    // Mark as voted today
+    setHasVotedToday(true);
 
     // Trigger celebration effect
     setShowRankUpHint(false);
