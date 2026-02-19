@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Share2, Download, Copy, X, Loader2, Sparkles, Trophy, ExternalLink } from "lucide-react";
-import { copyToClipboard } from "@/lib/clipboard";
+import { copyToClipboard, getPublishedOrigin, getPublishedUrl } from "@/lib/clipboard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -55,7 +55,7 @@ const ShareCard = ({ creatorId, creatorName, rank, votesCount, onClose, autoGene
     }
   };
 
-  const shareUrl = `${window.location.origin}/creator/${creatorId}`;
+  const shareUrl = `${getPublishedOrigin()}/creator/${creatorId}`;
   const shareText = `${creatorName}에게 투표했어요! 🏆 Rank It에서 확인하세요!`;
 
   const handleCopyLink = async () => {
@@ -278,7 +278,7 @@ const ShareCard = ({ creatorId, creatorName, rank, votesCount, onClose, autoGene
             </button>
             <button
               onClick={async () => {
-                const ok = await copyToClipboard(window.location.href);
+                const ok = await copyToClipboard(getPublishedUrl());
                 if (ok) {
                   toast.success("링크가 복사되었습니다!");
                 } else {

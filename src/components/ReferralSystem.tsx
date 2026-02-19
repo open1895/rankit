@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Share2, Copy, Gift, Check } from "lucide-react";
 import { toast } from "sonner";
-import { copyToClipboard } from "@/lib/clipboard";
+import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
 
 const ReferralSystem = () => {
   const [myCode, setMyCode] = useState<string | null>(null);
@@ -62,7 +62,7 @@ const ReferralSystem = () => {
   };
 
   const copyLink = async () => {
-    const link = `${window.location.origin}?ref=${myCode}`;
+    const link = `${getPublishedOrigin()}?ref=${myCode}`;
     const ok = await copyToClipboard(link);
     setCopied(true);
     if (ok) {
@@ -74,7 +74,7 @@ const ReferralSystem = () => {
   };
 
   const shareLink = async () => {
-    const link = `${window.location.origin}?ref=${myCode}`;
+    const link = `${getPublishedOrigin()}?ref=${myCode}`;
     if (navigator.share) {
       try {
         await navigator.share({
