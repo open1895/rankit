@@ -54,7 +54,7 @@ const MiniInfluenceChart = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <div className="flex flex-col items-center gap-0.5 shrink-0 cursor-pointer">
-            <span className="text-[10px] text-muted-foreground font-medium">Rankit</span>
+            <span className="text-[10px] text-muted-foreground font-medium">점수</span>
             <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
               <span className="text-xs font-bold text-primary">{displayScore > 99999 ? formatCount(displayScore) : displayScore.toLocaleString()}</span>
             </div>
