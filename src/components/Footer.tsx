@@ -1,10 +1,10 @@
 import { Link2 } from "lucide-react";
-import { copyToClipboard } from "@/lib/clipboard";
+import { copyToClipboard, getPublishedUrl } from "@/lib/clipboard";
 import { toast } from "sonner";
 
 const Footer = () => {
   const handleCopyLink = async () => {
-    const url = window.location.href;
+    const url = getPublishedUrl();
     const ok = await copyToClipboard(url);
     if (ok) {
       toast.success("링크가 복사되었습니다!");

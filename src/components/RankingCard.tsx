@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { getPublishedOrigin } from "@/lib/clipboard";
 import { Link } from "react-router-dom";
 import { Creator, getVotesUntilNext } from "@/lib/data";
 import { Trophy, TrendingUp, TrendingDown, Minus, CheckCircle2, Heart } from "lucide-react";
@@ -64,7 +65,7 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote }: RankingCardProp
     onBonusVote?.();
   };
 
-  const siteUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const siteUrl = getPublishedOrigin();
 
   const rankStyle = creator.rank === 1
     ? "rank-gold"
