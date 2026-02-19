@@ -78,9 +78,15 @@ const OvertakeShareCard = ({
   }, []);
 
   const handleShare = async () => {
+    // Attempt card capture but don't block sharing on failure
+    let blob: Blob | null = null;
     try {
-      const blob = await captureCard();
-      
+      blob = await captureCard();
+    } catch (err) {
+      console.warn("Card capture failed, proceeding with text share:", err);
+    }
+
+    try {
       if (navigator.share) {
         const shareData: ShareData = {
           title: "Rank It - 역전 임박!",
@@ -101,17 +107,32 @@ const OvertakeShareCard = ({
           await navigator.share(shareData);
         }
       } else {
-        await navigator.clipboard.writeText(shareTextSNS);
-        toast.success("공유 텍스트가 복사되었습니다!");
+        // Fallback: copy to clipboard
+        try {
+          await navigator.clipboard.writeText(shareTextSNS);
+          toast.success("공유 텍스트가 복사되었습니다!");
+        } catch {
+          // Clipboard API may fail in insecure contexts
+          toast.info("공유 링크: " + siteUrl);
+        }
       }
 
+      // Grant bonus regardless of share method
       if (!shared) {
         onShared();
         onShareBonus();
         toast.success("🎉 공유 완료! 추가 투표권 1개 지급 완료!");
       }
-    } catch {
-      // User cancelled share
+    } catch (err: any) {
+      // Only suppress AbortError (user cancelled share dialog)
+      if (err?.name === "AbortError") return;
+      console.error("Share failed:", err);
+      // Still grant bonus if user attempted to share
+      if (!shared) {
+        onShared();
+        onShareBonus();
+        toast.success("🎉 공유 보너스 투표권 +1 지급!");
+      }
     }
   };
 
