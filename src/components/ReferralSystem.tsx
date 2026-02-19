@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Share2, Copy, Gift, Check } from "lucide-react";
 import { toast } from "sonner";
+import { copyToClipboard } from "@/lib/clipboard";
 
 const ReferralSystem = () => {
   const [myCode, setMyCode] = useState<string | null>(null);
@@ -60,11 +61,15 @@ const ReferralSystem = () => {
     toast.success("초대 코드가 생성되었습니다! 🎉");
   };
 
-  const copyLink = () => {
+  const copyLink = async () => {
     const link = `${window.location.origin}?ref=${myCode}`;
-    navigator.clipboard.writeText(link);
+    const ok = await copyToClipboard(link);
     setCopied(true);
-    toast.success("초대 링크가 복사되었습니다!");
+    if (ok) {
+      toast.success("초대 링크가 복사되었습니다!");
+    } else {
+      toast.error("복사에 실패했습니다.");
+    }
     setTimeout(() => setCopied(false), 2000);
   };
 
