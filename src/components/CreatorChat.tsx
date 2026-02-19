@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { MessageCircle, Send } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -18,12 +19,30 @@ interface CreatorChatProps {
 }
 
 const CreatorChat = ({ creatorId, creatorName }: CreatorChatProps) => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [nickname, setNickname] = useState(() => localStorage.getItem("chat_nickname") || "");
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [profileNickname, setProfileNickname] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Fetch profile nickname
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.display_name) {
+          setProfileNickname(data.display_name);
+          setNickname(data.display_name);
+        }
+      });
+  }, [user]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -135,7 +154,11 @@ const CreatorChat = ({ creatorId, creatorName }: CreatorChatProps) => {
 
           {/* Input area */}
           <div className="space-y-2">
-            {!localStorage.getItem("chat_nickname") && (
+            {profileNickname ? (
+              <div className="text-xs text-muted-foreground px-1">
+                닉네임: <span className="text-foreground font-medium">{profileNickname}</span>
+              </div>
+            ) : !localStorage.getItem("chat_nickname") ? (
               <input
                 type="text"
                 value={nickname}
@@ -144,7 +167,7 @@ const CreatorChat = ({ creatorId, creatorName }: CreatorChatProps) => {
                 maxLength={20}
                 className="w-full px-3 py-2 rounded-lg glass-sm bg-card/30 border border-glass-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-neon-cyan/50"
               />
-            )}
+            ) : null}
             <div className="flex gap-2">
               <input
                 type="text"
