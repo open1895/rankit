@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
 
@@ -10,9 +11,22 @@ interface CommentInputProps {
 }
 
 const CommentInput = ({ creatorId, creatorName, onClose }: CommentInputProps) => {
+  const { user } = useAuth();
   const [nickname, setNickname] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.display_name) setNickname(data.display_name);
+      });
+  }, [user]);
 
   const handleSubmit = async () => {
     const trimmedNick = nickname.trim();
@@ -56,14 +70,20 @@ const CommentInput = ({ creatorId, creatorName, onClose }: CommentInputProps) =>
       <p className="text-xs text-neon-cyan font-medium">
         🎉 <span className="text-foreground">{creatorName}</span>에게 응원 한마디!
       </p>
-      <input
-        type="text"
-        placeholder="닉네임"
-        maxLength={20}
-        value={nickname}
-        onChange={(e) => setNickname(e.target.value)}
-        className="w-full bg-background/50 border border-glass-border rounded-lg px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-neon-purple/50"
-      />
+      {user ? (
+        <div className="text-xs text-muted-foreground">
+          닉네임: <span className="text-foreground font-medium">{nickname || "로딩 중..."}</span>
+        </div>
+      ) : (
+        <input
+          type="text"
+          placeholder="닉네임"
+          maxLength={20}
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          className="w-full bg-background/50 border border-glass-border rounded-lg px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-neon-purple/50"
+        />
+      )}
       <div className="flex gap-2">
         <input
           type="text"

@@ -75,6 +75,7 @@ const CreatorBoard = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [profileNickname, setProfileNickname] = useState("");
 
   // Expanded post for comments
   const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
@@ -82,6 +83,23 @@ const CreatorBoard = () => {
   const [commentNickname, setCommentNickname] = useState("");
   const [commentMessage, setCommentMessage] = useState("");
   const [commentSubmitting, setCommentSubmitting] = useState(false);
+
+  // Fetch profile nickname
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.display_name) {
+          setProfileNickname(data.display_name);
+          setNickname(data.display_name);
+          setCommentNickname(data.display_name);
+        }
+      });
+  }, [user]);
   const [likingPosts, setLikingPosts] = useState<Set<string>>(new Set());
 
   // Activity score state
@@ -405,13 +423,19 @@ const CreatorBoard = () => {
         {showWrite && (
           <form onSubmit={handleSubmitPost} className="glass p-4 space-y-3 animate-slide-up">
             <h3 className="text-sm font-semibold gradient-text">✍️ 새 게시글 작성</h3>
-            <Input
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              placeholder="닉네임 (2~20자)"
-              maxLength={20}
-              className="glass-sm bg-card/30 border-glass-border focus:border-neon-purple/50 text-sm"
-            />
+            {profileNickname ? (
+              <div className="text-sm text-muted-foreground px-1">
+                닉네임: <span className="text-foreground font-medium">{profileNickname}</span>
+              </div>
+            ) : (
+              <Input
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="닉네임 (2~20자)"
+                maxLength={20}
+                className="glass-sm bg-card/30 border-glass-border focus:border-neon-purple/50 text-sm"
+              />
+            )}
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -541,6 +565,9 @@ const CreatorBoard = () => {
 
                   {/* Comment Input */}
                   <form onSubmit={handleSubmitComment} className="flex gap-2">
+                    {profileNickname ? (
+                      <span className="text-[11px] text-foreground font-medium px-2 py-1 shrink-0">{profileNickname}</span>
+                    ) : (
                     <Input
                       value={commentNickname}
                       onChange={(e) => setCommentNickname(e.target.value)}
@@ -548,6 +575,7 @@ const CreatorBoard = () => {
                       maxLength={20}
                       className="w-20 glass-sm bg-card/30 border-glass-border text-[11px] h-8 px-2"
                     />
+                    )}
                     <Input
                       value={commentMessage}
                       onChange={(e) => setCommentMessage(e.target.value)}
