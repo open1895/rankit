@@ -281,34 +281,40 @@ const CreatorProfile = () => {
   }, [fanPeriod, fetchFanRanking]);
 
   const [hasVotedToday, setHasVotedToday] = useState(false);
+  const [votedTodayKey, setVotedTodayKey] = useState<string>("");
 
-  // Check if user already voted for this creator today
+  // Check if user already voted for this creator today (localStorage for anonymous)
   useEffect(() => {
-    if (!user || !id) return;
-    const checkVote = async () => {
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const { data } = await supabase
-        .from("votes")
-        .select("id")
-        .eq("creator_id", id)
-        .eq("user_id", user.id)
-        .gte("created_at", twentyFourHoursAgo)
-        .limit(1);
-      setHasVotedToday(!!(data && data.length > 0));
-    };
-    checkVote();
+    if (!id) return;
+    const todayKey = `voted_${id}_${new Date().toDateString()}`;
+    setVotedTodayKey(todayKey);
+
+    if (user) {
+      // Authenticated: check DB
+      const checkVote = async () => {
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const { data } = await supabase
+          .from("votes")
+          .select("id")
+          .eq("creator_id", id)
+          .eq("user_id", user.id)
+          .gte("created_at", todayStart.toISOString())
+          .limit(1);
+        setHasVotedToday(!!(data && data.length > 0));
+      };
+      checkVote();
+    } else {
+      // Anonymous: check localStorage
+      setHasVotedToday(localStorage.getItem(todayKey) === "1");
+    }
   }, [user, id]);
 
   const handleVote = async () => {
-    if (!user) {
-      toast.error("투표하려면 로그인이 필요합니다.");
-      navigate("/auth");
-      return;
-    }
     if (!id) return;
 
     if (hasVotedToday) {
-      toast.error("투표권이 부족합니다! 이미 이 크리에이터에게 투표하셨습니다.");
+      toast.error("오늘 이미 투표하셨습니다! 내일 다시 투표할 수 있어요.");
       return;
     }
 
@@ -316,27 +322,38 @@ const CreatorProfile = () => {
     setShowRankUpHint(true);
     setTimeout(() => setShowRankUpHint(false), 3000);
 
-    const prevRank = creator?.rank;
     const { data, error } = await supabase.functions.invoke("vote", {
       body: { creator_id: id },
     });
+
     if (error || data?.error) {
       setShowRankUpHint(false);
-      toast.error(data?.message || error?.message || "투표에 실패했습니다.");
+      if (data?.error === "already_voted") {
+        toast.error("오늘 이미 이 크리에이터에게 투표하셨습니다. 내일 다시 투표할 수 있어요.");
+        setHasVotedToday(true);
+        if (!user && votedTodayKey) localStorage.setItem(votedTodayKey, "1");
+      } else {
+        toast.error(data?.message || error?.message || "투표에 실패했습니다.");
+      }
       return;
     }
 
-    // Mark as voted today
+    // Mark as voted
     setHasVotedToday(true);
+    if (!user && votedTodayKey) localStorage.setItem(votedTodayKey, "1");
 
     // Trigger celebration effect
     setShowRankUpHint(false);
     setCelebrationMsg("투표 완료! 🎉");
     setShowCelebration(true);
 
-    toast.success("투표 완료! 🎉 공유 카드를 생성합니다...");
-    setAutoShareCard(true);
-    setShowShare(true);
+    if (data?.is_anonymous) {
+      toast.success("투표 완료! 🎉 로그인하면 더 많은 기능을 이용할 수 있어요.");
+    } else {
+      toast.success("투표 완료! 🎉 공유 카드를 생성합니다...");
+      setAutoShareCard(true);
+      setShowShare(true);
+    }
   };
 
   const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -792,10 +809,11 @@ const CreatorProfile = () => {
           <div className="flex gap-2">
             <Button
               onClick={handleVote}
-              className="flex-1 h-12 text-base font-bold gradient-primary text-primary-foreground rounded-xl neon-glow-purple hover:opacity-90 transition-opacity"
+              disabled={hasVotedToday}
+              className="flex-1 h-12 text-base font-bold gradient-primary text-primary-foreground rounded-xl neon-glow-purple hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Heart className="w-5 h-5 mr-2" />
-              투표하기
+              {hasVotedToday ? "오늘 투표 완료 ✓" : "투표하기"}
             </Button>
             <Button
               onClick={() => setShowShare(true)}
@@ -805,6 +823,18 @@ const CreatorProfile = () => {
               <Share2 className="w-5 h-5 text-neon-cyan" />
             </Button>
           </div>
+          {/* Anonymous vote hint */}
+          {!user && !hasVotedToday && (
+            <p className="text-xs text-center text-muted-foreground">
+              🔓 로그인 없이도 하루 1표 참여 가능 •{" "}
+              <button
+                onClick={() => navigate("/auth")}
+                className="text-neon-cyan underline underline-offset-2"
+              >
+                로그인하면 더 많은 혜택
+              </button>
+            </p>
+          )}
 
           {/* Board Link */}
           <Link
