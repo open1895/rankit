@@ -87,15 +87,25 @@ const HeroSection = ({ creators }: HeroSectionProps) => {
           </Link>
         </div>
 
-        {/* Primary CTA */}
-        <button
-          onClick={() => navigate("/creator/" + rank2.id)}
-          className="w-full gradient-primary text-primary-foreground font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/30 active:scale-[0.98] transition-transform"
-        >
-          <Flame className="w-4 h-4" />
-          지금 투표하기
-          <ChevronRight className="w-4 h-4" />
-        </button>
+        {/* Primary CTA - 각 크리에이터별 투표 버튼 */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate("/creator/" + rank1.id)}
+            className="flex-1 gradient-primary text-primary-foreground font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-primary/30 active:scale-[0.98] transition-transform"
+          >
+            <Flame className="w-3.5 h-3.5" />
+            <span className="truncate max-w-[70px]">{rank1.name}</span>
+            <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+          </button>
+          <button
+            onClick={() => navigate("/creator/" + rank2.id)}
+            className="flex-1 gradient-primary text-primary-foreground font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-primary/30 active:scale-[0.98] transition-transform"
+          >
+            <Flame className="w-3.5 h-3.5" />
+            <span className="truncate max-w-[70px]">{rank2.name}</span>
+            <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+          </button>
+        </div>
       </div>
 
       {/* Rising Creators */}
