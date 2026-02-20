@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Crown, Medal, Trophy, Star } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
+
 import SEOHead from "@/components/SEOHead";
 
 interface FanEntry {
@@ -105,7 +105,6 @@ const FanLeaderboard = () => {
               <span className="text-lg font-bold gradient-text">팬 리더보드</span>
             </div>
           </div>
-          <ThemeToggle />
         </div>
       </header>
 

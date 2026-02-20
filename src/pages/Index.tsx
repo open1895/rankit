@@ -10,7 +10,7 @@ import CountdownTimer from "@/components/CountdownTimer";
 import LiveFeed from "@/components/LiveFeed";
 import FanComments from "@/components/FanComments";
 import FanMarquee from "@/components/FanMarquee";
-import ThemeToggle from "@/components/ThemeToggle";
+
 import ReferralSystem from "@/components/ReferralSystem";
 import StreakTracker from "@/components/StreakTracker";
 import WeeklyMissions from "@/components/WeeklyMissions";
@@ -240,7 +240,7 @@ const Index = () => {
               </Link>
             )}
             <NotificationBell />
-            <ThemeToggle />
+            
           </div>
         </div>
       </header>

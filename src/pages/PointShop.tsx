@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
-import ThemeToggle from "@/components/ThemeToggle";
+
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
@@ -137,7 +137,7 @@ const PointShop = () => {
               <span className="text-sm font-bold text-foreground">{balance.toLocaleString()}</span>
               <span className="text-[10px] text-muted-foreground">RP</span>
             </div>
-            <ThemeToggle />
+            
           </div>
         </div>
       </header>

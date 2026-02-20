@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Crown, Trophy, Calendar, ChevronRight } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
+
 import SEOHead from "@/components/SEOHead";
 
 interface Season {
@@ -91,7 +91,6 @@ const SeasonArchive = () => {
               <span className="text-lg font-bold gradient-text">시즌 아카이브</span>
             </div>
           </div>
-          <ThemeToggle />
         </div>
       </header>
 

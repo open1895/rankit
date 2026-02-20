@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import ThemeToggle from "@/components/ThemeToggle";
+
 import SEOHead from "@/components/SEOHead";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -354,7 +354,7 @@ const CreatorBoard = () => {
           >
             {showWrite ? <X className="w-5 h-5" /> : <MessageSquarePlus className="w-5 h-5" />}
           </button>
-          <ThemeToggle />
+          
         </div>
       </header>
 

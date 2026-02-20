@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Crown, Search, X, GitCompareArrows, Heart, Users, Trophy } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
+
 import SEOHead from "@/components/SEOHead";
 import {
   BarChart,
@@ -157,7 +157,7 @@ const CompareCreators = () => {
               <span className="text-lg font-bold gradient-text">크리에이터 비교</span>
             </div>
           </div>
-          <ThemeToggle />
+          
         </div>
       </header>
 
