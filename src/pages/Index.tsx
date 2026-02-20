@@ -16,6 +16,7 @@ import StreakTracker from "@/components/StreakTracker";
 import WeeklyMissions from "@/components/WeeklyMissions";
 import NotificationBell from "@/components/NotificationBell";
 import WeeklyHighlights from "@/components/WeeklyHighlights";
+import TrendingSection from "@/components/TrendingSection";
 import ScrollReveal from "@/components/ScrollReveal";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
@@ -367,7 +368,9 @@ const Index = () => {
         {/* Weekly Highlights */}
         <ScrollReveal><WeeklyHighlights /></ScrollReveal>
 
-        {/* Navigation Links */}
+        {/* Real-time Trending Section */}
+        <ScrollReveal delay={100}><TrendingSection /></ScrollReveal>
+
         <ScrollReveal>
           <div className="grid grid-cols-4 gap-2">
             {[
