@@ -281,37 +281,33 @@ const CreatorProfile = () => {
   }, [fanPeriod, fetchFanRanking]);
 
   const [hasVotedToday, setHasVotedToday] = useState(false);
-  const [votedTodayKey, setVotedTodayKey] = useState<string>("");
 
-  // Check if user already voted for this creator today (localStorage for anonymous)
+  // Check if logged-in user already voted for this creator today
   useEffect(() => {
-    if (!id) return;
-    const todayKey = `voted_${id}_${new Date().toDateString()}`;
-    setVotedTodayKey(todayKey);
-
-    if (user) {
-      // Authenticated: check DB
-      const checkVote = async () => {
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-        const { data } = await supabase
-          .from("votes")
-          .select("id")
-          .eq("creator_id", id)
-          .eq("user_id", user.id)
-          .gte("created_at", todayStart.toISOString())
-          .limit(1);
-        setHasVotedToday(!!(data && data.length > 0));
-      };
-      checkVote();
-    } else {
-      // Anonymous: check localStorage
-      setHasVotedToday(localStorage.getItem(todayKey) === "1");
-    }
+    if (!id || !user) return;
+    const checkVote = async () => {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const { data } = await supabase
+        .from("votes")
+        .select("id")
+        .eq("creator_id", id)
+        .eq("user_id", user.id)
+        .gte("created_at", todayStart.toISOString())
+        .limit(1);
+      setHasVotedToday(!!(data && data.length > 0));
+    };
+    checkVote();
   }, [user, id]);
 
   const handleVote = async () => {
     if (!id) return;
+
+    if (!user) {
+      toast.error("투표하려면 로그인이 필요합니다.");
+      navigate("/auth");
+      return;
+    }
 
     if (hasVotedToday) {
       toast.error("오늘 이미 투표하셨습니다! 내일 다시 투표할 수 있어요.");
@@ -331,29 +327,19 @@ const CreatorProfile = () => {
       if (data?.error === "already_voted") {
         toast.error("오늘 이미 이 크리에이터에게 투표하셨습니다. 내일 다시 투표할 수 있어요.");
         setHasVotedToday(true);
-        if (!user && votedTodayKey) localStorage.setItem(votedTodayKey, "1");
       } else {
         toast.error(data?.message || error?.message || "투표에 실패했습니다.");
       }
       return;
     }
 
-    // Mark as voted
     setHasVotedToday(true);
-    if (!user && votedTodayKey) localStorage.setItem(votedTodayKey, "1");
-
-    // Trigger celebration effect
     setShowRankUpHint(false);
     setCelebrationMsg("투표 완료! 🎉");
     setShowCelebration(true);
-
-    if (data?.is_anonymous) {
-      toast.success("투표 완료! 🎉 로그인하면 더 많은 기능을 이용할 수 있어요.");
-    } else {
-      toast.success("투표 완료! 🎉 공유 카드를 생성합니다...");
-      setAutoShareCard(true);
-      setShowShare(true);
-    }
+    toast.success("투표 완료! 🎉 공유 카드를 생성합니다...");
+    setAutoShareCard(true);
+    setShowShare(true);
   };
 
   const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -824,14 +810,13 @@ const CreatorProfile = () => {
             </Button>
           </div>
           {/* Anonymous vote hint */}
-          {!user && !hasVotedToday && (
+          {!user && (
             <p className="text-xs text-center text-muted-foreground">
-              🔓 로그인 없이도 하루 1표 참여 가능 •{" "}
               <button
                 onClick={() => navigate("/auth")}
                 className="text-neon-cyan underline underline-offset-2"
               >
-                로그인하면 더 많은 혜택
+                로그인하고 투표에 참여하세요
               </button>
             </p>
           )}
