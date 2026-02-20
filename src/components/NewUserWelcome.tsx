@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, Gift, Vote, Users, ChevronRight, Sparkles, Check } from "lucide-react";
+import { X, Gift, Vote, Users, ChevronRight, ChevronLeft, Sparkles, Check, Heart, Trophy, Star } from "lucide-react";
 import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const STORAGE_KEY = "rankit_welcome_seen_v1";
+const STORAGE_KEY = "rankit_tutorial_seen_v2";
 
 interface NewUserWelcomeProps {
   onGetFreeVotes?: (count: number) => void;
@@ -13,56 +13,95 @@ interface NewUserWelcomeProps {
 
 const STEPS = [
   {
+    id: 0,
+    emoji: "👋",
+    badge: "환영합니다",
+    title: "크리에이터 랭킹 플랫폼\nRank It에 오신 걸 환영해요!",
+    desc: "좋아하는 크리에이터에게 투표하고,\n순위를 함께 만들어가요.",
+    highlights: [
+      { icon: "🗳️", text: "하루 1표 무료 투표" },
+      { icon: "📊", text: "실시간 랭킹 확인" },
+      { icon: "🏆", text: "시즌별 최종 우승자" },
+    ],
+    color: "from-primary/20 via-background to-neon-purple/10",
+    accentColor: "text-primary",
+    borderColor: "border-primary/20",
+  },
+  {
     id: 1,
-    icon: "🎁",
-    color: "from-yellow-500/20 to-orange-500/20 border-yellow-500/30",
-    iconColor: "text-yellow-400",
-    title: "오늘 무료 투표 3표 받기",
-    desc: "지금 바로 받아가세요! 매일 자정에 초기화됩니다.",
-    action: "무료 투표 3표 받기",
-    done: false,
+    emoji: "🗳️",
+    badge: "STEP 1",
+    title: "크리에이터에게\n투표해보세요!",
+    desc: "로그인 없이도 하루 1표를 무료로 드려요.\n로그인하면 더 많은 혜택을 받을 수 있어요.",
+    highlights: [
+      { icon: "✅", text: "로그인 없이 하루 1표 참여 가능" },
+      { icon: "🔥", text: "투표할수록 순위가 올라가요" },
+      { icon: "⚡", text: "실시간으로 순위 변동 확인" },
+    ],
+    color: "from-neon-purple/20 via-background to-primary/10",
+    accentColor: "text-neon-purple",
+    borderColor: "border-neon-purple/20",
   },
   {
     id: 2,
-    icon: "🗳️",
-    color: "from-primary/20 to-primary/10 border-primary/30",
-    iconColor: "text-primary",
-    title: "좋아하는 크리에이터에게 투표",
-    desc: "당신의 한 표가 순위를 바꿉니다!",
-    action: "랭킹 보러 가기",
-    done: false,
+    emoji: "📊",
+    badge: "STEP 2",
+    title: "실시간 랭킹을\n확인하세요!",
+    desc: "YouTube, 치지직, 인스타그램, 틱톡 데이터를\n종합한 랭킷 스코어로 순위를 매겨요.",
+    highlights: [
+      { icon: "🏅", text: "구독자 + 팔로워 종합 점수" },
+      { icon: "📈", text: "투표로 랭킹 추가 상승" },
+      { icon: "🔄", text: "매일 자동 업데이트" },
+    ],
+    color: "from-neon-cyan/20 via-background to-neon-purple/10",
+    accentColor: "text-neon-cyan",
+    borderColor: "border-neon-cyan/20",
   },
   {
     id: 3,
-    icon: "👥",
-    color: "from-neon-cyan/20 to-neon-cyan/10 border-neon-cyan/30",
-    iconColor: "text-neon-cyan",
-    title: "친구 초대하면 +3표",
-    desc: "친구가 투표하면 나도 투표권 3장을 추가로 받아요!",
-    action: "초대 링크 복사",
-    done: false,
+    emoji: "👥",
+    badge: "STEP 3",
+    title: "친구를 초대하면\n보너스 투표권!",
+    desc: "친구가 초대 링크로 투표하면\n나도 +3표를 받을 수 있어요.",
+    highlights: [
+      { icon: "🔗", text: "나만의 초대 링크 생성" },
+      { icon: "🎁", text: "친구 참여 시 보너스 3표" },
+      { icon: "🚀", text: "더 많은 투표로 크리에이터 응원" },
+    ],
+    color: "from-yellow-500/20 via-background to-orange-500/10",
+    accentColor: "text-yellow-400",
+    borderColor: "border-yellow-500/20",
+  },
+  {
+    id: 4,
+    emoji: "🏆",
+    badge: "준비 완료!",
+    title: "이제 시작해볼까요?",
+    desc: "투표하고, 응원하고, 함께 순위를 만들어가요!\n첫 투표를 지금 바로 해보세요.",
+    highlights: [
+      { icon: "🎯", text: "메인 페이지에서 크리에이터 탐색" },
+      { icon: "💬", text: "응원톡으로 팬들과 소통" },
+      { icon: "📱", text: "공유 카드로 SNS 홍보" },
+    ],
+    color: "from-yellow-400/20 via-background to-primary/10",
+    accentColor: "text-yellow-400",
+    borderColor: "border-yellow-400/20",
   },
 ];
 
 const NewUserWelcome = ({ onGetFreeVotes }: NewUserWelcomeProps) => {
   const [visible, setVisible] = useState(false);
-  const [step1Done, setStep1Done] = useState(false);
-  const [step3Done, setStep3Done] = useState(false);
-  const [nickname, setNickname] = useState("");
-  const [referralCode, setReferralCode] = useState<string | null>(null);
-  const [generating, setGenerating] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [animating, setAnimating] = useState(false);
+  const [direction, setDirection] = useState<"next" | "prev">("next");
   const navigate = useNavigate();
 
   useEffect(() => {
     const seen = localStorage.getItem(STORAGE_KEY);
     if (!seen) {
-      // Show after a short delay for better UX
-      const t = setTimeout(() => setVisible(true), 800);
+      const t = setTimeout(() => setVisible(true), 900);
       return () => clearTimeout(t);
     }
-    // Check if they already have a referral code
-    const code = localStorage.getItem("referral_code");
-    if (code) setReferralCode(code);
   }, []);
 
   const dismiss = () => {
@@ -70,198 +109,152 @@ const NewUserWelcome = ({ onGetFreeVotes }: NewUserWelcomeProps) => {
     setVisible(false);
   };
 
-  const handleStep1 = () => {
-    if (step1Done) return;
-    onGetFreeVotes?.(3);
-    toast.success("🎁 무료 투표 3표가 지급되었습니다!");
-    setStep1Done(true);
+  const goTo = (next: number, dir: "next" | "prev") => {
+    if (animating) return;
+    setDirection(dir);
+    setAnimating(true);
+    setTimeout(() => {
+      setCurrentStep(next);
+      setAnimating(false);
+    }, 200);
   };
 
-  const handleStep2 = () => {
-    dismiss();
-    // scroll to ranking section
-    const el = document.getElementById("ranking-section");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
+  const handleNext = () => {
+    if (currentStep < STEPS.length - 1) {
+      goTo(currentStep + 1, "next");
+    } else {
+      // Last step → go to ranking
+      dismiss();
+      const el = document.getElementById("ranking-section");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
     }
   };
 
-  const generateAndCopy = async () => {
-    if (referralCode) {
-      const link = `${getPublishedOrigin()}?ref=${referralCode}`;
-      await copyToClipboard(link);
-      toast.success("초대 링크가 복사되었습니다! 🎉");
-      setStep3Done(true);
-      return;
-    }
-
-    if (!nickname.trim() || nickname.trim().length < 2) {
-      toast.error("닉네임을 2글자 이상 입력해주세요.");
-      return;
-    }
-
-    setGenerating(true);
-    const code = Math.random().toString(36).substring(2, 10).toUpperCase();
-    const { error } = await supabase.from("referral_codes").insert({
-      code,
-      nickname: nickname.trim(),
-    });
-
-    if (error) {
-      toast.error("코드 생성에 실패했습니다.");
-      setGenerating(false);
-      return;
-    }
-
-    localStorage.setItem("referral_code", code);
-    setReferralCode(code);
-    setGenerating(false);
-
-    const link = `${getPublishedOrigin()}?ref=${code}`;
-    await copyToClipboard(link);
-    toast.success("초대 링크가 복사되었습니다! 🎉");
-    setStep3Done(true);
+  const handlePrev = () => {
+    if (currentStep > 0) goTo(currentStep - 1, "prev");
   };
 
   if (!visible) return null;
+
+  const step = STEPS[currentStep];
+  const isLast = currentStep === STEPS.length - 1;
+  const isFirst = currentStep === 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+        className="absolute inset-0 bg-background/80 backdrop-blur-md"
         onClick={dismiss}
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md mx-auto animate-in slide-in-from-bottom-4 duration-300">
+      <div className="relative w-full max-w-sm mx-auto animate-in slide-in-from-bottom-6 duration-400">
         <div className="glass border border-glass-border/60 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
-          {/* Header */}
-          <div className="relative px-5 pt-6 pb-4 bg-gradient-to-br from-primary/10 via-background to-neon-cyan/10">
-            <button
-              onClick={dismiss}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-5 h-5 text-neon-purple" />
-              <span className="text-xs font-bold text-neon-purple uppercase tracking-widest">
-                신규 회원 가이드
+
+          {/* Progress dots */}
+          <div className="flex justify-center gap-1.5 pt-5 pb-0">
+            {STEPS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(i, i > currentStep ? "next" : "prev")}
+                className={`rounded-full transition-all duration-300 ${
+                  i === currentStep
+                    ? "w-5 h-1.5 bg-primary"
+                    : i < currentStep
+                    ? "w-1.5 h-1.5 bg-primary/40"
+                    : "w-1.5 h-1.5 bg-muted-foreground/20"
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* Close button */}
+          <button
+            onClick={dismiss}
+            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors z-10"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          {/* Step content */}
+          <div
+            className={`px-6 pt-6 pb-4 transition-all duration-200 ${
+              animating
+                ? direction === "next"
+                  ? "opacity-0 translate-x-4"
+                  : "opacity-0 -translate-x-4"
+                : "opacity-100 translate-x-0"
+            }`}
+            style={{ minHeight: 280 }}
+          >
+            {/* Emoji + Badge */}
+            <div className="flex items-center gap-2 mb-4">
+              <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${step.color} border ${step.borderColor} flex items-center justify-center text-2xl`}>
+                {step.emoji}
+              </div>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${step.accentColor}`}>
+                {step.badge}
               </span>
             </div>
-            <h2 className="text-xl font-black text-foreground">
-              Rank It에 오신 걸 환영해요! 🎉
+
+            {/* Title */}
+            <h2 className="text-xl font-black text-foreground leading-tight whitespace-pre-line mb-2">
+              {step.title}
             </h2>
-            <p className="text-xs text-muted-foreground mt-1">
-              3단계로 시작해보세요
+
+            {/* Desc */}
+            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line mb-4">
+              {step.desc}
             </p>
+
+            {/* Highlights */}
+            <div className="space-y-2">
+              {step.highlights.map((h, i) => (
+                <div
+                  key={i}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-xl bg-gradient-to-r ${step.color} border ${step.borderColor}`}
+                >
+                  <span className="text-base">{h.icon}</span>
+                  <span className="text-xs font-medium text-foreground">{h.text}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Steps */}
-          <div className="px-5 py-4 space-y-3">
-            {/* Step 1 */}
-            <div className={`rounded-2xl border bg-gradient-to-r ${STEPS[0].color} p-4`}>
-              <div className="flex items-start gap-3">
-                <div className="text-2xl shrink-0">{STEPS[0].icon}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-[10px] font-black text-muted-foreground">STEP 1</span>
-                    {step1Done && <Check className="w-3 h-3 text-neon-cyan" />}
-                  </div>
-                  <p className="text-sm font-bold text-foreground">{STEPS[0].title}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{STEPS[0].desc}</p>
-                </div>
-              </div>
-              <button
-                onClick={handleStep1}
-                disabled={step1Done}
-                className={`mt-3 w-full py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
-                  step1Done
-                    ? "bg-success/20 text-success border border-success/30 cursor-default"
-                    : "gradient-primary text-primary-foreground hover:opacity-90 active:scale-[0.98] neon-glow-purple"
-                }`}
-              >
-                {step1Done ? (
-                  <><Check className="w-4 h-4" /> 받기 완료!</>
-                ) : (
-                  <><Gift className="w-4 h-4" /> {STEPS[0].action}</>
-                )}
-              </button>
-            </div>
-
-            {/* Step 2 */}
-            <div className={`rounded-2xl border bg-gradient-to-r ${STEPS[1].color} p-4`}>
-              <div className="flex items-start gap-3">
-                <div className="text-2xl shrink-0">{STEPS[1].icon}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-[10px] font-black text-muted-foreground">STEP 2</span>
-                  </div>
-                  <p className="text-sm font-bold text-foreground">{STEPS[1].title}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{STEPS[1].desc}</p>
-                </div>
-              </div>
-              <button
-                onClick={handleStep2}
-                className="mt-3 w-full py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 glass-sm border border-primary/30 text-primary hover:bg-primary/10 active:scale-[0.98]"
-              >
-                <Vote className="w-4 h-4" />
-                {STEPS[1].action}
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {/* Step 3 */}
-            <div className={`rounded-2xl border bg-gradient-to-r ${STEPS[2].color} p-4`}>
-              <div className="flex items-start gap-3">
-                <div className="text-2xl shrink-0">{STEPS[2].icon}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-[10px] font-black text-muted-foreground">STEP 3</span>
-                    {step3Done && <Check className="w-3 h-3 text-neon-cyan" />}
-                  </div>
-                  <p className="text-sm font-bold text-foreground">{STEPS[2].title}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{STEPS[2].desc}</p>
-                </div>
-              </div>
-              {!referralCode && !step3Done && (
-                <input
-                  type="text"
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
-                  placeholder="닉네임 입력 (2글자 이상)"
-                  maxLength={20}
-                  className="mt-3 w-full px-3 py-2 rounded-xl glass-sm bg-card/30 border border-glass-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-neon-cyan/50 transition-colors"
-                />
+          {/* Navigation */}
+          <div className="px-6 pb-6 pt-2 space-y-2">
+            <div className="flex gap-2">
+              {!isFirst && (
+                <button
+                  onClick={handlePrev}
+                  className="h-11 px-4 rounded-xl glass-sm border border-glass-border text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
               )}
               <button
-                onClick={generateAndCopy}
-                disabled={generating || step3Done}
-                className={`mt-2 w-full py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
-                  step3Done
-                    ? "bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 cursor-default"
-                    : "glass-sm border border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/10 active:scale-[0.98]"
-                }`}
+                onClick={handleNext}
+                className="flex-1 h-11 rounded-xl gradient-primary text-primary-foreground font-bold text-sm neon-glow-purple hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
               >
-                {step3Done ? (
-                  <><Check className="w-4 h-4" /> 복사 완료!</>
-                ) : generating ? (
-                  <><div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin" /> 생성 중...</>
+                {isLast ? (
+                  <>
+                    <Trophy className="w-4 h-4" />
+                    랭킹 보러 가기
+                  </>
                 ) : (
-                  <><Users className="w-4 h-4" /> {STEPS[2].action}</>
+                  <>
+                    다음
+                    <ChevronRight className="w-4 h-4" />
+                  </>
                 )}
               </button>
             </div>
-          </div>
-
-          {/* Footer */}
-          <div className="px-5 pb-6">
             <button
               onClick={dismiss}
-              className="w-full py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="w-full py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              나중에 할게요
+              건너뛰기
             </button>
           </div>
         </div>
