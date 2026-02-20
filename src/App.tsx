@@ -19,6 +19,7 @@ import FanLeaderboard from "./pages/FanLeaderboard";
 import Tournament from "./pages/Tournament";
 import PointShop from "./pages/PointShop";
 import NotFound from "./pages/NotFound";
+import AdminPage from "./pages/AdminPage";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
                 <Route path="/fans" element={<FanLeaderboard />} />
                 <Route path="/tournament" element={<Tournament />} />
                 <Route path="/shop" element={<PointShop />} />
+                <Route path="/admin" element={<AdminPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

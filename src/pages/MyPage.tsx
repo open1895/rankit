@@ -28,6 +28,8 @@ import {
   Wallet,
   TrendingUp,
   Banknote,
+  UserX,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -108,12 +110,21 @@ const MyPage = () => {
   const [requestingSettlement, setRequestingSettlement] = useState(false);
   const [bankInfo, setBankInfo] = useState("");
   const [showSettlementForm, setShowSettlementForm] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
     }
   }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    if (!user) return;
+    // Check admin role
+    supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle()
+      .then(({ data }) => { if (data) setIsAdminUser(true); });
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -218,6 +229,21 @@ const MyPage = () => {
 
   const handleSignOut = async () => {
     await signOut();
+    navigate("/");
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm("정말로 탈퇴하시겠습니까?\n\n모든 데이터(투표 기록, 크리에이터 프로필, 포인트 등)가 영구 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.")) return;
+    if (!confirm("마지막 확인: 탈퇴를 진행하시겠습니까?")) return;
+    setDeletingAccount(true);
+    const { data, error } = await supabase.functions.invoke("delete-account", { body: {} });
+    if (error || data?.error) {
+      toast.error(data?.error || "탈퇴에 실패했습니다. 다시 시도해주세요.");
+      setDeletingAccount(false);
+      return;
+    }
+    await signOut();
+    toast.success("탈퇴가 완료되었습니다. 이용해주셔서 감사합니다.");
     navigate("/");
   };
 
@@ -643,6 +669,17 @@ const MyPage = () => {
           </div>
 
 
+          {isAdminUser && (
+            <Button
+              onClick={() => navigate("/admin")}
+              variant="outline"
+              className="w-full glass-sm border-glass-border text-muted-foreground text-sm"
+            >
+              <ShieldCheck className="w-4 h-4 mr-2 text-primary" />
+              관리자 페이지
+            </Button>
+          )}
+
           <Button
             onClick={handleSignOut}
             variant="outline"
@@ -651,6 +688,15 @@ const MyPage = () => {
             <LogOut className="w-4 h-4 mr-2" />
             로그아웃
           </Button>
+
+          <button
+            onClick={handleDeleteAccount}
+            disabled={deletingAccount}
+            className="w-full text-xs text-muted-foreground/50 hover:text-destructive transition-colors py-1"
+          >
+            <UserX className="w-3 h-3 inline mr-1" />
+            {deletingAccount ? "탈퇴 처리 중..." : "회원 탈퇴"}
+          </button>
         </div>
 
         {/* Creator Profile Edit Section */}
