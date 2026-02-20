@@ -47,7 +47,7 @@ const HeroSection = ({ creators }: HeroSectionProps) => {
         {/* VS Battle Display */}
         <div className="flex items-center justify-center gap-3">
           {/* Rank 1 */}
-          <div className="flex flex-col items-center gap-1.5 flex-1">
+          <Link to={`/creator/${rank1.id}`} className="flex flex-col items-center gap-1.5 flex-1 cursor-pointer active:scale-95 transition-transform">
             <span className="text-[10px] text-yellow-400 font-bold">👑 1위</span>
             {rank1.avatar_url?.startsWith("http") ? (
               <img src={rank1.avatar_url} alt={rank1.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-yellow-400/60" />
@@ -58,7 +58,7 @@ const HeroSection = ({ creators }: HeroSectionProps) => {
             )}
             <span className="text-xs font-bold text-foreground truncate max-w-[80px]">{rank1.name}</span>
             <span className="text-[10px] text-neon-purple font-semibold">{rank1.votes_count.toLocaleString()}표</span>
-          </div>
+          </Link>
 
           {/* VS + Gap */}
           <div className="flex flex-col items-center gap-1 shrink-0">
@@ -73,7 +73,7 @@ const HeroSection = ({ creators }: HeroSectionProps) => {
           </div>
 
           {/* Rank 2 */}
-          <div className="flex flex-col items-center gap-1.5 flex-1">
+          <Link to={`/creator/${rank2.id}`} className="flex flex-col items-center gap-1.5 flex-1 cursor-pointer active:scale-95 transition-transform">
             <span className="text-[10px] text-slate-300 font-bold">🥈 2위</span>
             {rank2.avatar_url?.startsWith("http") ? (
               <img src={rank2.avatar_url} alt={rank2.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-slate-400/60" />
@@ -84,7 +84,7 @@ const HeroSection = ({ creators }: HeroSectionProps) => {
             )}
             <span className="text-xs font-bold text-foreground truncate max-w-[80px]">{rank2.name}</span>
             <span className="text-[10px] text-neon-cyan font-semibold">{rank2.votes_count.toLocaleString()}표</span>
-          </div>
+          </Link>
         </div>
 
         {/* Primary CTA */}
