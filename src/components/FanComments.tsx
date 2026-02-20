@@ -103,7 +103,7 @@ const FanComments = () => {
     const track = trackRef.current;
     if (!track) return;
 
-    const SPEED = 0.35;
+    const SPEED = 0.7;
     const totalHeight = comments.length * (CARD_HEIGHT + GAP);
 
     const animate = () => {
@@ -171,8 +171,10 @@ const FanComments = () => {
             return (
               <div
                 key={`${comment.id}-${idx}`}
-                className={`glass-sm rounded-2xl px-3.5 py-3 ${
-                  isNew ? "border-neon-cyan/40 shadow-[0_0_16px_rgba(0,255,255,0.12)]" : "hover:border-glass-border"
+                className={`glass-sm rounded-2xl px-3.5 py-3 transition-all duration-200 cursor-default ${
+                  isNew
+                    ? "border-neon-cyan/40 shadow-[0_0_16px_rgba(0,255,255,0.12)]"
+                    : "hover:scale-[1.02] hover:border-neon-cyan/50 hover:shadow-[0_0_20px_rgba(0,255,255,0.2)]"
                 }`}
               >
                 <div className="flex items-start gap-2.5">

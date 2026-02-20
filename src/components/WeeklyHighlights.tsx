@@ -59,7 +59,7 @@ const WeeklyHighlights = () => {
     const track = trackRef.current;
     if (!track) return;
 
-    const SPEED = 0.4; // px per frame
+    const SPEED = 0.8; // px per frame
 
     const animate = () => {
       if (!pausedRef.current && track) {
@@ -108,7 +108,7 @@ const WeeklyHighlights = () => {
             <Link
               key={`${h.id}-${idx}`}
               to={`/creator/${h.creator_id}`}
-              className="glass glass-hover p-3.5 w-44 shrink-0 space-y-2.5 group"
+              className="glass glass-hover p-3.5 w-44 shrink-0 space-y-2.5 group transition-all duration-200 hover:scale-105 hover:shadow-[0_0_24px_rgba(139,92,246,0.4)] hover:border-neon-purple/60"
             >
               <div className="flex items-center gap-2.5">
                 {h.creator?.avatar_url ? (
