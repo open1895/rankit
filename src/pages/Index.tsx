@@ -75,6 +75,20 @@ const Index = () => {
 
   const hasMore = visibleCount < filteredCreators.length;
 
+  // Restore already-voted creators from localStorage on mount (anonymous users)
+  useEffect(() => {
+    const today = new Date().toDateString();
+    const voted = new Set<string>();
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("voted_") && key.endsWith(`_${today}`) && localStorage.getItem(key) === "1") {
+        const creatorId = key.replace("voted_", "").replace(`_${today}`, "");
+        voted.add(creatorId);
+      }
+    }
+    if (voted.size > 0) setTodayVoted(voted);
+  }, []);
+
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
   }, [selectedCategory, searchQuery]);
@@ -140,13 +154,42 @@ const Index = () => {
   }, []);
 
   const handleVote = async (id: string): Promise<boolean> => {
+    // Anonymous vote: check localStorage per creator per day
     if (!user) {
-      toast.error("투표하려면 로그인이 필요합니다.");
-      navigate("/auth");
-      return false;
+      const todayKey = `voted_${id}_${new Date().toDateString()}`;
+      if (localStorage.getItem(todayKey) === "1") {
+        toast.error("오늘 이미 투표하셨습니다! 내일 다시 투표할 수 있어요.");
+        return false;
+      }
+
+      const { data, error } = await supabase.functions.invoke("vote", {
+        body: { creator_id: id },
+      });
+
+      if (error) {
+        let msg = "투표에 실패했습니다.";
+        try {
+          if (error.context instanceof Response) {
+            const errorData = await error.context.json();
+            if (errorData?.message) msg = errorData.message;
+          }
+        } catch {}
+        toast.error(msg);
+        return false;
+      }
+
+      if (data && data.error) {
+        toast.error(data.message || "투표에 실패했습니다.");
+        return false;
+      }
+
+      localStorage.setItem(todayKey, "1");
+      setTodayVoted((prev) => new Set(prev).add(id));
+      toast.success("투표 완료! 🎉 로그인하면 더 많은 혜택을 받을 수 있어요!");
+      return true;
     }
 
-    // Calculate remaining votes from current state
+    // Logged-in: check remaining votes
     const currentRemaining = Math.max(0, 1 - todayVoted.size + extraVotes);
     if (currentRemaining <= 0) {
       toast.error("투표권이 부족합니다! 광고를 시청하고 추가 투표권을 받으세요.");
@@ -160,24 +203,18 @@ const Index = () => {
 
     if (error) {
       let msg = "투표에 실패했습니다.";
-      // Handle edge function error responses (429, 400, etc.)
-      if (data?.message) {
-        msg = data.message;
-      } else {
-        try {
-          // error.context is a Response object for FunctionsHttpError
-          if (error.context instanceof Response) {
-            const errorData = await error.context.json();
-            if (errorData?.message) msg = errorData.message;
-          } else if (typeof error.context === "string") {
-            const ctx = JSON.parse(error.context);
-            if (ctx.message) msg = ctx.message;
-          } else if (error.context?.body) {
-            const ctx = JSON.parse(error.context.body);
-            if (ctx.message) msg = ctx.message;
-          }
-        } catch {}
-      }
+      try {
+        if (error.context instanceof Response) {
+          const errorData = await error.context.json();
+          if (errorData?.message) msg = errorData.message;
+        } else if (typeof error.context === "string") {
+          const ctx = JSON.parse(error.context);
+          if (ctx.message) msg = ctx.message;
+        } else if (error.context?.body) {
+          const ctx = JSON.parse(error.context.body);
+          if (ctx.message) msg = ctx.message;
+        }
+      } catch {}
       toast.error(msg);
       return false;
     }
@@ -490,6 +527,7 @@ const Index = () => {
                     creators={creators}
                     onVote={handleVote}
                     onBonusVote={() => setExtraVotes((v) => v + 1)}
+                    hasVoted={todayVoted.has(creator.id)}
                   />
                 </div>
               ))}
