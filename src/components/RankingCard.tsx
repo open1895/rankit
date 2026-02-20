@@ -17,6 +17,7 @@ interface RankingCardProps {
 
 const RankingCard = ({ creator, creators, onVote, onBonusVote }: RankingCardProps) => {
   const [isVoting, setIsVoting] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [showVoteModal, setShowVoteModal] = useState(false);
   const [voteGap, setVoteGap] = useState<number | null>(null);
@@ -49,20 +50,26 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote }: RankingCardProp
     setTimeout(() => {
       setIsVoting(false);
       if (success) {
-        // +1 float animation
+        // +1🔥 float animation
         setShowPlusOne(true);
         setTimeout(() => setShowPlusOne(false), 1200);
+
+        // Shake effect
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 500);
 
         const gap = getVotesUntilNext(creator, creators);
         setVoteGap(gap);
         setShowVoteModal(true);
         setShowCommentInput(true);
 
-        // Micro-reward message
-        if (gap !== null && gap <= 10) {
-          setMicroReward("⚡ 거의 다 왔어요! 단 " + gap + "표 차이!");
-        } else if (gap !== null && gap <= 50) {
-          setMicroReward("🔥 격차를 좁혔어요! " + gap + "표 남음");
+        // Micro-reward message with specific gap info
+        if (aboveCreator === null) {
+          setMicroReward("👑 1위! 계속 달려요!");
+        } else if (gap !== null && gap <= 10) {
+          setMicroReward(`⚡ 거의 다 왔어요! 단 ${gap}표 차이!`);
+        } else if (gap !== null) {
+          setMicroReward(`🔥 ${aboveCreator.rank}위와 차이 ${gap}표로 감소!`);
         } else {
           setMicroReward("💜 투표 완료! 계속 응원해요!");
         }
@@ -103,12 +110,12 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote }: RankingCardProp
         onComplete={() => setShowOvertake(false)}
       />
 
-      <div className={`relative glass glass-hover p-3 sm:p-4 flex items-center gap-2 sm:gap-4 transition-all duration-300 group ${isTop3 ? "neon-glow-purple" : ""} ${rankAnim === "up" ? "animate-rank-up" : rankAnim === "down" ? "animate-rank-down" : ""}`}>
-        {/* +1 float animation */}
+      <div className={`relative glass glass-hover p-3 sm:p-4 flex items-center gap-2 sm:gap-4 transition-all duration-300 group ${isTop3 ? "neon-glow-purple" : ""} ${rankAnim === "up" ? "animate-rank-up" : rankAnim === "down" ? "animate-rank-down" : ""} ${isShaking ? "animate-shake" : ""}`}>
+        {/* +1🔥 float animation */}
         {showPlusOne && (
-          <div className="absolute right-14 top-2 text-lg font-black text-neon-cyan animate-fade-out pointer-events-none select-none z-10"
-            style={{ animation: "fade-out 1.2s ease-out forwards" }}>
-            +1 🗳️
+          <div className="absolute right-14 top-1 text-2xl font-black text-orange-400 pointer-events-none select-none z-10"
+            style={{ animation: "score-float 1.2s ease-out forwards" }}>
+            +1🔥
           </div>
         )}
 
@@ -187,7 +194,7 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote }: RankingCardProp
           )}
           {/* Micro-reward feedback */}
           {microReward && (
-            <p className="text-[10px] text-neon-cyan font-semibold mt-0.5 animate-fade-in">
+            <p className="text-[10px] text-primary font-bold mt-0.5 animate-fade-in">
               {microReward}
             </p>
           )}
