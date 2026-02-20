@@ -10,6 +10,9 @@ import ShareCard from "@/components/ShareCard";
 import CelebrationEffect from "@/components/CelebrationEffect";
 import FanBadge from "@/components/FanBadge";
 import CreatorChat from "@/components/CreatorChat";
+import RankitVerifiedBadge from "@/components/RankitVerifiedBadge";
+import { generateWeeklyPDF } from "@/lib/pdfReport";
+import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -32,6 +35,10 @@ import {
   Save,
   X,
   Camera,
+  Code2,
+  FileDown,
+  Copy,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -91,6 +98,9 @@ const CreatorProfile = () => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [showEmbedModal, setShowEmbedModal] = useState(false);
+  const [embedCopied, setEmbedCopied] = useState(false);
+  const [pdfGenerating, setPdfGenerating] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -413,6 +423,58 @@ const CreatorProfile = () => {
     toast.success("프로필이 수정되었습니다! ✅");
   };
 
+
+  const handleDownloadPDF = async () => {
+    if (!creator || !id) return;
+    setPdfGenerating(true);
+    try {
+      const now = new Date();
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - 7);
+      const weekLabel = `${weekStart.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })} ~ ${now.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}`;
+
+      const cd = rankHistory.map((h) => ({
+        time: new Date(h.recorded_at).toLocaleDateString("ko-KR", { month: "short", day: "numeric" }),
+        rank: h.rank,
+        votes: h.votes_count,
+      }));
+
+      generateWeeklyPDF({
+        name: creator.name,
+        category: creator.category,
+        rank: creator.rank,
+        votes_count: creator.votes_count,
+        rankit_score: creator.rankit_score,
+        youtube_subscribers: creator.youtube_subscribers,
+        chzzk_followers: creator.chzzk_followers,
+        instagram_followers: creator.instagram_followers,
+        tiktok_followers: creator.tiktok_followers,
+        is_verified: creator.is_verified,
+        rankHistory: cd,
+        fanRanking,
+        weekLabel,
+      });
+      toast.success("PDF 리포트가 다운로드되었습니다! 📄");
+    } catch (e) {
+      toast.error("PDF 생성에 실패했습니다.");
+    } finally {
+      setPdfGenerating(false);
+    }
+  };
+
+  const handleCopyEmbed = async () => {
+    if (!id) return;
+    const origin = getPublishedOrigin();
+    const embedCode = `<iframe src="${origin}/widget/creator/${id}" width="300" height="120" frameborder="0" style="border-radius:16px; overflow:hidden;"></iframe>`;
+    const ok = await copyToClipboard(embedCode);
+    if (ok) {
+      setEmbedCopied(true);
+      toast.success("임베드 코드가 복사되었습니다! 🎉");
+      setTimeout(() => setEmbedCopied(false), 2500);
+    }
+  };
+
+
   if (loading || !creator) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -654,12 +716,10 @@ const CreatorProfile = () => {
               </div>
             ) : (
               <>
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center justify-center gap-2 flex-wrap">
                   <h2 className="text-xl font-bold">{creator.name}</h2>
                   {creator.is_verified && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-neon-cyan/20 text-neon-cyan font-medium">
-                      Official ✓
-                    </span>
+                    <RankitVerifiedBadge size="sm" />
                   )}
                 </div>
                 {creator.category && (
@@ -834,7 +894,7 @@ const CreatorProfile = () => {
               <div className="text-[9px] text-muted-foreground">투표</div>
             </div>
             <div className="glass-sm p-2.5 text-center space-y-0.5">
-              <div className="text-sm font-bold text-green-400">{activityScore}</div>
+              <div className="text-sm font-bold text-neon-cyan">{activityScore}</div>
               <div className="text-[9px] text-muted-foreground">활동점수</div>
             </div>
           </div>
@@ -994,10 +1054,10 @@ const CreatorProfile = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <span className={`text-xs font-bold truncate ${idx === 0 ? "text-yellow-400" : idx === 1 ? "text-gray-300" : idx === 2 ? "text-amber-600" : "text-foreground"}`}>
+                        <span className={`text-xs font-bold truncate ${idx === 0 ? "text-[hsl(48_96%_53%)]" : idx === 1 ? "text-muted-foreground" : idx === 2 ? "text-[hsl(31_81%_56%)]" : "text-foreground"}`}>
                           {fan.nickname}
                         </span>
-                        {idx === 0 && <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 shrink-0" />}
+                        {idx === 0 && <Star className="w-3 h-3 text-[hsl(48_96%_53%)] fill-[hsl(48_96%_53%)] shrink-0" />}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[9px] text-muted-foreground">투표 {fan.votes}</span>
@@ -1046,6 +1106,68 @@ const CreatorProfile = () => {
             </div>
           )}
         </div>
+
+        {/* ===== Rankit 인증 배지 + 위젯 임베드 코드 + PDF 리포트 ===== */}
+        <div className="glass p-4 space-y-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Code2 className="w-4 h-4 text-neon-purple" />
+            <h3 className="text-sm font-semibold">크리에이터 도구</h3>
+          </div>
+
+          {/* Rankit 인증 배지 */}
+          {creator.is_verified && (
+            <div className="glass-sm p-3 rounded-xl border border-neon-cyan/20 space-y-2">
+              <div className="flex items-center gap-2">
+                <RankitVerifiedBadge size="lg" />
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                이 크리에이터는 Rankit에서 공식 인증된 크리에이터입니다. 팬들에게 신뢰를 전달하세요!
+              </p>
+            </div>
+          )}
+
+          {/* 순위 위젯 임베드 코드 */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-foreground">📦 내 순위 위젯 임베드</span>
+              <button
+                onClick={() => setShowEmbedModal(!showEmbedModal)}
+                className="text-[10px] text-neon-cyan hover:underline"
+              >
+                {showEmbedModal ? "닫기" : "코드 보기"}
+              </button>
+            </div>
+            {showEmbedModal && (
+              <div className="space-y-2 animate-fade-in">
+                <div className="glass-sm p-2.5 rounded-xl font-mono text-[10px] text-muted-foreground break-all border border-glass-border">
+                  {`<iframe src="${getPublishedOrigin()}/widget/creator/${id}" width="300" height="120" frameborder="0" style="border-radius:16px;"></iframe>`}
+                </div>
+                <button
+                  onClick={handleCopyEmbed}
+                  className={`w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${embedCopied ? "bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30" : "glass-sm text-neon-cyan border border-neon-cyan/20 hover:border-neon-cyan/50"}`}
+                >
+                  {embedCopied ? <><Check className="w-3.5 h-3.5" /> 복사 완료!</> : <><Copy className="w-3.5 h-3.5" /> 코드 복사</>}
+                </button>
+                <p className="text-[10px] text-muted-foreground text-center">
+                  내 사이트나 블로그에 붙여넣으면 실시간 순위가 표시됩니다
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* 주간 PDF 리포트 */}
+          <button
+            onClick={handleDownloadPDF}
+            disabled={pdfGenerating}
+            className="w-full py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all glass-sm border border-neon-purple/20 text-neon-purple hover:border-neon-purple/50 active:scale-[0.98] disabled:opacity-60"
+          >
+            {pdfGenerating ? (
+              <><div className="w-4 h-4 border-2 border-neon-purple border-t-transparent rounded-full animate-spin" /> 생성 중...</>
+            ) : (
+              <><FileDown className="w-4 h-4" /> 주간 리포트 PDF 다운로드</>
+            )}
+          </button>
+        </div>
       </main>
 
       {/* Share Modal */}
@@ -1074,3 +1196,4 @@ const CreatorProfile = () => {
 };
 
 export default CreatorProfile;
+

@@ -20,6 +20,7 @@ import Tournament from "./pages/Tournament";
 import PointShop from "./pages/PointShop";
 import NotFound from "./pages/NotFound";
 import AdminPage from "./pages/AdminPage";
+import WidgetPage from "./pages/WidgetPage";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
                 <Route path="/tournament" element={<Tournament />} />
                 <Route path="/shop" element={<PointShop />} />
                 <Route path="/admin" element={<AdminPage />} />
+                <Route path="/widget/creator/:id" element={<WidgetPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
