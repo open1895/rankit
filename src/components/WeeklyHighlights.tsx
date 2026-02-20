@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, TrendingUp, TrendingDown, Minus, Star } from "lucide-react";
@@ -16,6 +16,10 @@ interface Highlight {
 const WeeklyHighlights = () => {
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [loading, setLoading] = useState(true);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const animRef = useRef<number | null>(null);
+  const posRef = useRef(0);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
     const fetch = async () => {
@@ -50,7 +54,36 @@ const WeeklyHighlights = () => {
     fetch();
   }, []);
 
+  useEffect(() => {
+    if (highlights.length === 0) return;
+    const track = trackRef.current;
+    if (!track) return;
+
+    const SPEED = 0.4; // px per frame
+
+    const animate = () => {
+      if (!pausedRef.current && track) {
+        posRef.current += SPEED;
+        // each card is w-44 (176px) + gap-3 (12px) = 188px
+        const halfWidth = (highlights.length * 188) / 2;
+        if (posRef.current >= halfWidth) {
+          posRef.current = 0;
+        }
+        track.style.transform = `translateX(-${posRef.current}px)`;
+      }
+      animRef.current = requestAnimationFrame(animate);
+    };
+
+    animRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+    };
+  }, [highlights]);
+
   if (loading || highlights.length === 0) return null;
+
+  // Duplicate highlights for seamless loop
+  const items = [...highlights, ...highlights];
 
   return (
     <div className="space-y-3">
@@ -59,11 +92,21 @@ const WeeklyHighlights = () => {
         <h3 className="text-sm font-bold gradient-text">주간 하이라이트</h3>
       </div>
 
-      <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-        <div className="flex gap-3 w-max pb-2">
-          {highlights.map((h) => (
+      <div
+        className="overflow-hidden -mx-4"
+        onMouseEnter={() => { pausedRef.current = true; }}
+        onMouseLeave={() => { pausedRef.current = false; }}
+        onTouchStart={() => { pausedRef.current = true; }}
+        onTouchEnd={() => { pausedRef.current = false; }}
+      >
+        <div
+          ref={trackRef}
+          className="flex gap-3 px-4 pb-2 w-max"
+          style={{ willChange: "transform" }}
+        >
+          {items.map((h, idx) => (
             <Link
-              key={h.id}
+              key={`${h.id}-${idx}`}
               to={`/creator/${h.creator_id}`}
               className="glass glass-hover p-3.5 w-44 shrink-0 space-y-2.5 group"
             >
