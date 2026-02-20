@@ -444,6 +444,18 @@ const Index = () => {
         </section>
         </ScrollReveal>
 
+        {/* 투표 CTA 배너 */}
+        <ScrollReveal>
+          <div className="flex flex-col items-center justify-center py-4 px-4 rounded-2xl glass-sm border border-primary/20 bg-gradient-to-r from-primary/10 via-background to-primary/5 text-center gap-2">
+            <p className="text-base font-black gradient-text leading-tight">
+              지금 내가 좋아하는 크리에이터에게 투표하기
+            </p>
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-neon-cyan">
+              👉 1초 만에 참여
+            </span>
+          </div>
+        </ScrollReveal>
+
         {/* 실시간 응원 톡 */}
         <ScrollReveal>
           <FanComments />
