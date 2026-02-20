@@ -28,7 +28,6 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
     }
 
-    // Use service role for privileged operations
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -36,34 +35,70 @@ serve(async (req) => {
 
     const userId = user.id;
 
-    // 1. Nullify user_id in votes (votes are anonymous IP-based, keep them but remove user link)
+    // 1. Find all creators owned by this user
+    const { data: ownedCreators } = await adminClient
+      .from("creators")
+      .select("id")
+      .eq("user_id", userId);
+
+    const creatorIds = (ownedCreators || []).map((c: any) => c.id);
+
+    // 2. For each owned creator, delete all related data
+    if (creatorIds.length > 0) {
+      // Nullify user_id on votes linked to these creators (keep vote counts)
+      await adminClient.from("votes").update({ user_id: null }).in("creator_id", creatorIds);
+
+      // Delete creator-related records
+      await adminClient.from("weekly_highlights").delete().in("creator_id", creatorIds);
+      await adminClient.from("rank_history").delete().in("creator_id", creatorIds);
+      await adminClient.from("creator_earnings").delete().in("creator_id", creatorIds);
+      await adminClient.from("settlement_requests").delete().in("creator_id", creatorIds);
+      await adminClient.from("season_rankings").delete().in("creator_id", creatorIds);
+      await adminClient.from("chat_messages").delete().in("creator_id", creatorIds);
+      await adminClient.from("comments").delete().in("creator_id", creatorIds);
+
+      // For posts: delete post_comments first, then posts
+      const { data: posts } = await adminClient
+        .from("posts")
+        .select("id")
+        .in("creator_id", creatorIds);
+      const postIds = (posts || []).map((p: any) => p.id);
+      if (postIds.length > 0) {
+        await adminClient.from("post_comments").delete().in("post_id", postIds);
+      }
+      await adminClient.from("posts").delete().in("creator_id", creatorIds);
+
+      // Nullify tournament matches (don't delete, keep tournament integrity)
+      await adminClient.from("tournament_matches")
+        .update({ winner_id: null })
+        .in("winner_id", creatorIds);
+
+      // Delete the creators themselves
+      await adminClient.from("creators").delete().in("id", creatorIds);
+    }
+
+    // 3. Nullify user_id in votes not linked to owned creators
     await adminClient.from("votes").update({ user_id: null }).eq("user_id", userId);
 
-    // 2. Nullify user_id in tournament_votes
+    // 4. Nullify user_id in tournament_votes
     await adminClient.from("tournament_votes").update({ user_id: null }).eq("user_id", userId);
 
-    // 3. Nullify user_id in creators (unlink creator profile, don't delete it)
-    await adminClient.from("creators").update({ user_id: null }).eq("user_id", userId);
-
-    // 4. Delete user points
+    // 5. Delete user data
     await adminClient.from("user_points").delete().eq("user_id", userId);
-
-    // 5. Delete point transactions
     await adminClient.from("point_transactions").delete().eq("user_id", userId);
-
-    // 6. Delete point purchases
     await adminClient.from("point_purchases").delete().eq("user_id", userId);
-
-    // 7. Delete profile
     await adminClient.from("profiles").delete().eq("user_id", userId);
 
-    // 8. Finally delete auth user
+    // 6. Finally delete auth user
     const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
     if (deleteError) throw deleteError;
 
     return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
   } catch (err: any) {
     console.error("Delete account error:", err);
-    return new Response(JSON.stringify({ error: err.message || "Database error deleting user" }), { status: 500, headers: corsHeaders });
+    return new Response(
+      JSON.stringify({ error: err.message || "Database error deleting user" }),
+      { status: 500, headers: corsHeaders }
+    );
   }
 });
