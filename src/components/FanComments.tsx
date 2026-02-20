@@ -14,7 +14,7 @@ interface Comment {
   creator_name?: string;
 }
 
-const MAX_VISIBLE = 5;
+const MAX_VISIBLE = 10;
 
 const AVATAR_COLORS = [
   "from-purple-500 to-cyan-500",
@@ -29,10 +29,16 @@ const getAvatarColor = (nickname: string) => {
   return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 };
 
+const CARD_HEIGHT = 88; // px per card + gap
+const GAP = 8;
+
 const FanComments = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
-  const [enteringId, setEnteringId] = useState<string | null>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const animRef = useRef<number | null>(null);
+  const posRef = useRef(0);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -72,11 +78,9 @@ const FanComments = () => {
             creator_name: data?.name || "알 수 없음",
           };
 
-          setEnteringId(enriched.id);
           setComments((prev) => [enriched, ...prev].slice(0, MAX_VISIBLE));
           setNewIds((prev) => new Set(prev).add(enriched.id));
 
-          setTimeout(() => setEnteringId(null), 400);
           setTimeout(() => {
             setNewIds((prev) => {
               const next = new Set(prev);
@@ -93,6 +97,32 @@ const FanComments = () => {
     };
   }, []);
 
+  // Auto-scroll animation
+  useEffect(() => {
+    if (comments.length === 0) return;
+    const track = trackRef.current;
+    if (!track) return;
+
+    const SPEED = 0.35;
+    const totalHeight = comments.length * (CARD_HEIGHT + GAP);
+
+    const animate = () => {
+      if (!pausedRef.current && track) {
+        posRef.current += SPEED;
+        if (posRef.current >= totalHeight) {
+          posRef.current = 0;
+        }
+        track.style.transform = `translateY(-${posRef.current}px)`;
+      }
+      animRef.current = requestAnimationFrame(animate);
+    };
+
+    animRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+    };
+  }, [comments]);
+
   if (comments.length === 0) {
     return (
       <div className="glass rounded-2xl p-5 text-center">
@@ -103,6 +133,9 @@ const FanComments = () => {
       </div>
     );
   }
+
+  // Duplicate for seamless loop
+  const items = [...comments, ...comments];
 
   return (
     <div className="space-y-2.5">
@@ -120,56 +153,63 @@ const FanComments = () => {
         </div>
       </div>
 
-      <div className="space-y-2 overflow-hidden">
-        {comments.map((comment) => {
-          const isNew = newIds.has(comment.id);
-          const isEntering = enteringId === comment.id;
-          return (
-            <div
-              key={comment.id}
-              style={{
-                transition: "transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease",
-                transform: isEntering ? "translateY(-8px)" : "translateY(0)",
-                opacity: isEntering ? 0.7 : 1,
-              }}
-              className={`glass-sm rounded-2xl px-3.5 py-3 ${
-                isNew ? "border-neon-cyan/40 shadow-[0_0_16px_rgba(0,255,255,0.12)]" : "hover:border-glass-border"
-              }`}
-            >
-              <div className="flex items-start gap-2.5">
-                <div
-                  className={`w-7 h-7 rounded-full bg-gradient-to-br ${getAvatarColor(comment.nickname)} flex items-center justify-center shrink-0 text-[10px] font-bold text-white`}
-                >
-                  {comment.nickname.slice(0, 1)}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-xs font-bold text-foreground">{comment.nickname}</span>
-                    <span className="text-[10px] text-neon-cyan font-medium bg-neon-cyan/10 px-1.5 py-0.5 rounded-full border border-neon-cyan/20">
-                      {comment.creator_name}
-                    </span>
-                    {isNew && (
-                      <span className="text-[9px] font-bold text-neon-red bg-neon-red/10 px-1.5 py-0.5 rounded-full border border-neon-red/20 animate-pulse">
-                        NEW
-                      </span>
-                    )}
+      <div
+        className="overflow-hidden"
+        style={{ height: `${Math.min(comments.length, 4) * (CARD_HEIGHT + GAP)}px` }}
+        onMouseEnter={() => { pausedRef.current = true; }}
+        onMouseLeave={() => { pausedRef.current = false; }}
+        onTouchStart={() => { pausedRef.current = true; }}
+        onTouchEnd={() => { pausedRef.current = false; }}
+      >
+        <div
+          ref={trackRef}
+          className="space-y-2"
+          style={{ willChange: "transform" }}
+        >
+          {items.map((comment, idx) => {
+            const isNew = newIds.has(comment.id);
+            return (
+              <div
+                key={`${comment.id}-${idx}`}
+                className={`glass-sm rounded-2xl px-3.5 py-3 ${
+                  isNew ? "border-neon-cyan/40 shadow-[0_0_16px_rgba(0,255,255,0.12)]" : "hover:border-glass-border"
+                }`}
+              >
+                <div className="flex items-start gap-2.5">
+                  <div
+                    className={`w-7 h-7 rounded-full bg-gradient-to-br ${getAvatarColor(comment.nickname)} flex items-center justify-center shrink-0 text-[10px] font-bold text-white`}
+                  >
+                    {comment.nickname.slice(0, 1)}
                   </div>
-                  <p className="text-xs text-foreground/85 mt-0.5 leading-relaxed">{comment.message}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] text-muted-foreground">
-                      {formatDistanceToNow(new Date(comment.created_at), { locale: ko, addSuffix: true })}
-                    </span>
-                    <div className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
-                      <Heart className="w-2.5 h-2.5" />
-                      <span>{comment.vote_count}</span>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-bold text-foreground">{comment.nickname}</span>
+                      <span className="text-[10px] text-neon-cyan font-medium bg-neon-cyan/10 px-1.5 py-0.5 rounded-full border border-neon-cyan/20">
+                        {comment.creator_name}
+                      </span>
+                      {isNew && (
+                        <span className="text-[9px] font-bold text-neon-red bg-neon-red/10 px-1.5 py-0.5 rounded-full border border-neon-red/20 animate-pulse">
+                          NEW
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-foreground/85 mt-0.5 leading-relaxed">{comment.message}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[10px] text-muted-foreground">
+                        {formatDistanceToNow(new Date(comment.created_at), { locale: ko, addSuffix: true })}
+                      </span>
+                      <div className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                        <Heart className="w-2.5 h-2.5" />
+                        <span>{comment.vote_count}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
