@@ -1,0 +1,135 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
+
+    // Check admin role
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (!roleData) {
+      return new Response(JSON.stringify({ error: "Forbidden: Admin only" }), { status: 403, headers: corsHeaders });
+    }
+
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const { action, ...body } = await req.json();
+
+    // ─── LIST USERS ───────────────────────────────────────
+    if (action === "list_users") {
+      const { data: users, error } = await adminClient.auth.admin.listUsers({ perPage: 200 });
+      if (error) throw error;
+
+      // Get profiles
+      const { data: profiles } = await adminClient
+        .from("profiles")
+        .select("user_id, display_name, avatar_url, created_at");
+
+      // Get roles
+      const { data: roles } = await adminClient
+        .from("user_roles")
+        .select("user_id, role");
+
+      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+      const roleMap = new Map((roles || []).map((r: any) => [r.user_id, r.role]));
+
+      const merged = users.users.map((u: any) => ({
+        id: u.id,
+        email: u.email,
+        created_at: u.created_at,
+        last_sign_in_at: u.last_sign_in_at,
+        display_name: profileMap.get(u.id)?.display_name || "",
+        avatar_url: profileMap.get(u.id)?.avatar_url || "",
+        role: roleMap.get(u.id) || "user",
+      }));
+
+      return new Response(JSON.stringify({ users: merged }), { headers: corsHeaders });
+    }
+
+    // ─── DELETE USER ──────────────────────────────────────
+    if (action === "delete_user") {
+      const { user_id } = body;
+      if (!user_id) return new Response(JSON.stringify({ error: "user_id required" }), { status: 400, headers: corsHeaders });
+      const { error } = await adminClient.auth.admin.deleteUser(user_id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── SET ADMIN ────────────────────────────────────────
+    if (action === "set_admin") {
+      const { user_id, is_admin } = body;
+      if (!user_id) return new Response(JSON.stringify({ error: "user_id required" }), { status: 400, headers: corsHeaders });
+      if (is_admin) {
+        await adminClient.from("user_roles").upsert({ user_id, role: "admin" }, { onConflict: "user_id,role" });
+      } else {
+        await adminClient.from("user_roles").delete().eq("user_id", user_id).eq("role", "admin");
+      }
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── UPDATE CREATOR ───────────────────────────────────
+    if (action === "update_creator") {
+      const { creator_id, ...updates } = body;
+      if (!creator_id) return new Response(JSON.stringify({ error: "creator_id required" }), { status: 400, headers: corsHeaders });
+      const { error } = await adminClient.from("creators").update(updates).eq("id", creator_id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── DELETE CREATOR ───────────────────────────────────
+    if (action === "delete_creator") {
+      const { creator_id } = body;
+      if (!creator_id) return new Response(JSON.stringify({ error: "creator_id required" }), { status: 400, headers: corsHeaders });
+      const { error } = await adminClient.from("creators").delete().eq("id", creator_id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── LIST CREATORS ────────────────────────────────────
+    if (action === "list_creators") {
+      const { data, error } = await adminClient
+        .from("creators")
+        .select("*")
+        .order("rank", { ascending: true });
+      if (error) throw error;
+      return new Response(JSON.stringify({ creators: data }), { headers: corsHeaders });
+    }
+
+    return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: corsHeaders });
+
+  } catch (err: any) {
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
+  }
+});
