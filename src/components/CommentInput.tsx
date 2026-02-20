@@ -1,8 +1,17 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Send } from "lucide-react";
+import { Send, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+
+const SUGGEST_PHRASES = [
+  "오늘도 파이팅! 🔥",
+  "1위 가즈아!! 💜",
+  "최고야 ✨",
+  "역전 임박!! 🎯",
+  "응원해요 ❤️",
+  "투표 완료! 🗳️",
+];
 
 interface CommentInputProps {
   creatorId: string;
@@ -15,6 +24,7 @@ const CommentInput = ({ creatorId, creatorName, onClose }: CommentInputProps) =>
   const [nickname, setNickname] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(true);
 
   useEffect(() => {
     if (!user) return;
@@ -66,10 +76,29 @@ const CommentInput = ({ creatorId, creatorName, onClose }: CommentInputProps) =>
   };
 
   return (
-    <div className="animate-fade-in glass-sm p-3 mt-2 space-y-2">
-      <p className="text-xs text-neon-cyan font-medium">
-        🎉 <span className="text-foreground">{creatorName}</span>에게 응원 한마디!
-      </p>
+    <div className="animate-fade-in glass-sm p-3.5 mt-2 space-y-2.5 border border-neon-cyan/15">
+      <div className="flex items-center gap-1.5">
+        <Sparkles className="w-3.5 h-3.5 text-neon-cyan" />
+        <p className="text-xs text-neon-cyan font-semibold">
+          <span className="text-foreground">{creatorName}</span>에게 응원 한마디!
+        </p>
+      </div>
+
+      {/* Quick suggestions */}
+      {showSuggestions && (
+        <div className="flex flex-wrap gap-1.5">
+          {SUGGEST_PHRASES.map((phrase) => (
+            <button
+              key={phrase}
+              onClick={() => { setMessage(phrase); setShowSuggestions(false); }}
+              className="text-[10px] glass-sm px-2 py-1 rounded-full text-neon-cyan border border-neon-cyan/15 hover:border-neon-cyan/40 transition-all active:scale-95"
+            >
+              {phrase}
+            </button>
+          ))}
+        </div>
+      )}
+
       {user ? (
         <div className="text-xs text-muted-foreground">
           닉네임: <span className="text-foreground font-medium">{nickname || "로딩 중..."}</span>
@@ -84,16 +113,22 @@ const CommentInput = ({ creatorId, creatorName, onClose }: CommentInputProps) =>
           className="w-full bg-background/50 border border-glass-border rounded-lg px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-neon-purple/50"
         />
       )}
+
       <div className="flex gap-2">
-        <input
-          type="text"
-          placeholder="응원 메시지 (50자 이내)"
-          maxLength={50}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          className="flex-1 bg-background/50 border border-glass-border rounded-lg px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-neon-purple/50"
-        />
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            placeholder="응원 메시지 (50자 이내)"
+            maxLength={50}
+            value={message}
+            onChange={(e) => { setMessage(e.target.value); if (e.target.value) setShowSuggestions(false); }}
+            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+            className="w-full bg-background/50 border border-glass-border rounded-lg px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-neon-cyan/50 pr-14"
+          />
+          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] text-muted-foreground tabular-nums">
+            {message.length}/50
+          </span>
+        </div>
         <button
           onClick={handleSubmit}
           disabled={sending}
