@@ -13,9 +13,10 @@ interface RankingCardProps {
   creators: Creator[];
   onVote: (id: string) => Promise<boolean>;
   onBonusVote?: () => void;
+  hasVoted?: boolean;
 }
 
-const RankingCard = ({ creator, creators, onVote, onBonusVote }: RankingCardProps) => {
+const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false }: RankingCardProps) => {
   const [isVoting, setIsVoting] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
   const [showCommentInput, setShowCommentInput] = useState(false);
@@ -213,14 +214,16 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote }: RankingCardProp
         {/* Vote Button */}
         <button
           onClick={handleVote}
-          disabled={isVoting}
+          disabled={isVoting || hasVoted}
           className={`shrink-0 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 ${
-            isVoting
+            hasVoted
+              ? "glass-sm border-muted/30 text-muted-foreground cursor-not-allowed opacity-60"
+              : isVoting
               ? "gradient-primary scale-110 animate-count-up shadow-lg shadow-primary/30"
               : "glass-sm border-neon-purple/30 text-neon-purple hover:border-neon-purple/60 hover:shadow-lg hover:shadow-primary/10 active:scale-95"
           }`}
         >
-          {isVoting ? "🎉" : "투표"}
+          {hasVoted ? "✓ 완료" : isVoting ? "🎉" : "투표"}
         </button>
       </div>
 
