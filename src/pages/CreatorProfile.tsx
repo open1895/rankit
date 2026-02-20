@@ -523,7 +523,7 @@ const CreatorProfile = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background mesh-bg pb-24">
+    <div className="min-h-screen bg-background mesh-bg">
       <SEOHead
         title={`${creator.name} - 크리에이터 프로필`}
         description={`${creator.name}의 랭킹, 투표 현황, 팬 활동을 확인하세요. 현재 ${creator.rank}위, ${creator.votes_count}표 획득!`}
