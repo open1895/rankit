@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageCircle, Heart } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -13,6 +13,8 @@ interface Comment {
   created_at: string;
   creator_name?: string;
 }
+
+const MAX_VISIBLE = 5;
 
 const AVATAR_COLORS = [
   "from-purple-500 to-cyan-500",
@@ -30,6 +32,7 @@ const getAvatarColor = (nickname: string) => {
 const FanComments = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
+  const [enteringId, setEnteringId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -37,7 +40,7 @@ const FanComments = () => {
         .from("comments")
         .select("*, creators(name)")
         .order("created_at", { ascending: false })
-        .limit(8);
+        .limit(MAX_VISIBLE);
 
       if (!error && data) {
         setComments(
@@ -69,8 +72,11 @@ const FanComments = () => {
             creator_name: data?.name || "알 수 없음",
           };
 
-          setComments((prev) => [enriched, ...prev].slice(0, 8));
+          setEnteringId(enriched.id);
+          setComments((prev) => [enriched, ...prev].slice(0, MAX_VISIBLE));
           setNewIds((prev) => new Set(prev).add(enriched.id));
+
+          setTimeout(() => setEnteringId(null), 400);
           setTimeout(() => {
             setNewIds((prev) => {
               const next = new Set(prev);
@@ -114,18 +120,23 @@ const FanComments = () => {
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 overflow-hidden">
         {comments.map((comment) => {
           const isNew = newIds.has(comment.id);
+          const isEntering = enteringId === comment.id;
           return (
             <div
               key={comment.id}
-              className={`glass-sm rounded-2xl px-3.5 py-3 transition-all duration-500 ${
+              style={{
+                transition: "transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease",
+                transform: isEntering ? "translateY(-8px)" : "translateY(0)",
+                opacity: isEntering ? 0.7 : 1,
+              }}
+              className={`glass-sm rounded-2xl px-3.5 py-3 ${
                 isNew ? "border-neon-cyan/40 shadow-[0_0_16px_rgba(0,255,255,0.12)]" : "hover:border-glass-border"
               }`}
             >
               <div className="flex items-start gap-2.5">
-                {/* Avatar */}
                 <div
                   className={`w-7 h-7 rounded-full bg-gradient-to-br ${getAvatarColor(comment.nickname)} flex items-center justify-center shrink-0 text-[10px] font-bold text-white`}
                 >
