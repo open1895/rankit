@@ -22,6 +22,8 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote }: RankingCardProp
   const [voteGap, setVoteGap] = useState<number | null>(null);
   const [rankAnim, setRankAnim] = useState<"up" | "down" | null>(null);
   const [showOvertake, setShowOvertake] = useState(false);
+  const [showPlusOne, setShowPlusOne] = useState(false);
+  const [microReward, setMicroReward] = useState<string | null>(null);
   const prevRankRef = useRef(creator.rank);
   const votesUntilNext = getVotesUntilNext(creator, creators);
   const rankDiff = creator.previousRank - creator.rank;
@@ -31,7 +33,6 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote }: RankingCardProp
       const direction = creator.rank < prevRankRef.current ? "up" : "down";
       setRankAnim(direction);
 
-      // Overtake detection - rank went up
       if (direction === "up") {
         setShowOvertake(true);
       }
@@ -48,10 +49,24 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote }: RankingCardProp
     setTimeout(() => {
       setIsVoting(false);
       if (success) {
+        // +1 float animation
+        setShowPlusOne(true);
+        setTimeout(() => setShowPlusOne(false), 1200);
+
         const gap = getVotesUntilNext(creator, creators);
         setVoteGap(gap);
         setShowVoteModal(true);
         setShowCommentInput(true);
+
+        // Micro-reward message
+        if (gap !== null && gap <= 10) {
+          setMicroReward("⚡ 거의 다 왔어요! 단 " + gap + "표 차이!");
+        } else if (gap !== null && gap <= 50) {
+          setMicroReward("🔥 격차를 좁혔어요! " + gap + "표 남음");
+        } else {
+          setMicroReward("💜 투표 완료! 계속 응원해요!");
+        }
+        setTimeout(() => setMicroReward(null), 3000);
       }
     }, 600);
   };
@@ -88,7 +103,15 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote }: RankingCardProp
         onComplete={() => setShowOvertake(false)}
       />
 
-      <div className={`glass glass-hover p-3 sm:p-4 flex items-center gap-2 sm:gap-4 transition-all duration-300 group ${isTop3 ? "neon-glow-purple" : ""} ${rankAnim === "up" ? "animate-rank-up" : rankAnim === "down" ? "animate-rank-down" : ""}`}>
+      <div className={`relative glass glass-hover p-3 sm:p-4 flex items-center gap-2 sm:gap-4 transition-all duration-300 group ${isTop3 ? "neon-glow-purple" : ""} ${rankAnim === "up" ? "animate-rank-up" : rankAnim === "down" ? "animate-rank-down" : ""}`}>
+        {/* +1 float animation */}
+        {showPlusOne && (
+          <div className="absolute right-14 top-2 text-lg font-black text-neon-cyan animate-fade-out pointer-events-none select-none z-10"
+            style={{ animation: "fade-out 1.2s ease-out forwards" }}>
+            +1 🗳️
+          </div>
+        )}
+
         {/* Rank */}
         <div className="flex flex-col items-center w-8 sm:w-10 shrink-0">
           <span className={`text-xl sm:text-2xl font-bold ${rankStyle}`}>
@@ -160,6 +183,12 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote }: RankingCardProp
           {votesUntilNext !== null && votesUntilNext <= 500 && (
             <p className="text-[10px] text-neon-red font-semibold animate-pulse-neon mt-0.5">
               🔥 다음 순위까지 단 {votesUntilNext}표!
+            </p>
+          )}
+          {/* Micro-reward feedback */}
+          {microReward && (
+            <p className="text-[10px] text-neon-cyan font-semibold mt-0.5 animate-fade-in">
+              {microReward}
             </p>
           )}
         </div>

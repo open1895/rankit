@@ -18,6 +18,8 @@ import WeeklyHighlights from "@/components/WeeklyHighlights";
 import ScrollReveal from "@/components/ScrollReveal";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
+import HeroSection from "@/components/HeroSection";
+import RankingFormula from "@/components/RankingFormula";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User } from "lucide-react";
 import { toast } from "sonner";
 
@@ -249,27 +251,27 @@ const Index = () => {
       <FanMarquee />
 
       <main className="container max-w-lg mx-auto px-4 py-6 space-y-5">
-        {/* Hero Section */}
+        {/* NEW: Live Hero Section with VS Battle */}
         <ScrollReveal>
-          <section className="text-center space-y-3 py-2">
-            <div className="inline-flex items-center gap-1.5 glass-sm px-4 py-1.5 text-xs font-semibold text-neon-cyan animate-breathe">
-              <Sparkles className="w-3.5 h-3.5" />
-              시즌 12 진행 중
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold leading-tight text-center">
-              혼자 하면 팬이지만,
-              <br />
-              <span className="gradient-text neon-text-purple">모이면 역사</span>가 됩니다.
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed text-center">
-              지금, 당신이 다음 <span className="text-neon-cyan font-semibold">스타</span>를 만드세요. ✨
-            </p>
-          </section>
+          {creators.length >= 2 && <HeroSection creators={creators} />}
         </ScrollReveal>
 
         {/* Countdown */}
         <ScrollReveal delay={100}>
-        <CountdownTimer />
+          <CountdownTimer />
+        </ScrollReveal>
+
+        {/* Slogan */}
+        <ScrollReveal delay={120}>
+          <section className="text-center space-y-1 py-1">
+            <h2 className="text-lg sm:text-xl font-bold leading-tight">
+              혼자 하면 팬이지만,{" "}
+              <span className="gradient-text neon-text-purple">모이면 역사</span>가 됩니다.
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              지금, 당신이 다음 <span className="text-neon-cyan font-semibold">스타</span>를 만드세요. ✨
+            </p>
+          </section>
         </ScrollReveal>
 
         {/* Action Buttons */}
@@ -303,15 +305,15 @@ const Index = () => {
         </ScrollReveal>
 
         <ScrollReveal delay={200}>
-        <Link
-          to="/support"
-          className="block w-full glass-sm glass-hover p-3 text-center text-sm font-medium text-neon-cyan"
-        >
-          <span className="inline-flex items-center gap-2">
-            <Trophy className="w-4 h-4" />
-            보상 안내 보기
-          </span>
-        </Link>
+          <Link
+            to="/support"
+            className="block w-full glass-sm glass-hover p-3 text-center text-sm font-medium text-neon-cyan"
+          >
+            <span className="inline-flex items-center gap-2">
+              <Trophy className="w-4 h-4" />
+              보상 안내 보기
+            </span>
+          </Link>
         </ScrollReveal>
 
         {/* Engagement Section */}
@@ -350,6 +352,11 @@ const Index = () => {
         </ScrollReveal>
 
         <div className="section-divider" />
+
+        {/* Ranking Formula transparency */}
+        <ScrollReveal>
+          <RankingFormula />
+        </ScrollReveal>
 
         {/* Search & Filter Section */}
         <ScrollReveal>
