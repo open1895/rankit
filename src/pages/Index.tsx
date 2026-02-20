@@ -247,6 +247,30 @@ const Index = () => {
           </div>
         </div>
       </header>
+      {/* 이번 주 혜택 배너 */}
+      <div className="border-b border-glass-border/40 bg-gradient-to-r from-primary/10 via-background to-primary/5">
+        <div className="container max-w-lg mx-auto px-4 py-2.5">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <span className="text-[10px] font-black tracking-widest uppercase text-neon-purple">🎁 이번 주 혜택</span>
+          </div>
+          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-0.5">
+            {[
+              { icon: "🏆", label: "1위 팬 100명 추첨 리워드" },
+              { icon: "👑", label: "활동왕 뱃지 지급" },
+              { icon: "⭐", label: "시즌 MVP 공개" },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="shrink-0 flex items-center gap-1.5 glass-sm px-3 py-1.5 rounded-full border border-primary/20"
+              >
+                <span className="text-sm">{item.icon}</span>
+                <span className="text-[11px] font-semibold text-foreground whitespace-nowrap">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* 실시간 팬들의 한마디 - Sliding Marquee */}
       <FanMarquee />
 
