@@ -35,52 +35,13 @@ serve(async (req) => {
 
     const userId = user.id;
 
-    // 1. Find all creators owned by this user
-    const { data: ownedCreators } = await adminClient
-      .from("creators")
-      .select("id")
-      .eq("user_id", userId);
+    // 1. Unlink creators from this user (keep creator profiles and all data intact)
+    await adminClient.from("creators").update({ user_id: null }).eq("user_id", userId);
 
-    const creatorIds = (ownedCreators || []).map((c: any) => c.id);
-
-    // 2. For each owned creator, delete all related data
-    if (creatorIds.length > 0) {
-      // Nullify user_id on votes linked to these creators (keep vote counts)
-      await adminClient.from("votes").update({ user_id: null }).in("creator_id", creatorIds);
-
-      // Delete creator-related records
-      await adminClient.from("weekly_highlights").delete().in("creator_id", creatorIds);
-      await adminClient.from("rank_history").delete().in("creator_id", creatorIds);
-      await adminClient.from("creator_earnings").delete().in("creator_id", creatorIds);
-      await adminClient.from("settlement_requests").delete().in("creator_id", creatorIds);
-      await adminClient.from("season_rankings").delete().in("creator_id", creatorIds);
-      await adminClient.from("chat_messages").delete().in("creator_id", creatorIds);
-      await adminClient.from("comments").delete().in("creator_id", creatorIds);
-
-      // For posts: delete post_comments first, then posts
-      const { data: posts } = await adminClient
-        .from("posts")
-        .select("id")
-        .in("creator_id", creatorIds);
-      const postIds = (posts || []).map((p: any) => p.id);
-      if (postIds.length > 0) {
-        await adminClient.from("post_comments").delete().in("post_id", postIds);
-      }
-      await adminClient.from("posts").delete().in("creator_id", creatorIds);
-
-      // Nullify tournament matches (don't delete, keep tournament integrity)
-      await adminClient.from("tournament_matches")
-        .update({ winner_id: null })
-        .in("winner_id", creatorIds);
-
-      // Delete the creators themselves
-      await adminClient.from("creators").delete().in("id", creatorIds);
-    }
-
-    // 3. Nullify user_id in votes not linked to owned creators
+    // 2. Nullify user_id in votes (keep vote history)
     await adminClient.from("votes").update({ user_id: null }).eq("user_id", userId);
 
-    // 4. Nullify user_id in tournament_votes
+    // 3. Nullify user_id in tournament_votes (keep vote history)
     await adminClient.from("tournament_votes").update({ user_id: null }).eq("user_id", userId);
 
     // 5. Delete user data
