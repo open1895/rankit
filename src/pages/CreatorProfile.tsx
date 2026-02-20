@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, ChangeEvent } from "react";
+import Footer from "@/components/Footer";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -1185,7 +1186,7 @@ const CreatorProfile = () => {
         </div>
       </main>
 
-      {/* Share Modal */}
+      <Footer />
       {showShare && id && creator && (
         <ShareCard
           creatorId={id}
