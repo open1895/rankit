@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
+import Footer from "@/components/Footer";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -32,26 +33,29 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <PageTransition>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/creator/:id" element={<CreatorProfile />} />
-                <Route path="/creator/:id/board" element={<CreatorBoard />} />
-                <Route path="/mypage" element={<MyPage />} />
-                <Route path="/support" element={<Support />} />
-                <Route path="/seasons" element={<SeasonArchive />} />
-                <Route path="/compare" element={<CompareCreators />} />
-                <Route path="/fans" element={<FanLeaderboard />} />
-                <Route path="/tournament" element={<Tournament />} />
-                <Route path="/shop" element={<PointShop />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/widget/creator/:id" element={<WidgetPage />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </PageTransition>
+            <div className="flex flex-col min-h-screen">
+              <PageTransition>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/onboarding" element={<Onboarding />} />
+                  <Route path="/creator/:id" element={<CreatorProfile />} />
+                  <Route path="/creator/:id/board" element={<CreatorBoard />} />
+                  <Route path="/mypage" element={<MyPage />} />
+                  <Route path="/support" element={<Support />} />
+                  <Route path="/seasons" element={<SeasonArchive />} />
+                  <Route path="/compare" element={<CompareCreators />} />
+                  <Route path="/fans" element={<FanLeaderboard />} />
+                  <Route path="/tournament" element={<Tournament />} />
+                  <Route path="/shop" element={<PointShop />} />
+                  <Route path="/admin" element={<AdminPage />} />
+                  <Route path="/widget/creator/:id" element={<WidgetPage />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </PageTransition>
+              <Footer />
+            </div>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
