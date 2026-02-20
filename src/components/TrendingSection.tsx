@@ -124,24 +124,38 @@ const TrendingSection = () => {
         setWeeklyGrowth(growthList);
       }
 
-      // Fetch comment counts per creator (last 7 days)
-      const { data: comments } = await supabase
-        .from("comments")
-        .select("creator_id, creators(name)")
+      // Fetch post counts per creator (posts table) for last 7 days
+      const { data: posts } = await supabase
+        .from("posts")
+        .select("creator_id")
         .gte("created_at", sevenDaysAgo);
 
-      if (comments) {
-        const countMap = new Map<string, { count: number; name: string }>();
-        for (const c of comments as any[]) {
-          const prev = countMap.get(c.creator_id) ?? { count: 0, name: c.creators?.name || "?" };
-          countMap.set(c.creator_id, { count: prev.count + 1, name: c.creators?.name || prev.name });
-        }
-        const sorted = Array.from(countMap.entries())
-          .map(([creator_id, { count, name }]) => ({ creator_id, count, creator_name: name }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 5);
-        setMostMentioned(sorted);
+      // Also fetch comments table mentions
+      const { data: comments } = await supabase
+        .from("comments")
+        .select("creator_id")
+        .gte("created_at", sevenDaysAgo);
+
+      // Combine: count posts + comments per creator
+      const countMap = new Map<string, { count: number; name: string }>();
+      for (const p of (posts || []) as any[]) {
+        const creator = creatorMap.get(p.creator_id);
+        const name = creator?.name || "?";
+        const prev = countMap.get(p.creator_id) ?? { count: 0, name };
+        countMap.set(p.creator_id, { count: prev.count + 1, name });
       }
+      for (const c of (comments || []) as any[]) {
+        const creator = creatorMap.get(c.creator_id);
+        const name = creator?.name || "?";
+        const prev = countMap.get(c.creator_id) ?? { count: 0, name };
+        countMap.set(c.creator_id, { count: prev.count + 1, name });
+      }
+
+      const sorted = Array.from(countMap.entries())
+        .map(([creator_id, { count, name }]) => ({ creator_id, count, creator_name: name }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+      setMostMentioned(sorted);
 
       setLoading(false);
     };
