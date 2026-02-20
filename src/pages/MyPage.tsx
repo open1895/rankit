@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import ThemeToggle from "@/components/ThemeToggle";
+
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -511,7 +511,6 @@ const MyPage = () => {
             <Crown className="w-5 h-5 text-neon-purple" />
             <span className="text-lg font-bold gradient-text">마이페이지</span>
           </div>
-          <ThemeToggle />
         </div>
       </header>
 

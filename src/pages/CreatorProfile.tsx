@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, ChangeEvent } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import ThemeToggle from "@/components/ThemeToggle";
+
 import SEOHead from "@/components/SEOHead";
 import { Creator } from "@/lib/data";
 import { Button } from "@/components/ui/button";
@@ -542,7 +542,7 @@ const CreatorProfile = () => {
             <Crown className="w-5 h-5 text-neon-purple" />
             <span className="text-lg font-bold gradient-text">프로필</span>
           </div>
-          <ThemeToggle />
+          
         </div>
       </header>
 

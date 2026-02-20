@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import ThemeToggle from "@/components/ThemeToggle";
+
 import SEOHead from "@/components/SEOHead";
 import { Crown, Swords, Trophy, ArrowLeft, Zap } from "lucide-react";
 import { toast } from "sonner";
@@ -153,7 +153,6 @@ const Tournament = () => {
             <Swords className="w-5 h-5 text-neon-purple" />
             <span className="text-lg font-bold gradient-text">팬 대결</span>
           </div>
-          <ThemeToggle />
         </div>
       </header>
 

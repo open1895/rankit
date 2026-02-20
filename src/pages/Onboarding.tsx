@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, Zap, ArrowLeft, Camera, Check, ChevronDown } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
+
 import RankitLogo from "@/components/RankitLogo";
 import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
@@ -149,7 +149,6 @@ const Onboarding = () => {
             <RankitLogo size="sm" />
             <span className="text-sm text-muted-foreground font-medium">크리에이터 등록</span>
           </div>
-          <ThemeToggle />
         </div>
       </header>
 

@@ -9,7 +9,7 @@ import {
   ArrowLeft, Users, Crown, Trash2, ShieldCheck, ShieldOff,
   Search, Edit3, Save, X, RefreshCw, Image
 } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
+
 import SEOHead from "@/components/SEOHead";
 
 interface AdminUser {
@@ -192,7 +192,6 @@ const AdminPage = () => {
             <ShieldCheck className="w-5 h-5 text-primary" />
             <span className="text-lg font-bold gradient-text">관리자 페이지</span>
           </div>
-          <ThemeToggle />
         </div>
       </header>
 
