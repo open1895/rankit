@@ -141,7 +141,7 @@ const NewUserWelcome = ({ onGetFreeVotes }: NewUserWelcomeProps) => {
   const isFirst = currentStep === 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-background/80 backdrop-blur-md"
@@ -149,8 +149,8 @@ const NewUserWelcome = ({ onGetFreeVotes }: NewUserWelcomeProps) => {
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-sm mx-auto mt-0 sm:mt-0 animate-in slide-in-from-top-6 duration-400">
-        <div className="glass border border-glass-border/60 rounded-b-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-sm mx-auto animate-in slide-in-from-bottom-6 duration-400">
+        <div className="glass border border-glass-border/60 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
 
           {/* Progress dots */}
           <div className="flex justify-center gap-1.5 pt-5 pb-0">
