@@ -22,6 +22,7 @@ import SEOHead from "@/components/SEOHead";
 import HeroSection from "@/components/HeroSection";
 import RankingFormula from "@/components/RankingFormula";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User } from "lucide-react";
+import NewUserWelcome from "@/components/NewUserWelcome";
 import { toast } from "sonner";
 
 const CATEGORY_TABS = [
@@ -449,7 +450,7 @@ const Index = () => {
         </ScrollReveal>
 
         {/* Rankings */}
-        <div className="space-y-3">
+        <div id="ranking-section" className="space-y-3">
           {loading ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
@@ -494,6 +495,9 @@ const Index = () => {
       <LiveFeed />
 
       <Footer />
+
+      {/* New User Welcome Modal */}
+      <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
     </div>
   );
 };
