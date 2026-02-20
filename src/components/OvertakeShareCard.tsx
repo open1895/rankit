@@ -401,6 +401,16 @@ const OvertakeShareCard = ({
             )}
           </button>
 
+          {/* Share destination hint */}
+          {!shared && (
+            <div className="flex items-center justify-center gap-2 flex-wrap py-0.5">
+              <span className="text-[10px] text-muted-foreground">공유 가능:</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground">📱 카카오톡</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground">📸 인스타</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground">💬 문자 등</span>
+            </div>
+          )}
+
           {/* Download + Skip row */}
           <div className="flex gap-2">
             <button
