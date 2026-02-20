@@ -130,19 +130,28 @@ const TrendingSection = () => {
         .select("id, name");
       const fullCreatorMap = new Map((allCreators || []).map(c => [c.id, c]));
 
-      // Fetch posts per creator (last 7 days) - join with creators for name
+      // Fetch posts per creator (last 7 days)
       const { data: posts } = await supabase
         .from("posts")
         .select("creator_id")
         .gte("created_at", sevenDaysAgo)
         .limit(1000);
 
-      // Fetch post_comments (fan board comments, last 7 days) - join through posts
-      const { data: postComments } = await supabase
+      // Fetch post_comments (fan board comments, last 7 days)
+      // Get the post_ids first, then match with posts to find creator_id
+      const { data: recentPostComments } = await supabase
         .from("post_comments")
-        .select("post_id, posts(creator_id)")
+        .select("post_id")
         .gte("created_at", sevenDaysAgo)
         .limit(1000);
+
+      // Fetch all recent posts to build postId->creatorId map
+      const { data: allRecentPosts } = await supabase
+        .from("posts")
+        .select("id, creator_id")
+        .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+        .limit(1000);
+      const postToCreatorMap = new Map((allRecentPosts || []).map((p: any) => [p.id, p.creator_id]));
 
       // Also fetch cheering comments table
       const { data: comments } = await supabase
@@ -154,21 +163,21 @@ const TrendingSection = () => {
       // Combine: count posts + post_comments + comments per creator
       const countMap = new Map<string, { count: number; name: string }>();
 
-      const addToMap = (creatorId: string, amount = 1) => {
+      const addToMap = (creatorId: string) => {
         if (!creatorId) return;
-        const creator = fullCreatorMap.get(creatorId);
-        const name = creator?.name || creatorMap.get(creatorId)?.name || "?";
-        if (name === "?") return; // skip unknown
+        const creator = fullCreatorMap.get(creatorId) || creatorMap.get(creatorId);
+        if (!creator) return;
+        const name = creator.name;
         const prev = countMap.get(creatorId) ?? { count: 0, name };
-        countMap.set(creatorId, { count: prev.count + amount, name });
+        countMap.set(creatorId, { count: prev.count + 1, name });
       };
 
       for (const p of (posts || []) as any[]) {
         addToMap(p.creator_id);
       }
-      for (const pc of (postComments || []) as any[]) {
-        const creatorId = pc.posts?.creator_id;
-        addToMap(creatorId);
+      for (const pc of (recentPostComments || []) as any[]) {
+        const creatorId = postToCreatorMap.get(pc.post_id);
+        if (creatorId) addToMap(creatorId);
       }
       for (const c of (comments || []) as any[]) {
         addToMap(c.creator_id);
