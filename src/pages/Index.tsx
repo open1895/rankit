@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useCountdown } from "@/hooks/use-countdown";
 import { Link, useNavigate } from "react-router-dom";
 import { Creator } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +42,7 @@ const PAGE_SIZE = 20;
 
 const Index = () => {
   const { user } = useAuth();
+  const { days } = useCountdown();
   const navigate = useNavigate();
   const [creators, setCreators] = useState<Creator[]>([]);
   const [extraVotes, setExtraVotes] = useState(0);
@@ -250,8 +252,11 @@ const Index = () => {
       {/* 이번 주 혜택 배너 */}
       <div className="border-b border-glass-border/40 bg-gradient-to-r from-primary/10 via-background to-primary/5">
         <div className="container max-w-lg mx-auto px-4 py-2.5">
-          <div className="flex items-center gap-1.5 mb-1.5">
+          <div className="flex items-center justify-between mb-1.5">
             <span className="text-[10px] font-black tracking-widest uppercase text-neon-purple">🎁 이번 주 혜택</span>
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${days === 0 ? "bg-destructive/20 text-destructive animate-pulse" : "bg-orange-500/20 text-orange-400"}`}>
+              {days === 0 ? "오늘 마감 🔥" : `D-${days} ⏰`}
+            </span>
           </div>
           <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-0.5">
             {[
