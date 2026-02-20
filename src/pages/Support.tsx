@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import Footer from "@/components/Footer";
 
 import SEOHead from "@/components/SEOHead";
 import { ArrowLeft, Crown, Monitor, Megaphone, Gift, Star, Trophy, Zap, Target, Award } from "lucide-react";
@@ -121,6 +122,7 @@ const Support = () => {
           </button>
         </div>
       </main>
+      <Footer />
     </div>
   );
 };
