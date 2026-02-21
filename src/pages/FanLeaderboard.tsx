@@ -12,6 +12,7 @@ interface FanEntry {
   posts: number;
   comments: number;
   score: number;
+  lastActivity: string;
 }
 
 type Period = "all" | "weekly" | "monthly";
@@ -34,36 +35,41 @@ const FanLeaderboard = () => {
         ? new Date(Date.now() - 30 * 86400000).toISOString()
         : null;
 
-    const fanMap = new Map<string, { votes: number; posts: number; comments: number }>();
+    const fanMap = new Map<string, { votes: number; posts: number; comments: number; lastActivity: string }>();
+
+    const updateLast = (nickname: string, ts: string, entry: { votes: number; posts: number; comments: number; lastActivity: string }) => {
+      if (ts > entry.lastActivity) entry.lastActivity = ts;
+      fanMap.set(nickname, entry);
+    };
 
     // From comments (votes)
-    let commentsQuery = supabase.from("comments").select("nickname, vote_count");
+    let commentsQuery = supabase.from("comments").select("nickname, vote_count, created_at");
     if (cutoff) commentsQuery = commentsQuery.gte("created_at", cutoff);
     const { data: commentsData } = await commentsQuery;
     (commentsData || []).forEach((c: any) => {
-      const entry = fanMap.get(c.nickname) || { votes: 0, posts: 0, comments: 0 };
+      const entry = fanMap.get(c.nickname) || { votes: 0, posts: 0, comments: 0, lastActivity: "" };
       entry.votes += c.vote_count;
-      fanMap.set(c.nickname, entry);
+      updateLast(c.nickname, c.created_at, entry);
     });
 
     // From posts
-    let postsQuery = supabase.from("posts").select("nickname");
+    let postsQuery = supabase.from("posts").select("nickname, created_at");
     if (cutoff) postsQuery = postsQuery.gte("created_at", cutoff);
     const { data: postsData } = await postsQuery;
     (postsData || []).forEach((p: any) => {
-      const entry = fanMap.get(p.nickname) || { votes: 0, posts: 0, comments: 0 };
+      const entry = fanMap.get(p.nickname) || { votes: 0, posts: 0, comments: 0, lastActivity: "" };
       entry.posts += 1;
-      fanMap.set(p.nickname, entry);
+      updateLast(p.nickname, p.created_at, entry);
     });
 
     // From post_comments
-    let pcQuery = supabase.from("post_comments").select("nickname");
+    let pcQuery = supabase.from("post_comments").select("nickname, created_at");
     if (cutoff) pcQuery = pcQuery.gte("created_at", cutoff);
     const { data: pcData } = await pcQuery;
     (pcData || []).forEach((pc: any) => {
-      const entry = fanMap.get(pc.nickname) || { votes: 0, posts: 0, comments: 0 };
+      const entry = fanMap.get(pc.nickname) || { votes: 0, posts: 0, comments: 0, lastActivity: "" };
       entry.comments += 1;
-      fanMap.set(pc.nickname, entry);
+      updateLast(pc.nickname, pc.created_at, entry);
     });
 
     const ranking = Array.from(fanMap.entries())
@@ -72,7 +78,7 @@ const FanLeaderboard = () => {
         score: data.votes * 3 + data.posts * 2 + data.comments,
         ...data,
       }))
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => b.score - a.score || b.lastActivity.localeCompare(a.lastActivity))
       .slice(0, 100);
 
     setFans(ranking);
@@ -150,12 +156,12 @@ const FanLeaderboard = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold truncate">{fan.nickname}</div>
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                    <span>투표 {fan.votes}</span>
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground flex-wrap">
+                    <span>투표 {fan.votes}회<span className="text-neon-purple/60 ml-0.5">(+{fan.votes * 3})</span></span>
                     <span>·</span>
-                    <span>게시글 {fan.posts}</span>
+                    <span>게시글 {fan.posts}개<span className="text-neon-purple/60 ml-0.5">(+{fan.posts * 2})</span></span>
                     <span>·</span>
-                    <span>댓글 {fan.comments}</span>
+                    <span>댓글 {fan.comments}개<span className="text-neon-purple/60 ml-0.5">(+{fan.comments})</span></span>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
