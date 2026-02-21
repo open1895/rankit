@@ -112,7 +112,7 @@ Style: Futuristic, glassmorphism card, neon purple (#8B5CF6) and cyan (#06B6D4) 
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
+        model: "google/gemini-3-pro-image-preview",
         messages: [{ role: "user", content: prompt }],
         modalities: ["image", "text"],
       }),
