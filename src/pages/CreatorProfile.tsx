@@ -720,16 +720,16 @@ const CreatorProfile = () => {
               </div>
             ) : (
               <>
-                <div className="flex items-center justify-center gap-2 flex-wrap">
-                  <h2 className="text-xl font-bold">{creator.name}</h2>
+                <h2 className="text-xl font-bold leading-snug break-words text-center">
+                  {creator.name}
                   {creator.is_verified && (
-                    <RankitVerifiedBadge size="sm" />
+                    <span className="inline-block align-middle ml-1.5 -translate-y-px">
+                      <CheckCircle2 className="w-5 h-5 text-neon-cyan inline" />
+                    </span>
                   )}
-                </div>
+                </h2>
                 {creator.category && (
-                  <span className="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-full bg-neon-purple/15 text-neon-purple text-sm font-medium border border-neon-purple/30">
-                    {creator.category}
-                  </span>
+                  <p className="text-sm text-muted-foreground mt-1">{creator.category}</p>
                 )}
               </>
             )}
