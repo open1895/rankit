@@ -176,12 +176,18 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
           </div>
           <span className="text-xs text-muted-foreground">{creator.category}</span>
           <div className="flex items-center gap-2 mt-1">
-            <div className="flex items-center gap-1">
-              <Heart className="w-3 h-3 text-neon-purple" />
-              <span className="text-xs font-semibold text-neon-purple">
-                {creator.votes_count.toLocaleString()}표
+            {creator.votes_count > 0 ? (
+              <div className="flex items-center gap-1">
+                <Heart className="w-3 h-3 text-neon-purple" />
+                <span className="text-xs font-semibold text-neon-purple">
+                  {creator.votes_count.toLocaleString()}표
+                </span>
+              </div>
+            ) : (
+              <span className="text-[10px] text-neon-cyan font-medium">
+                ✨ 첫 투표의 주인공이 되어보세요!
               </span>
-            </div>
+            )}
           </div>
           {votesUntilNext !== null && votesUntilNext <= 500 && (
             <p className="text-[10px] text-neon-red font-semibold animate-pulse-neon mt-0.5">
