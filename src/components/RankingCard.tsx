@@ -173,11 +173,6 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <Link to={`/creator/${creator.id}`} className="font-semibold text-sm truncate hover:text-neon-cyan transition-colors">{creator.name}</Link>
-            {creator.is_verified && creator.rank <= 10 && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-neon-cyan/15 text-neon-cyan font-medium whitespace-nowrap border border-neon-cyan/20">
-                Official ✓
-              </span>
-            )}
           </div>
           <span className="text-xs text-muted-foreground">{creator.category}</span>
           <div className="flex items-center gap-2 mt-1">
