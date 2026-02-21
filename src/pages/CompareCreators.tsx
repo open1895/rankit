@@ -68,19 +68,29 @@ const CompareCreators = () => {
     return allCreators.filter((c) => c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q)).slice(0, 10);
   }, [allCreators, searchB]);
 
-  const maxVotes = Math.max(1, ...allCreators.map((c) => c.votes_count));
-  const maxSubs = Math.max(1, ...allCreators.map((c) => c.subscriber_count));
   const totalCreators = allCreators.length || 1;
 
+  // Percentile: "이 크리에이터보다 낮은 크리에이터가 전체의 몇 %인가"
+  const percentile = (value: number, all: number[], ascending = true) => {
+    const sorted = [...all].sort((a, b) => ascending ? a - b : b - a);
+    const idx = sorted.filter((v) => (ascending ? v < value : v > value)).length;
+    return Math.round((idx / Math.max(1, sorted.length)) * 100);
+  };
+
+  const allVotes = allCreators.map((c) => c.votes_count);
+  const allSubs = allCreators.map((c) => c.subscriber_count);
+  const allRanks = allCreators.map((c) => c.rank);
+
   const radarData = creatorA && creatorB ? [
-    { subject: "순위", A: Math.round(((totalCreators - creatorA.rank + 1) / totalCreators) * 100), B: Math.round(((totalCreators - creatorB.rank + 1) / totalCreators) * 100) },
-    { subject: "투표", A: Math.round((creatorA.votes_count / maxVotes) * 100), B: Math.round((creatorB.votes_count / maxVotes) * 100) },
-    { subject: "구독자", A: Math.round((creatorA.subscriber_count / maxSubs) * 100), B: Math.round((creatorB.subscriber_count / maxSubs) * 100) },
+    { subject: "순위", A: percentile(creatorA.rank, allRanks, false), B: percentile(creatorB.rank, allRanks, false), fullMark: 100 },
+    { subject: "투표", A: percentile(creatorA.votes_count, allVotes), B: percentile(creatorB.votes_count, allVotes), fullMark: 100 },
+    { subject: "구독자", A: percentile(creatorA.subscriber_count, allSubs), B: percentile(creatorB.subscriber_count, allSubs), fullMark: 100 },
   ] : [];
 
   const barData = creatorA && creatorB ? [
-    { name: "투표수", A: creatorA.votes_count, B: creatorB.votes_count },
-    { name: "구독자", A: creatorA.subscriber_count, B: creatorB.subscriber_count },
+    { name: "투표 %ile", A: percentile(creatorA.votes_count, allVotes), B: percentile(creatorB.votes_count, allVotes) },
+    { name: "구독자 %ile", A: percentile(creatorA.subscriber_count, allSubs), B: percentile(creatorB.subscriber_count, allSubs) },
+    { name: "순위 %ile", A: percentile(creatorA.rank, allRanks, false), B: percentile(creatorB.rank, allRanks, false) },
   ] : [];
 
   const SelectBox = ({ selected, search, setSearch, showList, setShowList, onSelect, filteredList, label }: any) => (
@@ -194,7 +204,8 @@ const CompareCreators = () => {
 
                 {/* Radar Chart */}
                 <div className="glass p-4 space-y-2">
-                  <h3 className="text-sm font-semibold text-center">능력치 비교</h3>
+                  <h3 className="text-sm font-semibold text-center">백분위 능력치 비교</h3>
+                  <p className="text-[10px] text-muted-foreground text-center">전체 크리에이터 중 상위 몇 %인지 표시</p>
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <RadarChart data={radarData}>
@@ -210,12 +221,12 @@ const CompareCreators = () => {
 
                 {/* Bar Chart */}
                 <div className="glass p-4 space-y-2">
-                  <h3 className="text-sm font-semibold text-center">수치 비교</h3>
-                  <div className="h-40">
+                  <h3 className="text-sm font-semibold text-center">백분위 수치 비교</h3>
+                  <div className="h-48">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={barData} layout="vertical">
-                        <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                        <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} width={50} />
+                        <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v: number) => `${v}%`} />
+                        <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} width={65} />
                         <Bar dataKey="A" fill="hsl(270 91% 65%)" radius={[0, 4, 4, 0]} />
                         <Bar dataKey="B" fill="hsl(187 94% 42%)" radius={[0, 4, 4, 0]} />
                       </BarChart>
