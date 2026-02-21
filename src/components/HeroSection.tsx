@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Flame, TrendingUp, Zap, ChevronRight } from "lucide-react";
+import { Flame, TrendingUp, Zap, ChevronRight, AlertTriangle } from "lucide-react";
 import { Creator } from "@/lib/data";
 
 interface HeroSectionProps {
@@ -10,10 +10,27 @@ interface HeroSectionProps {
 const HeroSection = ({ creators }: HeroSectionProps) => {
   const navigate = useNavigate();
   const [risingCreators, setRisingCreators] = useState<{ name: string; gain: number; id: string }[]>([]);
+  const [gapBounce, setGapBounce] = useState(false);
+  const prevGapRef = useRef<number | null>(null);
 
   const rank1 = creators.find((c) => c.rank === 1);
   const rank2 = creators.find((c) => c.rank === 2);
   const gap = rank1 && rank2 ? rank1.votes_count - rank2.votes_count : null;
+  const isCloseRace = gap !== null && Math.abs(gap) <= 200;
+
+  // Tug-of-war percentage
+  const totalVotes = (rank1?.votes_count ?? 0) + (rank2?.votes_count ?? 0);
+  const rank1Pct = totalVotes > 0 ? ((rank1?.votes_count ?? 0) / totalVotes) * 100 : 50;
+
+  // Bounce animation when gap changes
+  useEffect(() => {
+    if (gap !== null && prevGapRef.current !== null && prevGapRef.current !== gap) {
+      setGapBounce(true);
+      const t = setTimeout(() => setGapBounce(false), 600);
+      return () => clearTimeout(t);
+    }
+    prevGapRef.current = gap;
+  }, [gap]);
 
   // Simulate "rising fast" creators (top 5 non-top3)
   useEffect(() => {
@@ -62,11 +79,29 @@ const HeroSection = ({ creators }: HeroSectionProps) => {
 
           {/* VS + Gap */}
           <div className="flex flex-col items-center gap-1 shrink-0">
-            <span className="text-lg font-black gradient-text">VS</span>
+            <div className={`relative w-10 h-10 rounded-full flex items-center justify-center ${isCloseRace ? "animate-pulse" : ""}`}
+              style={isCloseRace ? { boxShadow: "0 0 16px 4px hsl(var(--neon-red) / 0.6), 0 0 32px 8px hsl(var(--neon-red) / 0.3)" } : {}}
+            >
+              <span className="text-lg font-black gradient-text">VS</span>
+            </div>
             {gap !== null && (
               <div className="glass-sm px-2 py-1 text-center">
                 <div className="text-[9px] text-muted-foreground">격차</div>
-                <div className="text-sm font-black text-neon-red">{gap.toLocaleString()}표</div>
+                <div
+                  className={`text-sm font-black text-neon-red transition-transform ${gapBounce ? "scale-125" : "scale-100"}`}
+                  style={{ transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)" }}
+                >
+                  {Math.abs(gap).toLocaleString()}표
+                </div>
+                <div className="text-[8px] text-muted-foreground/70 mt-0.5">
+                  (방금 전 업데이트됨)
+                </div>
+              </div>
+            )}
+            {isCloseRace && (
+              <div className="flex items-center gap-1 animate-pulse">
+                <AlertTriangle className="w-3 h-3 text-neon-red" />
+                <span className="text-[9px] font-bold text-neon-red">역전 주의!</span>
               </div>
             )}
             <Zap className="w-4 h-4 text-yellow-400 animate-pulse" />
@@ -85,6 +120,33 @@ const HeroSection = ({ creators }: HeroSectionProps) => {
             <span className="text-xs font-bold text-foreground truncate max-w-[80px]">{rank2.name}</span>
             <span className="text-[10px] text-neon-cyan font-semibold">{rank2.votes_count.toLocaleString()}표</span>
           </Link>
+        </div>
+
+        {/* Tug-of-war progress bar */}
+        <div className="space-y-1">
+          <div className="flex justify-between text-[9px] font-semibold">
+            <span className="text-neon-purple">{rank1Pct.toFixed(1)}%</span>
+            <span className="text-muted-foreground text-[8px]">투표 점유율</span>
+            <span className="text-neon-cyan">{(100 - rank1Pct).toFixed(1)}%</span>
+          </div>
+          <div className="relative h-2.5 rounded-full overflow-hidden bg-muted/30">
+            <div
+              className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
+              style={{
+                width: `${rank1Pct}%`,
+                background: "linear-gradient(90deg, hsl(270 91% 65%), hsl(270 91% 55%))",
+              }}
+            />
+            <div
+              className="absolute inset-y-0 right-0 rounded-full transition-all duration-700 ease-out"
+              style={{
+                width: `${100 - rank1Pct}%`,
+                background: "linear-gradient(90deg, hsl(187 94% 52%), hsl(187 94% 42%))",
+              }}
+            />
+            {/* Center indicator */}
+            <div className="absolute inset-y-0 left-1/2 w-0.5 bg-foreground/30 -translate-x-1/2" />
+          </div>
         </div>
 
         {/* Primary CTA - 각 크리에이터별 투표 버튼 */}
