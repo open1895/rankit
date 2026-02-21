@@ -46,6 +46,20 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+    // Validate post exists
+    const { data: post, error: postError } = await supabase
+      .from("posts")
+      .select("id")
+      .eq("id", post_id)
+      .single();
+
+    if (postError || !post) {
+      return new Response(
+        JSON.stringify({ error: "post_not_found", message: "게시글을 찾을 수 없습니다." }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Check if already liked by this user
     const { data: existing } = await supabase
       .from("post_likes")
