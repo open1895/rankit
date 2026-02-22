@@ -110,13 +110,25 @@ const CommentForm = ({ creatorId, onCommentAdded }: { creatorId: string; onComme
 
   return (
     <div className="glass-sm p-3 rounded-xl space-y-2">
-      <Input
-        placeholder="닉네임 (2~20자)"
-        value={nickname}
-        onChange={(e) => setNickname(e.target.value)}
-        maxLength={20}
-        className="h-8 text-xs bg-background/50 border-glass-border"
-      />
+      {!nickname.trim() || nickname.trim().length < 2 ? (
+        <Input
+          placeholder="닉네임 (2~20자)"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          maxLength={20}
+          className="h-8 text-xs bg-background/50 border-glass-border"
+        />
+      ) : (
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-semibold text-neon-purple">{nickname.trim()}</span>
+          <button
+            onClick={() => setNickname("")}
+            className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            변경
+          </button>
+        </div>
+      )}
       <div className="flex gap-2">
         <Input
           placeholder="응원 메시지를 남겨보세요! (2~50자)"
