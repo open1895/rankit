@@ -22,7 +22,7 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import HeroSection from "@/components/HeroSection";
 import RankingFormula from "@/components/RankingFormula";
-import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone } from "lucide-react";
+import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -173,6 +173,7 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [nominationOpen, setNominationOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const filteredCreators = useMemo(() => {
@@ -338,6 +339,12 @@ const Index = () => {
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <RankitLogo size="md" />
           <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="glass-sm p-1.5 text-neon-cyan hover:text-foreground transition-colors flex items-center"
+            >
+              <Search className="w-3.5 h-3.5" />
+            </button>
             <div className="glass-sm px-2 py-1 flex items-center gap-1">
               <Ticket className="w-3.5 h-3.5 text-neon-cyan" />
               <span className="text-xs font-medium">
@@ -365,6 +372,100 @@ const Index = () => {
           </div>
         </div>
       </header>
+
+      {/* Search Popup Overlay */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md flex flex-col">
+          <div className="container max-w-lg mx-auto px-4 pt-4 pb-3 flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                autoFocus
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="크리에이터 검색..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50 transition-all"
+              />
+            </div>
+            <button
+              onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Category Tabs in popup */}
+          <div className="container max-w-lg mx-auto px-4 pb-2">
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-2 pb-1 w-max">
+                {CATEGORY_TABS.map((tab) => (
+                  <button
+                    key={tab.value}
+                    onClick={() => setSelectedCategory(tab.value)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 ${
+                      selectedCategory === tab.value
+                        ? "gradient-primary text-primary-foreground shadow-lg shadow-primary/20"
+                        : "glass-sm text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {!loading && (
+              <div className="text-xs text-muted-foreground mt-2">
+                {searchQuery ? `"${searchQuery}" 검색 결과: ` : ""}
+                {filteredCreators.length}명의 크리에이터
+              </div>
+            )}
+          </div>
+
+          {/* Search Results */}
+          <div className="flex-1 overflow-y-auto container max-w-lg mx-auto px-4 pb-6 space-y-3">
+            {filteredCreators.length === 0 ? (
+              <div className="text-center py-12 glass rounded-2xl space-y-3">
+                <p className="text-muted-foreground text-sm">
+                  {searchQuery ? `"${searchQuery}"에 대한 결과가 없습니다` : "해당 카테고리의 크리에이터가 없습니다"}
+                </p>
+                <button
+                  onClick={() => { setSearchOpen(false); setNominationOpen(true); }}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-neon-purple hover:underline transition-colors"
+                >
+                  <Megaphone className="w-3.5 h-3.5" />
+                  크리에이터 추천하기
+                </button>
+              </div>
+            ) : (
+              visibleCreators.map((creator, i) => (
+                <div
+                  key={creator.id}
+                  onClick={() => { setSearchOpen(false); setSearchQuery(""); navigate(`/creator/${creator.id}`); }}
+                  className="cursor-pointer"
+                >
+                  <RankingCard
+                    creator={creator}
+                    creators={filteredCreators}
+                    onVote={async () => false}
+                  />
+                </div>
+              ))
+            )}
+            {hasMore && filteredCreators.length > 0 && (
+              <button
+                onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
+                className="w-full py-2.5 glass-sm rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-1"
+              >
+                <ChevronDown className="w-3.5 h-3.5" />
+                더 보기 ({filteredCreators.length - visibleCount}명 남음)
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 이번 주 혜택 배너 */}
       <div className="border-b border-glass-border/40 bg-gradient-to-r from-primary/10 via-background to-primary/5">
         <div className="container max-w-lg mx-auto px-4 py-2.5">
