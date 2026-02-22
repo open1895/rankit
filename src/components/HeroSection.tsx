@@ -123,29 +123,43 @@ const HeroSection = ({ creators }: HeroSectionProps) => {
         </div>
 
         {/* Tug-of-war progress bar */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-[9px] font-semibold">
-            <span className="text-neon-purple">{rank1Pct.toFixed(1)}%</span>
-            <span className="text-muted-foreground text-[8px]">투표 점유율</span>
-            <span className="text-neon-cyan">{(100 - rank1Pct).toFixed(1)}%</span>
-          </div>
-          <div className="relative h-2.5 rounded-full overflow-hidden bg-muted/30">
+        <div className="space-y-1.5">
+          <div className="text-[8px] text-muted-foreground text-center font-medium tracking-wide">투표 점유율</div>
+          <div className="relative h-6 rounded-full overflow-hidden bg-muted/30">
+            {/* Rank 1 bar */}
             <div
-              className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
+              className="absolute inset-y-0 left-0 rounded-l-full transition-all duration-700 ease-out flex items-center justify-start"
               style={{
                 width: `${rank1Pct}%`,
                 background: "linear-gradient(90deg, hsl(270 91% 65%), hsl(270 91% 55%))",
               }}
-            />
+            >
+              {rank1Pct >= 15 && (
+                <span className="pl-2 text-[10px] font-bold text-white drop-shadow-sm whitespace-nowrap">
+                  {rank1Pct.toFixed(1)}%
+                </span>
+              )}
+            </div>
+            {/* Rank 2 bar */}
             <div
-              className="absolute inset-y-0 right-0 rounded-full transition-all duration-700 ease-out"
+              className="absolute inset-y-0 right-0 rounded-r-full transition-all duration-700 ease-out flex items-center justify-end"
               style={{
                 width: `${100 - rank1Pct}%`,
                 background: "linear-gradient(90deg, hsl(187 94% 52%), hsl(187 94% 42%))",
               }}
-            />
+            >
+              {(100 - rank1Pct) >= 15 && (
+                <span className="pr-2 text-[10px] font-bold text-white drop-shadow-sm whitespace-nowrap">
+                  {(100 - rank1Pct).toFixed(1)}%
+                </span>
+              )}
+            </div>
             {/* Center indicator */}
-            <div className="absolute inset-y-0 left-1/2 w-0.5 bg-foreground/30 -translate-x-1/2" />
+            <div className="absolute inset-y-0 left-1/2 w-0.5 bg-foreground/40 -translate-x-1/2 z-10" />
+          </div>
+          <div className="flex justify-between text-[9px] font-semibold px-0.5">
+            <span className="text-neon-purple">{rank1.name}</span>
+            <span className="text-neon-cyan">{rank2.name}</span>
           </div>
         </div>
 
