@@ -386,6 +386,14 @@ const Index = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="크리에이터 검색..."
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50 transition-all"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && searchQuery.trim()) {
+                    setSearchOpen(false);
+                    setTimeout(() => {
+                      document.getElementById("ranking-section")?.scrollIntoView({ behavior: "smooth" });
+                    }, 100);
+                  }
+                }}
               />
             </div>
             <button
@@ -442,7 +450,7 @@ const Index = () => {
               visibleCreators.map((creator, i) => (
                 <div
                   key={creator.id}
-                  onClick={() => { setSearchOpen(false); setSearchQuery(""); navigate(`/creator/${creator.id}`); }}
+                  onClick={() => { setSearchOpen(false); navigate(`/creator/${creator.id}`); }}
                   className="cursor-pointer"
                 >
                   <RankingCard
@@ -460,6 +468,22 @@ const Index = () => {
               >
                 <ChevronDown className="w-3.5 h-3.5" />
                 더 보기 ({filteredCreators.length - visibleCount}명 남음)
+              </button>
+            )}
+
+            {/* 검색 결과 확인 버튼 */}
+            {searchQuery.trim() && filteredCreators.length > 0 && (
+              <button
+                onClick={() => {
+                  setSearchOpen(false);
+                  setTimeout(() => {
+                    document.getElementById("ranking-section")?.scrollIntoView({ behavior: "smooth" });
+                  }, 100);
+                }}
+                className="w-full py-3 gradient-primary text-primary-foreground rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+              >
+                <TrendingUp className="w-4 h-4" />
+                리스트에서 보기 ({filteredCreators.length}명)
               </button>
             )}
           </div>
