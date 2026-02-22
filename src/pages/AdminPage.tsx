@@ -137,7 +137,7 @@ const AdminPage = () => {
     }
   };
 
-
+  const handleDeleteUser = async (userId: string, email: string) => {
     if (!confirm(`"${email}" 회원을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) return;
     const { data, error } = await supabase.functions.invoke("admin", {
       body: { action: "delete_user", user_id: userId },
@@ -534,3 +534,4 @@ const AdminPage = () => {
 };
 
 export default AdminPage;
+
