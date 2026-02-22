@@ -1005,21 +1005,21 @@ const MyPage = () => {
                 <p className="text-xs text-muted-foreground">
                   이미 등록된 크리에이터 프로필이 있나요? 본인 계정에 연동하여 프로필을 관리하세요.
                 </p>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <Button
                     onClick={() => setShowClaimSearch(true)}
                     variant="outline"
-                    className="flex-1 glass-sm border-glass-border hover:border-neon-cyan/50 text-sm"
+                    className="glass-sm border-glass-border hover:border-neon-cyan/50 text-sm w-full"
                   >
-                    <Search className="w-4 h-4 mr-2" />
-                    기존 크리에이터 찾기
+                    <Search className="w-4 h-4 mr-1.5 shrink-0" />
+                    <span className="truncate">기존 크리에이터 찾기</span>
                   </Button>
                   <Button
                     onClick={() => navigate("/onboarding")}
-                    className="flex-1 gradient-primary text-primary-foreground text-sm"
+                    className="gradient-primary text-primary-foreground text-sm w-full"
                   >
-                    <Crown className="w-4 h-4 mr-2" />
-                    새로 등록하기
+                    <Crown className="w-4 h-4 mr-1.5 shrink-0" />
+                    <span className="truncate">새로 등록하기</span>
                   </Button>
                 </div>
               </div>
