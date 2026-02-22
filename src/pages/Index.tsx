@@ -184,7 +184,7 @@ const Index = () => {
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       result = result.filter(
-        (c) => c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q)
+        (c) => c.name.toLowerCase().includes(q)
       );
     }
     return result;
