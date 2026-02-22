@@ -368,7 +368,7 @@ const AdminPage = () => {
                 {filteredCreators.map(c => (
                   <div key={c.id} className="glass p-4 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground shrink-0 overflow-hidden">
-                      {c.avatar_url?.startsWith("http") ? <img src={c.avatar_url} alt="" className="w-full h-full object-cover" /> : c.name?.slice(0, 2)}
+                      {(c.avatar_url?.startsWith("http") || c.avatar_url?.startsWith("/")) ? <img src={c.avatar_url} alt="" className="w-full h-full object-cover" /> : c.name?.slice(0, 2)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
