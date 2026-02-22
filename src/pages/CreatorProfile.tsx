@@ -74,6 +74,71 @@ type RankHistoryPoint = {
 
 type FanPeriod = "all" | "weekly" | "monthly";
 
+const CommentForm = ({ creatorId, onCommentAdded }: { creatorId: string; onCommentAdded: (c: CommentItem) => void }) => {
+  const [nickname, setNickname] = useState("");
+  const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    const trimNick = nickname.trim();
+    const trimMsg = message.trim();
+    if (trimNick.length < 2 || trimNick.length > 20) {
+      toast.error("닉네임은 2~20자로 입력해주세요.");
+      return;
+    }
+    if (trimMsg.length < 2 || trimMsg.length > 50) {
+      toast.error("메시지는 2~50자로 입력해주세요.");
+      return;
+    }
+    setSubmitting(true);
+    const { data, error } = await supabase
+      .from("comments")
+      .insert({ creator_id: creatorId, nickname: trimNick, message: trimMsg })
+      .select()
+      .single();
+    setSubmitting(false);
+    if (error) {
+      toast.error("메시지 등록에 실패했습니다.");
+      return;
+    }
+    if (data) {
+      onCommentAdded(data as CommentItem);
+      setMessage("");
+      toast.success("응원 메시지가 등록되었습니다! 💬");
+    }
+  };
+
+  return (
+    <div className="glass-sm p-3 rounded-xl space-y-2">
+      <Input
+        placeholder="닉네임 (2~20자)"
+        value={nickname}
+        onChange={(e) => setNickname(e.target.value)}
+        maxLength={20}
+        className="h-8 text-xs bg-background/50 border-glass-border"
+      />
+      <div className="flex gap-2">
+        <Input
+          placeholder="응원 메시지를 남겨보세요! (2~50자)"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          maxLength={50}
+          className="h-8 text-xs bg-background/50 border-glass-border flex-1"
+          onKeyDown={(e) => e.key === "Enter" && !submitting && handleSubmit()}
+        />
+        <Button
+          onClick={handleSubmit}
+          disabled={submitting}
+          size="sm"
+          className="h-8 px-3 gradient-primary text-primary-foreground rounded-lg text-xs"
+        >
+          {submitting ? "..." : "등록"}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const CreatorProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -1155,6 +1220,10 @@ const CreatorProfile = () => {
             <h3 className="text-sm font-semibold">응원 메시지</h3>
             <span className="text-xs text-muted-foreground">({comments.length})</span>
           </div>
+
+          {/* Comment Input Form */}
+          <CommentForm creatorId={creator.id} onCommentAdded={(newComment) => setComments(prev => [newComment, ...prev])} />
+
           {comments.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground text-xs">
               아직 응원 메시지가 없어요.
