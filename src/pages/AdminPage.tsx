@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   ArrowLeft, Users, Crown, Trash2, ShieldCheck, ShieldOff,
-  Search, Edit3, Save, X, RefreshCw, Image
+  Search, Edit3, Save, X, RefreshCw, Image, Megaphone, Check, Ban
 } from "lucide-react";
 
 import SEOHead from "@/components/SEOHead";
@@ -39,11 +39,21 @@ interface AdminCreator {
   user_id: string | null;
 }
 
+interface Nomination {
+  id: string;
+  creator_name: string;
+  channel_url: string;
+  category: string;
+  reason: string;
+  status: string;
+  created_at: string;
+}
+
 const AdminPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [tab, setTab] = useState<"users" | "creators">("users");
+  const [tab, setTab] = useState<"users" | "creators" | "nominations">("users");
 
   // Users
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -57,6 +67,11 @@ const AdminPage = () => {
   const [editingCreator, setEditingCreator] = useState<AdminCreator | null>(null);
   const [editForm, setEditForm] = useState<Partial<AdminCreator>>({});
   const [savingCreator, setSavingCreator] = useState(false);
+
+  // Nominations
+  const [nominations, setNominations] = useState<Nomination[]>([]);
+  const [nominationsLoading, setNominationsLoading] = useState(false);
+  const [nominationFilter, setNominationFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
 
   useEffect(() => {
     if (authLoading) return;
@@ -78,6 +93,7 @@ const AdminPage = () => {
     if (!isAdmin) return;
     if (tab === "users") loadUsers();
     if (tab === "creators") loadCreators();
+    if (tab === "nominations") loadNominations();
   }, [isAdmin, tab]);
 
   const loadUsers = async () => {
@@ -100,7 +116,28 @@ const AdminPage = () => {
     setCreatorsLoading(false);
   };
 
-  const handleDeleteUser = async (userId: string, email: string) => {
+  const loadNominations = async () => {
+    setNominationsLoading(true);
+    const { data, error } = await supabase.functions.invoke("admin", {
+      body: { action: "list_nominations" },
+    });
+    if (error || data?.error) toast.error(data?.error || "불러오기 실패");
+    else setNominations(data.nominations || []);
+    setNominationsLoading(false);
+  };
+
+  const handleNominationAction = async (id: string, status: "approved" | "rejected") => {
+    const { data, error } = await supabase.functions.invoke("admin", {
+      body: { action: "update_nomination", nomination_id: id, status },
+    });
+    if (error || data?.error) toast.error(data?.error || "처리 실패");
+    else {
+      toast.success(status === "approved" ? "승인되었습니다." : "거절되었습니다.");
+      setNominations(prev => prev.map(n => n.id === id ? { ...n, status } : n));
+    }
+  };
+
+
     if (!confirm(`"${email}" 회원을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) return;
     const { data, error } = await supabase.functions.invoke("admin", {
       body: { action: "delete_user", user_id: userId },
@@ -211,6 +248,13 @@ const AdminPage = () => {
           >
             <Crown className="w-4 h-4" />
             크리에이터 관리 ({creators.length})
+          </button>
+          <button
+            onClick={() => setTab("nominations")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "nominations" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground hover:text-foreground"}`}
+          >
+            <Megaphone className="w-4 h-4" />
+            후보 추천 ({nominations.filter(n => n.status === "pending").length})
           </button>
         </div>
 
@@ -397,6 +441,88 @@ const AdminPage = () => {
                 ))}
                 {filteredCreators.length === 0 && (
                   <div className="text-center py-12 text-muted-foreground text-sm">검색 결과가 없습니다.</div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── NOMINATIONS TAB ────────────────────────── */}
+        {tab === "nominations" && (
+          <div className="space-y-4">
+            <div className="flex gap-2 items-center">
+              <div className="flex gap-1.5 flex-1 overflow-x-auto">
+                {(["pending", "approved", "rejected", "all"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setNominationFilter(f)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${nominationFilter === f ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground hover:text-foreground"}`}
+                  >
+                    {f === "pending" ? "대기중" : f === "approved" ? "승인" : f === "rejected" ? "거절" : "전체"}
+                  </button>
+                ))}
+              </div>
+              <Button onClick={loadNominations} variant="outline" size="icon" className="glass-sm border-glass-border shrink-0">
+                <RefreshCw className={`w-4 h-4 ${nominationsLoading ? "animate-spin" : ""}`} />
+              </Button>
+            </div>
+
+            {nominationsLoading ? (
+              <div className="text-center py-12 text-muted-foreground text-sm">불러오는 중...</div>
+            ) : (
+              <div className="space-y-2">
+                {nominations
+                  .filter(n => nominationFilter === "all" || n.status === nominationFilter)
+                  .map(n => (
+                  <div key={n.id} className="glass p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-bold">{n.creator_name}</span>
+                          {n.category && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full glass-sm text-muted-foreground">{n.category}</span>
+                          )}
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                            n.status === "pending" ? "bg-orange-500/20 text-orange-400" :
+                            n.status === "approved" ? "bg-green-500/20 text-green-400" :
+                            "bg-destructive/20 text-destructive"
+                          }`}>
+                            {n.status === "pending" ? "대기중" : n.status === "approved" ? "승인" : "거절"}
+                          </span>
+                        </div>
+                        <a href={n.channel_url} target="_blank" rel="noopener noreferrer" className="text-xs text-neon-cyan hover:underline break-all">
+                          {n.channel_url}
+                        </a>
+                        {n.reason && <p className="text-xs text-muted-foreground mt-1">{n.reason}</p>}
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          {new Date(n.created_at).toLocaleDateString("ko-KR")} {new Date(n.created_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                      </div>
+                      {n.status === "pending" && (
+                        <div className="flex gap-1.5 shrink-0">
+                          <button
+                            onClick={() => handleNominationAction(n.id, "approved")}
+                            className="w-8 h-8 rounded-lg glass-sm flex items-center justify-center text-green-400 hover:bg-green-500/20 transition-colors"
+                            title="승인"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleNominationAction(n.id, "rejected")}
+                            className="w-8 h-8 rounded-lg glass-sm flex items-center justify-center text-destructive hover:bg-destructive/20 transition-colors"
+                            title="거절"
+                          >
+                            <Ban className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {nominations.filter(n => nominationFilter === "all" || n.status === nominationFilter).length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground text-sm">
+                    {nominationFilter === "pending" ? "대기 중인 추천이 없습니다." : "추천 내역이 없습니다."}
+                  </div>
                 )}
               </div>
             )}
