@@ -147,6 +147,73 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
 
+    // ─── APPROVE NOMINATION (copy to creators + trigger stats) ──
+    if (action === "approve_nomination") {
+      const { nomination_id } = body;
+      if (!nomination_id) return new Response(JSON.stringify({ error: "nomination_id required" }), { status: 400, headers: corsHeaders });
+
+      // 1. Get the nomination
+      const { data: nom, error: nomErr } = await adminClient
+        .from("nominations")
+        .select("*")
+        .eq("id", nomination_id)
+        .single();
+      if (nomErr || !nom) return new Response(JSON.stringify({ error: "Nomination not found" }), { status: 404, headers: corsHeaders });
+
+      // 2. Extract youtube channel ID from channel_url if possible
+      let youtubeChannelId = "";
+      const urlStr = nom.channel_url || "";
+      const ytMatch = urlStr.match(/youtube\.com\/(channel\/|@|c\/)?([^\/\?\s]+)/);
+      if (ytMatch) {
+        const extracted = ytMatch[2];
+        // If it starts with UC it's likely a channel ID
+        if (extracted.startsWith("UC")) {
+          youtubeChannelId = extracted;
+        }
+      }
+
+      // 3. Insert into creators
+      const { data: newCreator, error: insertErr } = await adminClient
+        .from("creators")
+        .insert({
+          name: nom.creator_name,
+          channel_link: nom.channel_url,
+          category: nom.category || "",
+          youtube_channel_id: youtubeChannelId,
+        })
+        .select("id")
+        .single();
+      if (insertErr) throw insertErr;
+
+      // 4. Update nomination status
+      await adminClient.from("nominations").update({ status: "approved" }).eq("id", nomination_id);
+
+      // 5. Trigger fetch-social-stats to fill data
+      try {
+        const statsUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/fetch-social-stats`;
+        await fetch(statsUrl, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (e) {
+        console.error("Failed to trigger fetch-social-stats:", e);
+      }
+
+      return new Response(JSON.stringify({ success: true, creator_id: newCreator.id }), { headers: corsHeaders });
+    }
+
+    // ─── REJECT NOMINATION ────────────────────────────────
+    if (action === "reject_nomination") {
+      const { nomination_id } = body;
+      if (!nomination_id) return new Response(JSON.stringify({ error: "nomination_id required" }), { status: 400, headers: corsHeaders });
+      const { error } = await adminClient.from("nominations").delete().eq("id", nomination_id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
     return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: corsHeaders });
 
   } catch (err: any) {
