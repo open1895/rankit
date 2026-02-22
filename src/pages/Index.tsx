@@ -47,8 +47,10 @@ const PAGE_SIZE = 20;
 
 const NOMINATION_CATEGORIES = ["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크", "아트", "교육", "댄스"];
 
-const NominationSection = () => {
-  const [open, setOpen] = useState(false);
+const NominationSection = ({ externalOpen, onOpenChange }: { externalOpen?: boolean; onOpenChange?: (v: boolean) => void }) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = externalOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [category, setCategory] = useState("");
@@ -170,6 +172,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [nominationOpen, setNominationOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const filteredCreators = useMemo(() => {
@@ -588,8 +591,17 @@ const Index = () => {
               ))}
             </div>
           ) : filteredCreators.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground text-sm glass rounded-2xl">
-              {searchQuery ? `"${searchQuery}"에 대한 결과가 없습니다` : "해당 카테고리의 크리에이터가 없습니다"}
+            <div className="text-center py-12 glass rounded-2xl space-y-3">
+              <p className="text-muted-foreground text-sm">
+                {searchQuery ? `"${searchQuery}"에 대한 결과가 없습니다` : "해당 카테고리의 크리에이터가 없습니다"}
+              </p>
+              <button
+                onClick={() => setNominationOpen(true)}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-neon-purple hover:underline transition-colors"
+              >
+                <Megaphone className="w-3.5 h-3.5" />
+                크리에이터 추천하기
+              </button>
             </div>
           ) : (
             <>
@@ -623,7 +635,7 @@ const Index = () => {
       </main>
 
       {/* Nomination CTA */}
-      <NominationSection />
+      <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
 
       {/* Live Feed */}
       <LiveFeed />
