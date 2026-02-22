@@ -233,11 +233,11 @@ const TrendingSection = () => {
                 {idx + 1}
               </span>
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0 ${
-                c.avatar_url && !c.avatar_url.startsWith("http")
-                  ? "text-sm"
+                c.avatar_url && (c.avatar_url.startsWith("http") || c.avatar_url.startsWith("/"))
+                  ? ""
                   : "bg-gradient-to-br from-orange-500 to-red-500"
               }`}>
-                {c.avatar_url && c.avatar_url.startsWith("http")
+                {c.avatar_url && (c.avatar_url.startsWith("http") || c.avatar_url.startsWith("/"))
                   ? <img src={c.avatar_url} alt={c.name} className="w-6 h-6 rounded-full object-cover" />
                   : c.avatar_url || c.name.slice(0, 1)
                 }
@@ -271,9 +271,9 @@ const TrendingSection = () => {
                   {idx + 1}
                 </span>
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0 ${
-                  c.avatar_url && c.avatar_url.startsWith("http") ? "" : "bg-gradient-to-br from-green-500 to-teal-500"
+                  c.avatar_url && (c.avatar_url.startsWith("http") || c.avatar_url.startsWith("/")) ? "" : "bg-gradient-to-br from-green-500 to-teal-500"
                 }`}>
-                  {c.avatar_url && c.avatar_url.startsWith("http")
+                  {c.avatar_url && (c.avatar_url.startsWith("http") || c.avatar_url.startsWith("/"))
                     ? <img src={c.avatar_url} alt={c.name} className="w-6 h-6 rounded-full object-cover" />
                     : c.avatar_url || c.name.slice(0, 1)
                   }

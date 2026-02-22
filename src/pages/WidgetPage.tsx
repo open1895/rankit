@@ -36,7 +36,7 @@ const WidgetPage = () => {
     );
   }
 
-  const isImageUrl = creator.avatar_url?.startsWith("http");
+  const isImageUrl = creator.avatar_url?.startsWith("http") || creator.avatar_url?.startsWith("/");
   const rankStyle = creator.rank === 1 ? "#FFD700" : creator.rank === 2 ? "#C0C0C0" : creator.rank === 3 ? "#CD7F32" : "#a78bfa";
 
   return (

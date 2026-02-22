@@ -98,7 +98,7 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
     ? "rank-bronze"
     : "text-muted-foreground";
 
-  const isImageUrl = creator.avatar_url?.startsWith("http");
+  const isImageUrl = creator.avatar_url?.startsWith("http") || creator.avatar_url?.startsWith("/");
   const initials = (!isImageUrl && creator.avatar_url) || creator.name.slice(0, 2);
   const isTop3 = creator.rank <= 3;
 
