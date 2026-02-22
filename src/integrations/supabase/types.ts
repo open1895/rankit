@@ -188,6 +188,36 @@ export type Database = {
         }
         Relationships: []
       }
+      nominations: {
+        Row: {
+          category: string
+          channel_url: string
+          created_at: string
+          creator_name: string
+          id: string
+          reason: string
+          status: string
+        }
+        Insert: {
+          category?: string
+          channel_url: string
+          created_at?: string
+          creator_name: string
+          id?: string
+          reason?: string
+          status?: string
+        }
+        Update: {
+          category?: string
+          channel_url?: string
+          created_at?: string
+          creator_name?: string
+          id?: string
+          reason?: string
+          status?: string
+        }
+        Relationships: []
+      }
       point_purchases: {
         Row: {
           created_at: string

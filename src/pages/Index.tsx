@@ -22,9 +22,12 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import HeroSection from "@/components/HeroSection";
 import RankingFormula from "@/components/RankingFormula";
-import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User } from "lucide-react";
+import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const CATEGORY_TABS = [
   { label: "전체", value: "all" },
@@ -41,6 +44,120 @@ const CATEGORY_TABS = [
 ];
 
 const PAGE_SIZE = 20;
+
+const NOMINATION_CATEGORIES = ["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크", "아트", "교육", "댄스"];
+
+const NominationSection = () => {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [url, setUrl] = useState("");
+  const [category, setCategory] = useState("");
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    const trimName = name.trim();
+    const trimUrl = url.trim();
+    if (trimName.length < 2 || trimName.length > 50) {
+      toast.error("크리에이터 이름은 2~50자로 입력해주세요.");
+      return;
+    }
+    if (trimUrl.length < 5 || trimUrl.length > 500) {
+      toast.error("채널 주소를 정확히 입력해주세요.");
+      return;
+    }
+    setSubmitting(true);
+    const { error } = await supabase.from("nominations" as any).insert({
+      creator_name: trimName,
+      channel_url: trimUrl,
+      category: category.trim(),
+      reason: reason.trim(),
+    } as any);
+    setSubmitting(false);
+    if (error) {
+      toast.error("추천 등록에 실패했습니다. 다시 시도해주세요.");
+      return;
+    }
+    toast.success("추천이 완료되었습니다! 관리자 검토 후 리스트에 추가됩니다.");
+    setName("");
+    setUrl("");
+    setCategory("");
+    setReason("");
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <div className="container max-w-lg mx-auto px-4 py-6">
+        <div className="glass rounded-2xl p-5 text-center space-y-3 border border-neon-purple/20">
+          <Megaphone className="w-6 h-6 text-neon-purple mx-auto" />
+          <p className="text-sm font-bold">찾으시는 크리에이터가 없나요?</p>
+          <p className="text-xs text-muted-foreground">후보로 추천해주세요!</p>
+          <Button
+            onClick={() => setOpen(true)}
+            className="gradient-primary text-primary-foreground font-bold text-sm px-6"
+          >
+            🙋 크리에이터 추천하기
+          </Button>
+        </div>
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold">크리에이터 후보 추천</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-1">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">크리에이터 이름 <span className="text-destructive">*</span></label>
+              <Input placeholder="예: 홍길동" value={name} onChange={(e) => setName(e.target.value)} maxLength={50} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">유튜브 또는 SNS 채널 주소 <span className="text-destructive">*</span></label>
+              <Input placeholder="https://youtube.com/@channel" value={url} onChange={(e) => setUrl(e.target.value)} maxLength={500} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">추천 카테고리 (선택)</label>
+              <div className="flex flex-wrap gap-1.5">
+                {NOMINATION_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategory(category === cat ? "" : cat)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+                      category === cat
+                        ? "gradient-primary text-primary-foreground"
+                        : "glass-sm text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">추천하는 이유 (선택)</label>
+              <textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                maxLength={500}
+                rows={3}
+                placeholder="이 크리에이터를 추천하는 이유를 알려주세요"
+                className="w-full rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground p-3 focus:outline-none focus:ring-1 focus:ring-neon-purple/50 resize-none"
+              />
+            </div>
+            <Button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="w-full gradient-primary text-primary-foreground font-bold"
+            >
+              {submitting ? "등록 중..." : "등록하기"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
 
 const Index = () => {
   const { user } = useAuth();
@@ -504,6 +621,9 @@ const Index = () => {
           )}
         </div>
       </main>
+
+      {/* Nomination CTA */}
+      <NominationSection />
 
       {/* Live Feed */}
       <LiveFeed />
