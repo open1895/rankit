@@ -23,6 +23,7 @@ interface CommentCount {
   creator_id: string;
   count: number;
   creator_name: string;
+  avatar_url: string;
 }
 
 const MiniBar = ({ value, max, color }: { value: number; max: number; color: string }) => (
@@ -127,7 +128,7 @@ const TrendingSection = () => {
       // Fetch all creators for mapping (not limited to 30)
       const { data: allCreators } = await supabase
         .from("creators")
-        .select("id, name");
+        .select("id, name, avatar_url");
       const fullCreatorMap = new Map((allCreators || []).map(c => [c.id, c]));
 
       // Fetch posts per creator (last 7 days)
@@ -161,15 +162,16 @@ const TrendingSection = () => {
         .limit(1000);
 
       // Combine: count posts + post_comments + comments per creator
-      const countMap = new Map<string, { count: number; name: string }>();
+      const countMap = new Map<string, { count: number; name: string; avatar_url: string }>();
 
       const addToMap = (creatorId: string) => {
         if (!creatorId) return;
         const creator = fullCreatorMap.get(creatorId) || creatorMap.get(creatorId);
         if (!creator) return;
         const name = creator.name;
-        const prev = countMap.get(creatorId) ?? { count: 0, name };
-        countMap.set(creatorId, { count: prev.count + 1, name });
+        const avatar_url = (creator as any).avatar_url || '';
+        const prev = countMap.get(creatorId) ?? { count: 0, name, avatar_url };
+        countMap.set(creatorId, { count: prev.count + 1, name, avatar_url });
       };
 
       for (const p of (posts || []) as any[]) {
@@ -184,7 +186,7 @@ const TrendingSection = () => {
       }
 
       const sorted = Array.from(countMap.entries())
-        .map(([creator_id, { count, name }]) => ({ creator_id, count, creator_name: name }))
+        .map(([creator_id, { count, name, avatar_url }]) => ({ creator_id, count, creator_name: name, avatar_url }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 5);
       setMostMentioned(sorted);
@@ -306,21 +308,26 @@ const TrendingSection = () => {
         ) : (
           <div className="space-y-2.5">
             {mostMentioned.map((c, idx) => (
-              <div key={c.creator_id} className="flex items-center gap-2.5">
+              <Link key={c.creator_id} to={`/creator/${c.creator_id}`} className="flex items-center gap-2.5 group">
                 <span className={`text-[11px] font-black w-4 text-center ${idx === 0 ? "text-neon-cyan" : "text-muted-foreground"}`}>
                   {idx + 1}
                 </span>
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-neon-cyan/40 to-neon-purple/40 flex items-center justify-center text-[9px] font-bold text-foreground shrink-0">
-                  <MessageCircle className="w-3 h-3 text-neon-cyan" />
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0 ${
+                  c.avatar_url && (c.avatar_url.startsWith("http") || c.avatar_url.startsWith("/")) ? "" : "bg-gradient-to-br from-neon-cyan/40 to-neon-purple/40"
+                }`}>
+                  {c.avatar_url && (c.avatar_url.startsWith("http") || c.avatar_url.startsWith("/"))
+                    ? <img src={c.avatar_url} alt={c.creator_name} className="w-6 h-6 rounded-full object-cover" />
+                    : <MessageCircle className="w-3 h-3 text-neon-cyan" />
+                  }
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold truncate">{c.creator_name}</span>
+                    <span className="text-xs font-semibold truncate group-hover:text-neon-cyan transition-colors">{c.creator_name}</span>
                     <span className="text-[10px] text-neon-cyan font-bold shrink-0 ml-1">{c.count}회</span>
                   </div>
                   <MiniBar value={c.count} max={maxMentions} color="bg-gradient-to-r from-neon-cyan/60 to-neon-purple/60" />
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
