@@ -127,6 +127,26 @@ serve(async (req) => {
       return new Response(JSON.stringify({ creators: data }), { headers: corsHeaders });
     }
 
+    // ─── LIST NOMINATIONS ─────────────────────────────────
+    if (action === "list_nominations") {
+      const { data, error } = await adminClient
+        .from("nominations")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return new Response(JSON.stringify({ nominations: data }), { headers: corsHeaders });
+    }
+
+    // ─── UPDATE NOMINATION STATUS ─────────────────────────
+    if (action === "update_nomination") {
+      const { nomination_id, status } = body;
+      if (!nomination_id || !status) return new Response(JSON.stringify({ error: "nomination_id and status required" }), { status: 400, headers: corsHeaders });
+      if (!["approved", "rejected"].includes(status)) return new Response(JSON.stringify({ error: "Invalid status" }), { status: 400, headers: corsHeaders });
+      const { error } = await adminClient.from("nominations").update({ status }).eq("id", nomination_id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
     return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: corsHeaders });
 
   } catch (err: any) {
