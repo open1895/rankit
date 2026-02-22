@@ -577,10 +577,12 @@ const Index = () => {
         </ScrollReveal>
 
 
-        {/* 실시간 응원 톡 */}
-        <ScrollReveal>
-          <FanComments />
-        </ScrollReveal>
+        {/* 실시간 응원 톡 - 검색 중이 아닐 때만 표시 */}
+        {!searchQuery.trim() && (
+          <ScrollReveal>
+            <FanComments />
+          </ScrollReveal>
+        )}
 
         {/* Rankings */}
         <div id="ranking-section" className="space-y-3">
