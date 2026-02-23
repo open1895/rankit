@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Check, X, Loader2, Shield, ExternalLink } from "lucide-react";
+import { Check, X, Loader2, Shield, ExternalLink, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -15,40 +14,58 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import Footer from "@/components/Footer";
+
+const ADMIN_SESSION_KEY = "rankit_admin_authenticated";
 
 const AdminPanelPage = () => {
-  const { user, loading: authLoading } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const queryClient = useQueryClient();
 
-  // Check admin role
-  const { data: isAdmin, isLoading: roleLoading } = useQuery({
-    queryKey: ["admin-role", user?.id],
-    queryFn: async () => {
-      if (!user) return false;
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      return !!data;
-    },
-    enabled: !!user,
-  });
+  useEffect(() => {
+    if (sessionStorage.getItem(ADMIN_SESSION_KEY) === "true") {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("admin", {
+        body: { action: "verify_password", password },
+      });
+
+      if (fnError || !data?.verified) {
+        setError("접근 권한이 없습니다");
+        setPassword("");
+        return;
+      }
+
+      sessionStorage.setItem(ADMIN_SESSION_KEY, "true");
+      setIsAuthenticated(true);
+      toast.success("관리자 인증 완료");
+    } catch {
+      setError("접근 권한이 없습니다");
+      setPassword("");
+    }
+  };
 
   // Fetch pending nominations
   const { data: nominations, isLoading } = useQuery({
     queryKey: ["pending-nominations"],
     queryFn: async () => {
       const { data } = await supabase.functions.invoke("admin", {
-        body: { action: "list_nominations" },
+        body: { action: "list_nominations", password: sessionStorage.getItem(ADMIN_SESSION_KEY) === "true" ? undefined : undefined },
       });
-      // Filter pending only
       return (data?.nominations || []).filter(
         (n: any) => n.status === "pending"
       );
     },
-    enabled: isAdmin === true,
+    enabled: isAuthenticated,
   });
 
   // Approve mutation
@@ -87,16 +104,41 @@ const AdminPanelPage = () => {
     },
   });
 
-  if (authLoading || roleLoading) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="w-full max-w-sm mx-auto p-6">
+          <form onSubmit={handleLogin} className="glass rounded-xl border border-glass-border p-8 space-y-6">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Lock className="w-6 h-6 text-primary" />
+              </div>
+              <h2 className="text-xl font-bold text-foreground">관리자 인증</h2>
+              <p className="text-sm text-muted-foreground text-center">
+                관리자 비밀번호를 입력해주세요
+              </p>
+            </div>
+
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="비밀번호"
+              className="text-center"
+              autoFocus
+            />
+
+            {error && (
+              <p className="text-sm text-destructive text-center font-medium">{error}</p>
+            )}
+
+            <Button type="submit" className="w-full" disabled={!password}>
+              인증
+            </Button>
+          </form>
+        </div>
       </div>
     );
-  }
-
-  if (!user || !isAdmin) {
-    return <Navigate to="/" replace />;
   }
 
   return (
@@ -196,6 +238,7 @@ const AdminPanelPage = () => {
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
