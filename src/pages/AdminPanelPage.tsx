@@ -46,6 +46,7 @@ const AdminPanelPage = () => {
       }
 
       sessionStorage.setItem(ADMIN_SESSION_KEY, "true");
+      sessionStorage.setItem("rankit_admin_pw", password);
       setIsAuthenticated(true);
       toast.success("관리자 인증 완료");
     } catch {
@@ -59,7 +60,7 @@ const AdminPanelPage = () => {
     queryKey: ["pending-nominations"],
     queryFn: async () => {
       const { data } = await supabase.functions.invoke("admin", {
-        body: { action: "list_nominations", password: sessionStorage.getItem(ADMIN_SESSION_KEY) === "true" ? undefined : undefined },
+        body: { action: "list_nominations", admin_password: sessionStorage.getItem("rankit_admin_pw") },
       });
       return (data?.nominations || []).filter(
         (n: any) => n.status === "pending"
@@ -72,7 +73,7 @@ const AdminPanelPage = () => {
   const approveMutation = useMutation({
     mutationFn: async (nominationId: string) => {
       const { data, error } = await supabase.functions.invoke("admin", {
-        body: { action: "approve_nomination", nomination_id: nominationId },
+        body: { action: "approve_nomination", nomination_id: nominationId, admin_password: sessionStorage.getItem("rankit_admin_pw") },
       });
       if (error) throw error;
       return data;
@@ -90,7 +91,7 @@ const AdminPanelPage = () => {
   const rejectMutation = useMutation({
     mutationFn: async (nominationId: string) => {
       const { data, error } = await supabase.functions.invoke("admin", {
-        body: { action: "reject_nomination", nomination_id: nominationId },
+        body: { action: "reject_nomination", nomination_id: nominationId, admin_password: sessionStorage.getItem("rankit_admin_pw") },
       });
       if (error) throw error;
       return data;
