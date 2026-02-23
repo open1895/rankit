@@ -143,101 +143,91 @@ const AdminPanelPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background p-3 pb-0">
+      <div className="max-w-lg mx-auto space-y-4">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Shield className="w-6 h-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">
-            후보 승인 대시보드
+        <div className="flex items-center gap-2">
+          <Shield className="w-5 h-5 text-primary" />
+          <h1 className="text-lg font-bold text-foreground">
+            후보 승인
           </h1>
-          <Badge variant="outline" className="ml-auto">
+          <Badge variant="outline" className="ml-auto text-xs">
             대기 {nominations?.length || 0}건
           </Badge>
         </div>
 
-        {/* Table */}
-        <div className="glass rounded-xl border border-glass-border overflow-hidden">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : !nominations || nominations.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground">
-              대기 중인 후보가 없습니다.
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>크리에이터명</TableHead>
-                  <TableHead>카테고리</TableHead>
-                  <TableHead>채널 URL</TableHead>
-                  <TableHead>추천 사유</TableHead>
-                  <TableHead>신청일</TableHead>
-                  <TableHead className="text-right">관리</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {nominations.map((nom: any) => (
-                  <TableRow key={nom.id}>
-                    <TableCell className="font-medium">{nom.creator_name}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{nom.category || "-"}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <a
-                        href={nom.channel_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline inline-flex items-center gap-1 text-sm max-w-[200px] truncate"
-                      >
-                        {nom.channel_url}
-                        <ExternalLink className="w-3 h-3 shrink-0" />
-                      </a>
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
-                      {nom.reason || "-"}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                      {new Date(nom.created_at).toLocaleDateString("ko-KR")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
-                        <Button
-                          size="sm"
-                          onClick={() => approveMutation.mutate(nom.id)}
-                          disabled={approveMutation.isPending || rejectMutation.isPending}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          {approveMutation.isPending ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Check className="w-4 h-4" />
-                          )}
-                          승인
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => rejectMutation.mutate(nom.id)}
-                          disabled={approveMutation.isPending || rejectMutation.isPending}
-                        >
-                          {rejectMutation.isPending ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <X className="w-4 h-4" />
-                          )}
-                          반려
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </div>
+        {/* Cards */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : !nominations || nominations.length === 0 ? (
+          <div className="text-center py-16 text-muted-foreground text-sm">
+            대기 중인 후보가 없습니다.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {nominations.map((nom: any) => (
+              <div key={nom.id} className="glass rounded-xl border border-glass-border p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-foreground truncate">{nom.creator_name}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="secondary" className="text-xs">{nom.category || "-"}</Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(nom.created_at).toLocaleDateString("ko-KR")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <a
+                  href={nom.channel_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline inline-flex items-center gap-1 text-xs truncate max-w-full"
+                >
+                  {nom.channel_url}
+                  <ExternalLink className="w-3 h-3 shrink-0" />
+                </a>
+
+                {nom.reason && (
+                  <p className="text-xs text-muted-foreground line-clamp-2">{nom.reason}</p>
+                )}
+
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => approveMutation.mutate(nom.id)}
+                    disabled={approveMutation.isPending || rejectMutation.isPending}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white h-9"
+                  >
+                    {approveMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Check className="w-4 h-4" />
+                    )}
+                    승인
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => rejectMutation.mutate(nom.id)}
+                    disabled={approveMutation.isPending || rejectMutation.isPending}
+                    className="flex-1 h-9"
+                  >
+                    {rejectMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <X className="w-4 h-4" />
+                    )}
+                    반려
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       <Footer />
     </div>
