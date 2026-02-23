@@ -1,8 +1,14 @@
+import { useState, useRef } from "react";
 import { Link2 } from "lucide-react";
 import { copyToClipboard, getPublishedUrl } from "@/lib/clipboard";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const Footer = () => {
+  const navigate = useNavigate();
+  const clickCountRef = useRef(0);
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleCopyLink = async () => {
     const url = getPublishedUrl();
     const ok = await copyToClipboard(url);
@@ -11,6 +17,24 @@ const Footer = () => {
     } else {
       toast.error("링크 복사에 실패했습니다.");
     }
+  };
+
+  const handleCopyrightClick = () => {
+    clickCountRef.current += 1;
+
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+    }
+
+    if (clickCountRef.current >= 5) {
+      clickCountRef.current = 0;
+      navigate("/admin-panel");
+      return;
+    }
+
+    clickTimerRef.current = setTimeout(() => {
+      clickCountRef.current = 0;
+    }, 2000);
   };
 
   return (
@@ -35,7 +59,10 @@ const Footer = () => {
           steelmind7777@naver.com
         </a>
 
-        <p className="text-xs text-gray-500 text-center">
+        <p
+          className="text-xs text-gray-500 text-center cursor-default select-none"
+          onClick={handleCopyrightClick}
+        >
           © 2026 Creator Pulse. All rights reserved.
         </p>
       </div>

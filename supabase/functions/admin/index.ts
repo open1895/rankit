@@ -3,8 +3,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+function getAdminPassword(): string {
+  return Deno.env.get("ADMIN_PANEL_PASSWORD") || "rankit1234";
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,6 +16,16 @@ serve(async (req) => {
   }
 
   try {
+    const { action, ...body } = await req.json();
+
+    // ─── VERIFY PASSWORD (no auth required) ───────────────
+    if (action === "verify_password") {
+      const { password } = body;
+      const verified = password === getAdminPassword();
+      return new Response(JSON.stringify({ verified }), { headers: corsHeaders });
+    }
+
+    // ─── All other actions require JWT auth + admin role ──
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
@@ -45,19 +59,15 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { action, ...body } = await req.json();
-
     // ─── LIST USERS ───────────────────────────────────────
     if (action === "list_users") {
       const { data: users, error } = await adminClient.auth.admin.listUsers({ perPage: 200 });
       if (error) throw error;
 
-      // Get profiles
       const { data: profiles } = await adminClient
         .from("profiles")
         .select("user_id, display_name, avatar_url, created_at");
 
-      // Get roles
       const { data: roles } = await adminClient
         .from("user_roles")
         .select("user_id, role");
@@ -147,12 +157,11 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
 
-    // ─── APPROVE NOMINATION (copy to creators + trigger stats) ──
+    // ─── APPROVE NOMINATION ──────────────────────────────
     if (action === "approve_nomination") {
       const { nomination_id } = body;
       if (!nomination_id) return new Response(JSON.stringify({ error: "nomination_id required" }), { status: 400, headers: corsHeaders });
 
-      // 1. Get the nomination
       const { data: nom, error: nomErr } = await adminClient
         .from("nominations")
         .select("*")
@@ -160,19 +169,16 @@ serve(async (req) => {
         .single();
       if (nomErr || !nom) return new Response(JSON.stringify({ error: "Nomination not found" }), { status: 404, headers: corsHeaders });
 
-      // 2. Extract youtube channel ID from channel_url if possible
       let youtubeChannelId = "";
       const urlStr = nom.channel_url || "";
       const ytMatch = urlStr.match(/youtube\.com\/(channel\/|@|c\/)?([^\/\?\s]+)/);
       if (ytMatch) {
         const extracted = ytMatch[2];
-        // If it starts with UC it's likely a channel ID
         if (extracted.startsWith("UC")) {
           youtubeChannelId = extracted;
         }
       }
 
-      // 3. Insert into creators
       const { data: newCreator, error: insertErr } = await adminClient
         .from("creators")
         .insert({
@@ -185,10 +191,8 @@ serve(async (req) => {
         .single();
       if (insertErr) throw insertErr;
 
-      // 4. Update nomination status
       await adminClient.from("nominations").update({ status: "approved" }).eq("id", nomination_id);
 
-      // 5. Trigger fetch-social-stats to fill data
       try {
         const statsUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/fetch-social-stats`;
         await fetch(statsUrl, {
