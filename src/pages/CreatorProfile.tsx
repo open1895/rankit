@@ -8,6 +8,7 @@ import SEOHead from "@/components/SEOHead";
 import { Creator } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import ShareCard from "@/components/ShareCard";
+import FanCertCard from "@/components/FanCertCard";
 import CelebrationEffect from "@/components/CelebrationEffect";
 import FanBadge from "@/components/FanBadge";
 import CreatorChat from "@/components/CreatorChat";
@@ -179,6 +180,7 @@ const CreatorProfile = () => {
   const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [embedCopied, setEmbedCopied] = useState(false);
   const [pdfGenerating, setPdfGenerating] = useState(false);
+  const [showFanCert, setShowFanCert] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -955,6 +957,16 @@ const CreatorProfile = () => {
             </p>
           )}
 
+          {/* Fan Cert Card Button */}
+          <button
+            onClick={() => setShowFanCert(true)}
+            className="w-full glass-sm p-3 text-center text-sm font-medium transition-all rounded-xl border border-[hsl(var(--neon-purple)/0.3)] hover:border-[hsl(var(--neon-purple)/0.6)] hover:shadow-[0_0_15px_hsl(var(--neon-purple)/0.1)]"
+          >
+            <span className="inline-flex items-center gap-2 bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-cyan))] bg-clip-text text-transparent font-bold">
+              📸 팬 인증 카드 만들기
+            </span>
+          </button>
+
           {/* Board Link */}
           <Link
             to={`/creator/${id}/board`}
@@ -1335,6 +1347,15 @@ const CreatorProfile = () => {
           onShareBonus={() => {
             toast.success("공유 보너스 투표권 +1! 🎁");
           }}
+        />
+      )}
+      {showFanCert && creator && (
+        <FanCertCard
+          creatorName={creator.name}
+          creatorAvatarUrl={creator.avatar_url}
+          rank={creator.rank}
+          totalCreators={totalCreators}
+          onClose={() => setShowFanCert(false)}
         />
       )}
 
