@@ -642,8 +642,8 @@ const Index = () => {
 
         <div className="section-divider" />
 
-        {/* Referral System */}
-        <ScrollReveal delay={200}><ReferralSystem /></ScrollReveal>
+        {/* Nomination CTA */}
+        <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
 
         {/* Search & Filter Section */}
         <ScrollReveal>
@@ -760,6 +760,11 @@ const Index = () => {
           </ScrollReveal>
         )}
       </main>
+
+      {/* Referral System */}
+      <div className="container max-w-lg mx-auto px-4 py-6">
+        <ReferralSystem />
+      </div>
 
       {/* Ranking Formula transparency */}
       <div className="container max-w-lg mx-auto px-4 py-6">
