@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Flame, TrendingUp, MessageCircle, ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { Flame, TrendingUp, MessageCircle, ArrowUp, ArrowDown, Minus, Rocket } from "lucide-react";
 
 interface TrendCreator {
   id: string;
@@ -52,6 +52,7 @@ const RankChange = ({ change }: { change: number }) => {
 const TrendingSection = () => {
   const [todayRising, setTodayRising] = useState<(TrendCreator & { voteIncrease: number })[]>([]);
   const [weeklyGrowth, setWeeklyGrowth] = useState<(TrendCreator & { rankChange: number; growthRate: number })[]>([]);
+  const [risingStars, setRisingStars] = useState<(TrendCreator & { growthRate: number; oldVotes: number; newVotes: number })[]>([]);
   const [mostMentioned, setMostMentioned] = useState<CommentCount[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -124,6 +125,28 @@ const TrendingSection = () => {
       } else {
         setWeeklyGrowth(growthList);
       }
+
+      // 🚀 Rising Stars: vote growth RATE (percentage increase)
+      const oldestVotesMap = new Map<string, number>();
+      for (const h of weekHistory) {
+        if (!oldestVotesMap.has(h.creator_id)) {
+          oldestVotesMap.set(h.creator_id, h.votes_count);
+        }
+      }
+
+      const risingStarList = creators
+        .filter(c => oldestVotesMap.has(c.id))
+        .map(c => {
+          const oldVotes = oldestVotesMap.get(c.id)!;
+          const newVotes = c.votes_count;
+          const growthRate = oldVotes > 0 ? ((newVotes - oldVotes) / oldVotes) * 100 : (newVotes > 0 ? 100 : 0);
+          return { ...c, growthRate, oldVotes, newVotes };
+        })
+        .filter(c => c.growthRate > 0)
+        .sort((a, b) => b.growthRate - a.growthRate)
+        .slice(0, 5);
+
+      setRisingStars(risingStarList);
 
       // Fetch all creators for mapping (not limited to 30)
       const { data: allCreators } = await supabase
@@ -292,6 +315,60 @@ const TrendingSection = () => {
                 </div>
               </Link>
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* 🚀 라이징 스타 (성장률 랭킹) */}
+      <div className="glass rounded-2xl p-4 space-y-3 border border-neon-purple/10">
+        <div className="flex items-center gap-2">
+          <Rocket className="w-4 h-4 text-neon-purple" />
+          <span className="text-xs font-bold text-neon-purple">라이징 스타</span>
+          <span className="ml-auto text-[10px] text-muted-foreground">주간 투표 증가율</span>
+        </div>
+        {risingStars.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-2">성장률 데이터가 쌓이는 중...</p>
+        ) : (
+          <div className="space-y-2.5">
+            {risingStars.map((c, idx) => {
+              const maxGrowth = Math.max(...risingStars.map(s => s.growthRate), 1);
+              const isImageUrl = c.avatar_url?.startsWith("http") || c.avatar_url?.startsWith("/");
+              return (
+                <Link key={c.id} to={`/creator/${c.id}`} className="flex items-center gap-2.5 group">
+                  <span className={`text-[11px] font-black w-4 text-center ${idx === 0 ? "text-neon-purple" : "text-muted-foreground"}`}>
+                    {idx + 1}
+                  </span>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0 ${
+                    isImageUrl ? "" : "bg-gradient-to-br from-neon-purple/60 to-pink-500/60"
+                  }`}>
+                    {isImageUrl
+                      ? <img src={c.avatar_url} alt={c.name} className="w-6 h-6 rounded-full object-cover" />
+                      : c.name.slice(0, 1)
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-xs font-semibold truncate group-hover:text-neon-purple transition-colors">{c.name}</span>
+                        <span className="text-[9px] text-muted-foreground shrink-0">{c.category}</span>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0 ml-1">
+                        <ArrowUp className="w-2.5 h-2.5 text-neon-purple" />
+                        <span className="text-[10px] text-neon-purple font-bold">
+                          {c.growthRate >= 1000 ? `${(c.growthRate / 1000).toFixed(1)}K` : c.growthRate.toFixed(0)}%
+                        </span>
+                      </div>
+                    </div>
+                    <MiniBar value={c.growthRate} max={maxGrowth} color="bg-gradient-to-r from-neon-purple/80 to-pink-500/80" />
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <span className="text-[9px] text-muted-foreground">{c.oldVotes.toLocaleString()}표</span>
+                      <span className="text-[9px] text-muted-foreground">→</span>
+                      <span className="text-[9px] text-neon-purple font-medium">{c.newVotes.toLocaleString()}표</span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
