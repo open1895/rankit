@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { getPublishedOrigin } from "@/lib/clipboard";
 import { Link } from "react-router-dom";
 import { Creator, getVotesUntilNext } from "@/lib/data";
-import { Trophy, TrendingUp, TrendingDown, Minus, CheckCircle2, Heart } from "lucide-react";
+import { Trophy, TrendingUp, TrendingDown, Minus, CheckCircle2, Heart, Crown } from "lucide-react";
+import { useHallOfFameWins, getWinTitle } from "@/hooks/useHallOfFame";
 import CommentInput from "./CommentInput";
 import MiniInfluenceChart from "./MiniInfluenceChart";
 import VoteResultModal from "./VoteResultModal";
@@ -17,6 +18,9 @@ interface RankingCardProps {
 }
 
 const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false }: RankingCardProps) => {
+  const hallOfFameWins = useHallOfFameWins();
+  const creatorWins = hallOfFameWins[creator.id] || 0;
+  const winTitle = getWinTitle(creatorWins);
   const [isVoting, setIsVoting] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
   const [showCommentInput, setShowCommentInput] = useState(false);
@@ -173,6 +177,12 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <Link to={`/creator/${creator.id}`} className="font-semibold text-sm truncate hover:text-neon-cyan transition-colors">{creator.name}</Link>
+            {creatorWins > 0 && (
+              <span className="shrink-0 flex items-center gap-0.5" title={winTitle || ""}>
+                <Crown className="w-3.5 h-3.5 text-yellow-400" />
+                {creatorWins >= 3 && <span className="text-[9px] font-bold text-yellow-400">{creatorWins}</span>}
+              </span>
+            )}
           </div>
           <span className="text-xs text-muted-foreground">{creator.category}</span>
           <div className="flex items-center gap-2 mt-1">

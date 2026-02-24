@@ -188,6 +188,50 @@ export type Database = {
         }
         Relationships: []
       }
+      hall_of_fame: {
+        Row: {
+          created_at: string
+          creator_id: string
+          final_rank: number
+          final_votes: number
+          id: string
+          period_end: string
+          period_label: string
+          period_start: string
+          period_type: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          final_rank?: number
+          final_votes?: number
+          id?: string
+          period_end: string
+          period_label: string
+          period_start: string
+          period_type: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          final_rank?: number
+          final_votes?: number
+          id?: string
+          period_end?: string
+          period_label?: string
+          period_start?: string
+          period_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hall_of_fame_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nominations: {
         Row: {
           category: string

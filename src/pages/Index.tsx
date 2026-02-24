@@ -617,8 +617,9 @@ const Index = () => {
         <ScrollReveal delay={100}><TrendingSection /></ScrollReveal>
 
         <ScrollReveal>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-5 gap-2">
             {[
+              { to: "/hall-of-fame", icon: Crown, label: "명예의 전당", color: "text-yellow-400" },
               { to: "/seasons", icon: Calendar, label: "아카이브", color: "text-neon-cyan" },
               { to: "/compare", icon: GitCompareArrows, label: "비교", color: "text-neon-purple" },
               { to: "/fans", icon: Star, label: "팬 랭킹", color: "text-neon-cyan" },
