@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff } from "lucide-react";
+import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -290,6 +290,7 @@ const UsersTab = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [roleTarget, setRoleTarget] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin-users"],
@@ -319,6 +320,17 @@ const UsersTab = () => {
     },
     onSuccess: () => { toast.success("역할이 해제되었습니다."); setRoleTarget(null); queryClient.invalidateQueries({ queryKey: ["admin-users"] }); },
     onError: (e: any) => toast.error(`실패: ${e.message}`),
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (user_id: string) => {
+      const { data, error } = await supabase.functions.invoke("admin", {
+        body: { action: "delete_user", user_id, admin_password: getAdminPw() },
+      });
+      if (error) throw error; return data;
+    },
+    onSuccess: () => { toast.success("회원이 삭제되었습니다."); setDeleteTarget(null); queryClient.invalidateQueries({ queryKey: ["admin-users"] }); },
+    onError: (e: any) => toast.error(`삭제 실패: ${e.message}`),
   });
 
   const filtered = (users || []).filter((u: any) => {
@@ -359,6 +371,9 @@ const UsersTab = () => {
             <button onClick={() => setRoleTarget(u)} className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
               <ShieldCheck className="w-4 h-4" />
             </button>
+            <button onClick={() => setDeleteTarget(u)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+              <UserX className="w-4 h-4" />
+            </button>
           </div>
         ))}
       </div>
@@ -398,6 +413,29 @@ const UsersTab = () => {
                   역할 해제 (일반으로)
                 </Button>
               )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Confirm Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
+        <DialogContent className="max-w-[90vw] sm:max-w-sm rounded-2xl">
+          <DialogHeader><DialogTitle className="text-base font-bold">회원 삭제</DialogTitle></DialogHeader>
+          <div className="space-y-3 pt-1">
+            <div className="flex items-center gap-3">
+              <img src={deleteTarget?.avatar_url || "/placeholder.svg"} alt="" className="w-10 h-10 rounded-full object-cover bg-muted" />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">{deleteTarget?.display_name || "이름 없음"}</p>
+                <p className="text-xs text-muted-foreground truncate">{deleteTarget?.email}</p>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">이 회원을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setDeleteTarget(null)} className="flex-1">취소</Button>
+              <Button variant="destructive" onClick={() => deleteTarget && deleteUserMutation.mutate(deleteTarget.id)} disabled={deleteUserMutation.isPending} className="flex-1">
+                {deleteUserMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <UserX className="w-4 h-4 mr-1" />}삭제
+              </Button>
             </div>
           </div>
         </DialogContent>
