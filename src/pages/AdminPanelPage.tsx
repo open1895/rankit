@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users } from "lucide-react";
+import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,7 @@ const AdminPanelPage = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [tab, setTab] = useState<"nominations" | "creators">("nominations");
+  const [tab, setTab] = useState<"nominations" | "creators" | "users">("nominations");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -81,11 +81,17 @@ const AdminPanelPage = () => {
             onClick={() => setTab("creators")}
             className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "creators" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
           >
-            <Users className="w-4 h-4 inline mr-1" />크리에이터 관리
+            <Users className="w-4 h-4 inline mr-1" />크리에이터
+          </button>
+          <button
+            onClick={() => setTab("users")}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "users" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
+          >
+            <UserCog className="w-4 h-4 inline mr-1" />회원
           </button>
         </div>
 
-        {tab === "nominations" ? <NominationsTab /> : <CreatorsTab />}
+        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : <UsersTab />}
       </div>
       <Footer />
     </div>
@@ -272,6 +278,127 @@ const CreatorsTab = () => {
             <Button variant="destructive" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending} className="flex-1">
               {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}삭제
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+/* ─── Users Tab ─── */
+const UsersTab = () => {
+  const queryClient = useQueryClient();
+  const [search, setSearch] = useState("");
+  const [roleTarget, setRoleTarget] = useState<any>(null);
+
+  const { data: users, isLoading } = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: async () => {
+      const { data } = await supabase.functions.invoke("admin", { body: { action: "list_users", admin_password: getAdminPw() } });
+      return data?.users || [];
+    },
+  });
+
+  const setRoleMutation = useMutation({
+    mutationFn: async ({ user_id, role }: { user_id: string; role: string }) => {
+      const { data, error } = await supabase.functions.invoke("admin", {
+        body: { action: "set_role", user_id, role, admin_password: getAdminPw() },
+      });
+      if (error) throw error; return data;
+    },
+    onSuccess: () => { toast.success("역할이 부여되었습니다."); setRoleTarget(null); queryClient.invalidateQueries({ queryKey: ["admin-users"] }); },
+    onError: (e: any) => toast.error(`실패: ${e.message}`),
+  });
+
+  const removeRoleMutation = useMutation({
+    mutationFn: async ({ user_id, role }: { user_id: string; role: string }) => {
+      const { data, error } = await supabase.functions.invoke("admin", {
+        body: { action: "remove_role", user_id, role, admin_password: getAdminPw() },
+      });
+      if (error) throw error; return data;
+    },
+    onSuccess: () => { toast.success("역할이 해제되었습니다."); setRoleTarget(null); queryClient.invalidateQueries({ queryKey: ["admin-users"] }); },
+    onError: (e: any) => toast.error(`실패: ${e.message}`),
+  });
+
+  const filtered = (users || []).filter((u: any) => {
+    if (!search.trim()) return true;
+    const q = search.trim().toLowerCase();
+    return (u.display_name || "").toLowerCase().includes(q) || (u.email || "").toLowerCase().includes(q);
+  });
+
+  const getRoleBadge = (role: string) => {
+    if (role === "admin") return <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-[10px]">관리자</Badge>;
+    if (role === "moderator") return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px]">모더레이터</Badge>;
+    return <Badge variant="outline" className="text-[10px] text-muted-foreground">일반</Badge>;
+  };
+
+  if (isLoading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
+
+  return (
+    <>
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Input placeholder="이름 또는 이메일 검색..." value={search} onChange={(e) => setSearch(e.target.value)} className="text-sm" />
+          <Badge variant="outline" className="text-xs whitespace-nowrap">{filtered.length}명</Badge>
+        </div>
+
+        {filtered.map((u: any) => (
+          <div key={u.id} className="glass rounded-xl border border-glass-border p-3 flex items-center gap-3">
+            <img src={u.avatar_url || "/placeholder.svg"} alt="" className="w-10 h-10 rounded-full object-cover shrink-0 bg-muted" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-foreground truncate">{u.display_name || "이름 없음"}</p>
+              <p className="text-[10px] text-muted-foreground truncate">{u.email}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                {getRoleBadge(u.role)}
+                <span className="text-[10px] text-muted-foreground">
+                  {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString("ko-KR") : "미접속"}
+                </span>
+              </div>
+            </div>
+            <button onClick={() => setRoleTarget(u)} className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+              <ShieldCheck className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Role Dialog */}
+      <Dialog open={!!roleTarget} onOpenChange={(v) => !v && setRoleTarget(null)}>
+        <DialogContent className="max-w-[90vw] sm:max-w-sm rounded-2xl">
+          <DialogHeader><DialogTitle className="text-base font-bold">역할 관리</DialogTitle></DialogHeader>
+          <div className="space-y-3 pt-1">
+            <div className="flex items-center gap-3">
+              <img src={roleTarget?.avatar_url || "/placeholder.svg"} alt="" className="w-10 h-10 rounded-full object-cover bg-muted" />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">{roleTarget?.display_name || "이름 없음"}</p>
+                <p className="text-xs text-muted-foreground truncate">{roleTarget?.email}</p>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">현재 역할: {getRoleBadge(roleTarget?.role || "user")}</p>
+            <div className="space-y-2">
+              {roleTarget?.role !== "admin" && (
+                <Button onClick={() => roleTarget && setRoleMutation.mutate({ user_id: roleTarget.id, role: "admin" })}
+                  disabled={setRoleMutation.isPending || removeRoleMutation.isPending} className="w-full bg-red-600 hover:bg-red-700 text-white">
+                  {setRoleMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <ShieldCheck className="w-4 h-4 mr-1" />}
+                  관리자 부여
+                </Button>
+              )}
+              {roleTarget?.role !== "moderator" && (
+                <Button onClick={() => roleTarget && setRoleMutation.mutate({ user_id: roleTarget.id, role: "moderator" })}
+                  disabled={setRoleMutation.isPending || removeRoleMutation.isPending} variant="outline" className="w-full border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10">
+                  {setRoleMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <ShieldCheck className="w-4 h-4 mr-1" />}
+                  모더레이터 부여
+                </Button>
+              )}
+              {roleTarget?.role !== "user" && (
+                <Button onClick={() => roleTarget && removeRoleMutation.mutate({ user_id: roleTarget.id, role: roleTarget.role })}
+                  disabled={setRoleMutation.isPending || removeRoleMutation.isPending} variant="destructive" className="w-full">
+                  {removeRoleMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <ShieldOff className="w-4 h-4 mr-1" />}
+                  역할 해제 (일반으로)
+                </Button>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
