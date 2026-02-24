@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Sparkles, Send } from "lucide-react";
@@ -25,6 +25,18 @@ const QuickCheer = ({ creatorId, creatorName, onSent }: QuickCheerProps) => {
   const [nickname, setNickname] = useState("");
   const [sending, setSending] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.display_name) setNickname(data.display_name);
+      });
+  }, [user]);
 
   const handleSend = async () => {
     const nick = nickname.trim() || "익명팬";
@@ -84,7 +96,11 @@ const QuickCheer = ({ creatorId, creatorName, onSent }: QuickCheerProps) => {
         </div>
       )}
 
-      {!user && (
+      {user ? (
+        <div className="text-xs text-muted-foreground">
+          닉네임: <span className="text-foreground font-medium">{nickname || "로딩 중..."}</span>
+        </div>
+      ) : (
         <input
           type="text"
           placeholder="닉네임 (미입력시 익명팬)"
