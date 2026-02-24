@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/hooks/useAuth";
 import PageTransition from "@/components/PageTransition";
+import MobileTabBar from "@/components/MobileTabBar";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
@@ -59,6 +60,7 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </PageTransition>
+              <MobileTabBar />
             </div>
           </BrowserRouter>
         </TooltipProvider>

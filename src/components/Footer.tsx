@@ -3,11 +3,14 @@ import { Link2 } from "lucide-react";
 import { copyToClipboard, getPublishedUrl } from "@/lib/clipboard";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { PrivacyPolicyModal, TermsOfServiceModal } from "@/components/LegalModals";
 
 const Footer = () => {
   const navigate = useNavigate();
   const clickCountRef = useRef(0);
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
 
   const handleCopyLink = async () => {
     const url = getPublishedUrl();
@@ -21,51 +24,57 @@ const Footer = () => {
 
   const handleCopyrightClick = () => {
     clickCountRef.current += 1;
-
-    if (clickTimerRef.current) {
-      clearTimeout(clickTimerRef.current);
-    }
-
+    if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
     if (clickCountRef.current >= 5) {
       clickCountRef.current = 0;
       navigate("/admin-panel");
       return;
     }
-
-    clickTimerRef.current = setTimeout(() => {
-      clickCountRef.current = 0;
-    }, 2000);
+    clickTimerRef.current = setTimeout(() => { clickCountRef.current = 0; }, 2000);
   };
 
   return (
-    <footer className="w-full bg-black text-gray-400 mt-12">
+    <footer className="w-full bg-card border-t border-border mt-12 pb-16 md:pb-0">
       <div className="max-w-2xl mx-auto px-4 py-8 flex flex-col items-center gap-4">
         <div className="flex items-center gap-3">
-          <span className="text-white font-bold text-lg tracking-tight">Creator Pulse</span>
+          <span className="font-bold text-lg tracking-tight text-foreground">Creator Pulse</span>
           <span className="text-muted-foreground">·</span>
           <span className="text-neon-cyan font-semibold">Rankit</span>
         </div>
 
         <button
           onClick={handleCopyLink}
-          className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-700 hover:border-neon-cyan/50 hover:text-neon-cyan transition-colors text-sm"
+          className="flex items-center gap-2 px-4 py-2 rounded-full border border-border hover:border-primary/50 hover:text-primary transition-colors text-sm text-muted-foreground"
           aria-label="링크 복사"
         >
           <Link2 className="w-4 h-4" />
           링크 복사
         </button>
 
-        <a href="mailto:steelmind7777@naver.com" className="text-xs text-gray-500 hover:text-neon-cyan transition-colors">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <button onClick={() => setPrivacyOpen(true)} className="hover:text-foreground transition-colors underline-offset-2 hover:underline">
+            개인정보 처리방침
+          </button>
+          <span>|</span>
+          <button onClick={() => setTermsOpen(true)} className="hover:text-foreground transition-colors underline-offset-2 hover:underline">
+            이용약관
+          </button>
+        </div>
+
+        <a href="mailto:steelmind7777@naver.com" className="text-xs text-muted-foreground hover:text-primary transition-colors">
           steelmind7777@naver.com
         </a>
 
         <p
-          className="text-xs text-gray-500 text-center cursor-default select-none"
+          className="text-xs text-muted-foreground text-center cursor-default select-none"
           onClick={handleCopyrightClick}
         >
           © 2026 Creator Pulse. All rights reserved.
         </p>
       </div>
+
+      <PrivacyPolicyModal open={privacyOpen} onOpenChange={setPrivacyOpen} />
+      <TermsOfServiceModal open={termsOpen} onOpenChange={setTermsOpen} />
     </footer>
   );
 };
