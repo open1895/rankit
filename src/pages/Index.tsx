@@ -10,6 +10,7 @@ import CountdownTimer from "@/components/CountdownTimer";
 import LiveFeed from "@/components/LiveFeed";
 import FanComments from "@/components/FanComments";
 import FanMarquee from "@/components/FanMarquee";
+import BoardMarquee from "@/components/BoardMarquee";
 
 import ReferralSystem from "@/components/ReferralSystem";
 import StreakTracker from "@/components/StreakTracker";
@@ -751,6 +752,13 @@ const Index = () => {
             </>
           )}
         </div>
+
+        {/* Rankit 게시판 */}
+        {!searchQuery.trim() && (
+          <ScrollReveal>
+            <BoardMarquee />
+          </ScrollReveal>
+        )}
 
         {/* 실시간 응원 톡 - 검색 중이 아닐 때만 표시 */}
         {!searchQuery.trim() && (
