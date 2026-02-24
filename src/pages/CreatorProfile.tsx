@@ -629,6 +629,17 @@ const CreatorProfile = () => {
       </header>
 
       <main className="container max-w-lg mx-auto px-4 py-6 space-y-6">
+        {/* Fan Cert Card Button - Top */}
+        <button
+          onClick={() => setShowFanCert(true)}
+          className="w-full glass p-4 text-center text-sm font-medium transition-all rounded-2xl border border-[hsl(var(--neon-purple)/0.3)] hover:border-[hsl(var(--neon-purple)/0.6)] hover:shadow-[0_0_20px_hsl(var(--neon-purple)/0.15)] animate-fade-in-up"
+        >
+          <span className="inline-flex items-center gap-2 bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-cyan))] bg-clip-text text-transparent font-bold text-base">
+            📸 팬 인증 카드 만들기
+          </span>
+          <p className="text-[11px] text-muted-foreground mt-1">인스타 스토리에 공유하고 화력 인증하세요!</p>
+        </button>
+
         {/* Profile Card */}
         <div className="glass p-6 text-center space-y-4 animate-fade-in-up">
           {/* Avatar */}
@@ -957,15 +968,6 @@ const CreatorProfile = () => {
             </p>
           )}
 
-          {/* Fan Cert Card Button */}
-          <button
-            onClick={() => setShowFanCert(true)}
-            className="w-full glass-sm p-3 text-center text-sm font-medium transition-all rounded-xl border border-[hsl(var(--neon-purple)/0.3)] hover:border-[hsl(var(--neon-purple)/0.6)] hover:shadow-[0_0_15px_hsl(var(--neon-purple)/0.1)]"
-          >
-            <span className="inline-flex items-center gap-2 bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-cyan))] bg-clip-text text-transparent font-bold">
-              📸 팬 인증 카드 만들기
-            </span>
-          </button>
 
           {/* Board Link */}
           <Link
