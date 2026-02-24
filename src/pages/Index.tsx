@@ -642,10 +642,8 @@ const Index = () => {
 
         <div className="section-divider" />
 
-        {/* Ranking Formula transparency */}
-        <ScrollReveal>
-          <RankingFormula />
-        </ScrollReveal>
+        {/* Nomination CTA (inline) */}
+        <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
 
         {/* Search & Filter Section */}
         <ScrollReveal>
@@ -763,8 +761,10 @@ const Index = () => {
         )}
       </main>
 
-      {/* Nomination CTA */}
-      <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
+      {/* Ranking Formula transparency */}
+      <div className="container max-w-lg mx-auto px-4 py-6">
+        <RankingFormula />
+      </div>
 
       {/* Live Feed */}
       <LiveFeed />
