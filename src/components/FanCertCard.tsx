@@ -81,7 +81,7 @@ const FanCertCard = ({ creatorName, creatorAvatarUrl, rank, totalCreators, onClo
           ? `${window.location.origin}${creatorAvatarUrl}`
           : creatorAvatarUrl;
         avatarImg.src = url;
-        setTimeout(resolve, 5000);
+        setTimeout(resolve, 2000);
       });
 
       // Avatar circle
