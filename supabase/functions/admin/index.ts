@@ -27,7 +27,7 @@ serve(async (req) => {
     }
 
     // ─── Panel actions (password-only, used by /admin-panel) ──
-    const panelActions = ["list_nominations", "approve_nomination", "reject_nomination", "list_creators", "update_creator", "delete_creator", "list_users", "set_role", "remove_role", "delete_user"];
+    const panelActions = ["list_nominations", "approve_nomination", "reject_nomination", "list_creators", "update_creator", "delete_creator", "list_users", "set_role", "remove_role", "delete_user", "list_board_posts", "create_board_post", "update_board_post", "delete_board_post"];
     const isPanelAction = panelActions.includes(action);
 
     // ─── Auth: panel actions use password, others use JWT+admin ──
@@ -244,6 +244,49 @@ serve(async (req) => {
       const { nomination_id } = body;
       if (!nomination_id) return new Response(JSON.stringify({ error: "nomination_id required" }), { status: 400, headers: corsHeaders });
       const { error } = await adminClient.from("nominations").delete().eq("id", nomination_id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── LIST BOARD POSTS ────────────────────────────────
+    if (action === "list_board_posts") {
+      const { data, error } = await adminClient
+        .from("board_posts")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return new Response(JSON.stringify({ posts: data }), { headers: corsHeaders });
+    }
+
+    // ─── CREATE BOARD POST ────────────────────────────────
+    if (action === "create_board_post") {
+      const { title, content, category, author } = body;
+      if (!title) return new Response(JSON.stringify({ error: "title required" }), { status: 400, headers: corsHeaders });
+      const { error } = await adminClient.from("board_posts").insert({
+        title,
+        content: content || "",
+        category: category || "공지",
+        author: author || "Rankit 운영팀",
+      });
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── UPDATE BOARD POST ────────────────────────────────
+    if (action === "update_board_post") {
+      const { post_id, ...updates } = body;
+      if (!post_id) return new Response(JSON.stringify({ error: "post_id required" }), { status: 400, headers: corsHeaders });
+      const { admin_password: _ap, ...cleanUpdates } = updates;
+      const { error } = await adminClient.from("board_posts").update(cleanUpdates).eq("id", post_id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── DELETE BOARD POST ────────────────────────────────
+    if (action === "delete_board_post") {
+      const { post_id } = body;
+      if (!post_id) return new Response(JSON.stringify({ error: "post_id required" }), { status: 400, headers: corsHeaders });
+      const { error } = await adminClient.from("board_posts").delete().eq("id", post_id);
       if (error) throw error;
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
