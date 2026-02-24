@@ -27,7 +27,7 @@ serve(async (req) => {
     }
 
     // ─── Panel actions (password-only, used by /admin-panel) ──
-    const panelActions = ["list_nominations", "approve_nomination", "reject_nomination", "list_creators", "update_creator", "delete_creator"];
+    const panelActions = ["list_nominations", "approve_nomination", "reject_nomination", "list_creators", "update_creator", "delete_creator", "list_users", "set_role", "remove_role"];
     const isPanelAction = panelActions.includes(action);
 
     // ─── Auth: panel actions use password, others use JWT+admin ──
@@ -108,7 +108,26 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
 
-    // ─── SET ADMIN ────────────────────────────────────────
+    // ─── SET ROLE ─────────────────────────────────────────
+    if (action === "set_role") {
+      const { user_id, role } = body;
+      if (!user_id || !role) return new Response(JSON.stringify({ error: "user_id and role required" }), { status: 400, headers: corsHeaders });
+      if (!["admin", "moderator"].includes(role)) return new Response(JSON.stringify({ error: "Invalid role" }), { status: 400, headers: corsHeaders });
+      const { error } = await adminClient.from("user_roles").upsert({ user_id, role }, { onConflict: "user_id,role" });
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── REMOVE ROLE ────────────────────────────────────
+    if (action === "remove_role") {
+      const { user_id, role } = body;
+      if (!user_id || !role) return new Response(JSON.stringify({ error: "user_id and role required" }), { status: 400, headers: corsHeaders });
+      const { error } = await adminClient.from("user_roles").delete().eq("user_id", user_id).eq("role", role);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── SET ADMIN (legacy) ──────────────────────────────
     if (action === "set_admin") {
       const { user_id, is_admin } = body;
       if (!user_id) return new Response(JSON.stringify({ error: "user_id required" }), { status: 400, headers: corsHeaders });
