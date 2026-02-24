@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async";
 
 const BASE_URL = "https://rank-pulse-glow.lovable.app";
 const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png`;
-const SITE_NAME = "Rank It (랭크잇)";
+const SITE_NAME = "Rankit";
 
 interface SEOHeadProps {
   title?: string;
@@ -21,7 +21,7 @@ const SEOHead = ({
   ogType = "website",
   noIndex = false,
 }: SEOHeadProps) => {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - 크리에이터 영향력 랭킹 플랫폼`;
+  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - 크리에이터 종합 영향력 랭킹`;
   const url = `${BASE_URL}${path}`;
 
   return (
