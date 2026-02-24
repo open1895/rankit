@@ -14,6 +14,7 @@ import FanBadge from "@/components/FanBadge";
 import CreatorChat from "@/components/CreatorChat";
 import RankitVerifiedBadge from "@/components/RankitVerifiedBadge";
 import { generateWeeklyPDF } from "@/lib/pdfReport";
+import { useHallOfFameWins, getWinTitle } from "@/hooks/useHallOfFame";
 import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -156,6 +157,7 @@ const CreatorProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const hallOfFameWins = useHallOfFameWins();
   const [creator, setCreator] = useState<(Creator & { channel_link?: string; user_id?: string; youtube_channel_id?: string; chzzk_channel_id?: string }) | null>(null);
   const [rankHistory, setRankHistory] = useState<RankHistoryPoint[]>([]);
   const [loading, setLoading] = useState(true);
@@ -808,6 +810,17 @@ const CreatorProfile = () => {
                       <CheckCircle2 className="w-5 h-5 text-neon-cyan inline" />
                     </span>
                   )}
+                  {(() => {
+                    const wins = hallOfFameWins[creator.id] || 0;
+                    const title = getWinTitle(wins);
+                    if (!title) return null;
+                    return (
+                      <span className="inline-flex items-center gap-1 ml-2 align-middle">
+                        <Crown className="w-5 h-5 text-yellow-400 inline" />
+                        <span className="text-xs font-bold text-yellow-400">{title}</span>
+                      </span>
+                    );
+                  })()}
                 </h2>
                 {creator.category && (
                   <p className="text-sm text-muted-foreground mt-1">{creator.category}</p>

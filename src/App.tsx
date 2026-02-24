@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import AdminPage from "./pages/AdminPage";
 import AdminPanelPage from "./pages/AdminPanelPage";
 import WidgetPage from "./pages/WidgetPage";
+import HallOfFame from "./pages/HallOfFame";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
                   <Route path="/shop" element={<PointShop />} />
                   <Route path="/admin" element={<AdminPage />} />
                   <Route path="/admin-panel" element={<AdminPanelPage />} />
+                  <Route path="/hall-of-fame" element={<HallOfFame />} />
                   <Route path="/widget/creator/:id" element={<WidgetPage />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
