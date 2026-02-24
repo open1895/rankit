@@ -112,6 +112,10 @@ export default {
           "0%": { transform: "translateX(0)" },
           "100%": { transform: "translateX(-50%)" },
         },
+        "marquee-reverse": {
+          "0%": { transform: "translateX(-50%)" },
+          "100%": { transform: "translateX(0)" },
+        },
         "score-float": {
           "0%": { transform: "scale(0.5) translateY(20px)", opacity: "0" },
           "20%": { transform: "scale(1.2) translateY(-10px)", opacity: "1" },
@@ -158,6 +162,7 @@ export default {
         "count-up": "count-up 0.3s ease-out",
         "glow-pulse": "glow-pulse 3s ease-in-out infinite",
         "marquee": "marquee 15s linear infinite",
+        "marquee-reverse": "marquee-reverse 25s linear infinite",
         "score-float": "score-float 1.8s ease-out forwards",
         "rank-up": "rank-up 1.5s ease-out",
         "rank-down": "rank-down 1.5s ease-out",
