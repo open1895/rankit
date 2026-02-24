@@ -606,7 +606,6 @@ const Index = () => {
 
         <ScrollReveal><StreakTracker /></ScrollReveal>
         <ScrollReveal delay={100}><WeeklyMissions /></ScrollReveal>
-        <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
 
         <div className="section-divider" />
 
