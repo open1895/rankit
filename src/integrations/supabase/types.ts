@@ -429,6 +429,118 @@ export type Database = {
           },
         ]
       }
+      prediction_bets: {
+        Row: {
+          amount: number
+          created_at: string
+          event_id: string
+          id: string
+          is_winner: boolean | null
+          predicted_creator_id: string
+          reward_amount: number
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          event_id: string
+          id?: string
+          is_winner?: boolean | null
+          predicted_creator_id: string
+          reward_amount?: number
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          event_id?: string
+          id?: string
+          is_winner?: boolean | null
+          predicted_creator_id?: string
+          reward_amount?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prediction_bets_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "prediction_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_bets_predicted_creator_id_fkey"
+            columns: ["predicted_creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prediction_events: {
+        Row: {
+          bet_deadline: string
+          created_at: string
+          creator_a_id: string
+          creator_b_id: string
+          description: string
+          id: string
+          resolved_at: string | null
+          status: string
+          title: string
+          total_pool: number
+          winner_id: string | null
+        }
+        Insert: {
+          bet_deadline: string
+          created_at?: string
+          creator_a_id: string
+          creator_b_id: string
+          description?: string
+          id?: string
+          resolved_at?: string | null
+          status?: string
+          title: string
+          total_pool?: number
+          winner_id?: string | null
+        }
+        Update: {
+          bet_deadline?: string
+          created_at?: string
+          creator_a_id?: string
+          creator_b_id?: string
+          description?: string
+          id?: string
+          resolved_at?: string | null
+          status?: string
+          title?: string
+          total_pool?: number
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prediction_events_creator_a_id_fkey"
+            columns: ["creator_a_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_events_creator_b_id_fkey"
+            columns: ["creator_b_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_events_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string

@@ -617,13 +617,14 @@ const Index = () => {
         <ScrollReveal delay={100}><TrendingSection /></ScrollReveal>
 
         <ScrollReveal>
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {[
               { to: "/hall-of-fame", icon: Crown, label: "명예의 전당", color: "text-yellow-400" },
-              { to: "/seasons", icon: Calendar, label: "아카이브", color: "text-neon-cyan" },
-              { to: "/compare", icon: GitCompareArrows, label: "비교", color: "text-neon-purple" },
-              { to: "/fans", icon: Star, label: "팬 랭킹", color: "text-neon-cyan" },
-              { to: "/tournament", icon: Swords, label: "대결", color: "text-neon-purple" },
+              { to: "/predictions", icon: Sparkles, label: "예측 게임", color: "text-neon-cyan" },
+              { to: "/seasons", icon: Calendar, label: "아카이브", color: "text-neon-purple" },
+              { to: "/compare", icon: GitCompareArrows, label: "비교", color: "text-neon-cyan" },
+              { to: "/fans", icon: Star, label: "팬 랭킹", color: "text-neon-purple" },
+              { to: "/tournament", icon: Swords, label: "대결", color: "text-neon-cyan" },
             ].map((item) => (
               <Link
                 key={item.to}
