@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff, UserX } from "lucide-react";
+import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff, UserX, Megaphone, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Footer from "@/components/Footer";
 
@@ -18,7 +19,7 @@ const AdminPanelPage = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [tab, setTab] = useState<"nominations" | "creators" | "users">("nominations");
+  const [tab, setTab] = useState<"nominations" | "creators" | "users" | "board">("nominations");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -70,7 +71,7 @@ const AdminPanelPage = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setTab("nominations")}
             className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "nominations" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
@@ -89,9 +90,15 @@ const AdminPanelPage = () => {
           >
             <UserCog className="w-4 h-4 inline mr-1" />회원
           </button>
+          <button
+            onClick={() => setTab("board")}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "board" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
+          >
+            <Megaphone className="w-4 h-4 inline mr-1" />게시판
+          </button>
         </div>
 
-        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : <UsersTab />}
+        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : <BoardTab />}
       </div>
       <Footer />
     </div>
@@ -437,6 +444,217 @@ const UsersTab = () => {
                 {deleteUserMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <UserX className="w-4 h-4 mr-1" />}삭제
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+/* ─── Board Tab ─── */
+const BOARD_CATEGORIES = ["공지", "이벤트", "HOT"];
+
+const BoardTab = () => {
+  const queryClient = useQueryClient();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editPost, setEditPost] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [category, setCategory] = useState("공지");
+  const [author, setAuthor] = useState("Rankit 운영팀");
+
+  const { data: posts, isLoading } = useQuery({
+    queryKey: ["admin-board-posts"],
+    queryFn: async () => {
+      const { data } = await supabase.functions.invoke("admin", {
+        body: { action: "list_board_posts", admin_password: getAdminPw() },
+      });
+      return data?.posts || [];
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.functions.invoke("admin", {
+        body: { action: "create_board_post", title, content, category, author, admin_password: getAdminPw() },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("게시글이 등록되었습니다.");
+      setCreateOpen(false);
+      setTitle(""); setContent(""); setCategory("공지"); setAuthor("Rankit 운영팀");
+      queryClient.invalidateQueries({ queryKey: ["admin-board-posts"] });
+    },
+    onError: (e: any) => toast.error(`등록 실패: ${e.message}`),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
+      const { error } = await supabase.functions.invoke("admin", {
+        body: { action: "update_board_post", post_id: id, ...updates, admin_password: getAdminPw() },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("수정 완료");
+      setEditPost(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-board-posts"] });
+    },
+    onError: (e: any) => toast.error(`수정 실패: ${e.message}`),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.functions.invoke("admin", {
+        body: { action: "delete_board_post", post_id: id, admin_password: getAdminPw() },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("삭제 완료");
+      setDeleteTarget(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-board-posts"] });
+    },
+    onError: (e: any) => toast.error(`삭제 실패: ${e.message}`),
+  });
+
+  if (isLoading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
+
+  return (
+    <>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Badge variant="outline" className="text-xs">{(posts || []).length}건</Badge>
+          <Button size="sm" onClick={() => setCreateOpen(true)} className="h-8 text-xs">
+            <Plus className="w-3.5 h-3.5 mr-1" />새 게시글
+          </Button>
+        </div>
+
+        {(posts || []).map((post: any) => (
+          <div key={post.id} className="glass rounded-xl border border-glass-border p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <Badge className={`text-[10px] ${post.is_active ? "bg-green-500/20 text-green-400 border-green-500/30" : "bg-muted text-muted-foreground"}`}>
+                {post.is_active ? "활성" : "비활성"}
+              </Badge>
+              <Badge variant="secondary" className="text-[10px]">{post.category}</Badge>
+            </div>
+            <p className="text-sm font-semibold text-foreground truncate">{post.title}</p>
+            <p className="text-xs text-muted-foreground truncate">{post.author} · {new Date(post.created_at).toLocaleDateString("ko-KR")}</p>
+            <div className="flex gap-1">
+              <button
+                onClick={() => {
+                  setEditPost(post);
+                  setTitle(post.title);
+                  setContent(post.content);
+                  setCategory(post.category);
+                  setAuthor(post.author);
+                }}
+                className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => updateMutation.mutate({ id: post.id, updates: { is_active: !post.is_active } })}
+                className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground text-xs"
+              >
+                {post.is_active ? "비활성화" : "활성화"}
+              </button>
+              <button
+                onClick={() => setDeleteTarget(post)}
+                className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Create Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl">
+          <DialogHeader><DialogTitle className="text-base font-bold">새 게시글 작성</DialogTitle></DialogHeader>
+          <div className="space-y-3 pt-1">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">카테고리</label>
+              <div className="flex gap-1.5">
+                {BOARD_CATEGORIES.map((cat) => (
+                  <button key={cat} onClick={() => setCategory(cat)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${category === cat ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground hover:text-foreground"}`}>
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">제목</label>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} placeholder="제목을 입력하세요" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">작성자</label>
+              <Input value={author} onChange={(e) => setAuthor(e.target.value)} maxLength={50} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">내용</label>
+              <Textarea value={content} onChange={(e) => setContent(e.target.value)} rows={5} placeholder="내용을 입력하세요" />
+            </div>
+            <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending || !title.trim()} className="w-full">
+              {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}등록
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editPost} onOpenChange={(v) => !v && setEditPost(null)}>
+        <DialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl">
+          <DialogHeader><DialogTitle className="text-base font-bold">게시글 수정</DialogTitle></DialogHeader>
+          <div className="space-y-3 pt-1">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">카테고리</label>
+              <div className="flex gap-1.5">
+                {BOARD_CATEGORIES.map((cat) => (
+                  <button key={cat} onClick={() => setCategory(cat)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${category === cat ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground hover:text-foreground"}`}>
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">제목</label>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">작성자</label>
+              <Input value={author} onChange={(e) => setAuthor(e.target.value)} maxLength={50} />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">내용</label>
+              <Textarea value={content} onChange={(e) => setContent(e.target.value)} rows={5} />
+            </div>
+            <Button onClick={() => editPost && updateMutation.mutate({ id: editPost.id, updates: { title, content, category, author } })}
+              disabled={updateMutation.isPending || !title.trim()} className="w-full">
+              {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}저장
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirm */}
+      <Dialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
+        <DialogContent className="max-w-[90vw] sm:max-w-sm rounded-2xl">
+          <DialogHeader><DialogTitle className="text-base font-bold">게시글 삭제</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            <span className="font-bold text-foreground">"{deleteTarget?.title}"</span>을(를) 삭제하시겠습니까?
+          </p>
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDeleteTarget(null)} className="flex-1">취소</Button>
+            <Button variant="destructive" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending} className="flex-1">
+              {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}삭제
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      board_posts: {
+        Row: {
+          author: string
+          category: string
+          content: string
+          created_at: string
+          id: string
+          is_active: boolean
+          likes: number
+          title: string
+        }
+        Insert: {
+          author?: string
+          category?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          likes?: number
+          title: string
+        }
+        Update: {
+          author?: string
+          category?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          likes?: number
+          title?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           created_at: string
