@@ -606,7 +606,7 @@ const Index = () => {
 
         <ScrollReveal><StreakTracker /></ScrollReveal>
         <ScrollReveal delay={100}><WeeklyMissions /></ScrollReveal>
-        <ScrollReveal delay={200}><ReferralSystem /></ScrollReveal>
+        <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
 
         <div className="section-divider" />
 
@@ -642,8 +642,8 @@ const Index = () => {
 
         <div className="section-divider" />
 
-        {/* Nomination CTA (inline) */}
-        <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
+        {/* Referral System */}
+        <ScrollReveal delay={200}><ReferralSystem /></ScrollReveal>
 
         {/* Search & Filter Section */}
         <ScrollReveal>
