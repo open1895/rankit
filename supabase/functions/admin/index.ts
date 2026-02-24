@@ -27,7 +27,7 @@ serve(async (req) => {
     }
 
     // ─── Panel actions (password-only, used by /admin-panel) ──
-    const panelActions = ["list_nominations", "approve_nomination", "reject_nomination"];
+    const panelActions = ["list_nominations", "approve_nomination", "reject_nomination", "list_creators", "update_creator", "delete_creator"];
     const isPanelAction = panelActions.includes(action);
 
     // ─── Auth: panel actions use password, others use JWT+admin ──
