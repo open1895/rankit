@@ -101,14 +101,32 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Insert vote
-    const { error: insertError } = await supabase
-      .from("votes")
-      .insert({
-        creator_id,
-        user_id: userId,
-        voter_ip: userId ? userId : hashedIp,
-      });
+    // Insert vote with retry for deadlock
+    let insertError = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { error } = await supabase
+        .from("votes")
+        .insert({
+          creator_id,
+          user_id: userId,
+          voter_ip: userId ? userId : hashedIp,
+        });
+
+      if (!error) {
+        insertError = null;
+        break;
+      }
+
+      if (error.code === "40P01" && attempt < 2) {
+        // Deadlock - wait and retry
+        await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+        insertError = error;
+        continue;
+      }
+
+      insertError = error;
+      break;
+    }
 
     if (insertError) {
       console.error("Vote insert error:", insertError);
