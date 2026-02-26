@@ -1213,6 +1213,15 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: boolean
       }
+      get_prediction_event_stats: {
+        Args: never
+        Returns: {
+          bet_count: number
+          event_id: string
+          predicted_creator_id: string
+          total_amount: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

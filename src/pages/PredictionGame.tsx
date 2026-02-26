@@ -80,20 +80,19 @@ const PredictionGame = () => {
         setUserBets(betsMap);
       }
 
-      // Fetch aggregate bet counts per event
-      const { data: allBets } = await supabase
-        .from("prediction_bets")
-        .select("event_id, predicted_creator_id");
+      // Fetch aggregate bet counts per event using RPC function
+      const { data: statsData } = await supabase
+        .rpc("get_prediction_event_stats");
 
       const countsMap = new Map<string, { a: number; b: number }>();
-      (allBets || []).forEach((b: any) => {
-        const existing = countsMap.get(b.event_id) || { a: 0, b: 0 };
-        const event = processedEvents.find((e: PredictionEvent) => e.id === b.event_id);
+      (statsData || []).forEach((s: any) => {
+        const existing = countsMap.get(s.event_id) || { a: 0, b: 0 };
+        const event = processedEvents.find((e: PredictionEvent) => e.id === s.event_id);
         if (event) {
-          if (b.predicted_creator_id === event.creator_a_id) existing.a++;
-          else existing.b++;
+          if (s.predicted_creator_id === event.creator_a_id) existing.a += Number(s.bet_count);
+          else existing.b += Number(s.bet_count);
         }
-        countsMap.set(b.event_id, existing);
+        countsMap.set(s.event_id, existing);
       });
       setBetCounts(countsMap);
 
