@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Plus, Send } from "lucide-react";
@@ -237,22 +238,26 @@ const CommunityPage = () => {
 
       <Footer />
 
-      {/* FAB - Fixed, above tab bar, never overlaps */}
-      <button
-        onClick={() => setWriteOpen(true)}
-        className="fixed flex items-center gap-2 rounded-full transition-transform duration-200 ease-out hover:scale-105 active:scale-95 will-change-transform"
-        style={{
-          zIndex: 9999,
-          bottom: isMobile ? "100px" : "2rem",
-          right: "20px",
-          background: "linear-gradient(135deg, hsl(270,80%,60%), hsl(280,90%,50%))",
-          boxShadow: "0 6px 32px hsl(270,80%,50%,0.6), 0 0 50px hsl(270,80%,60%,0.35), 0 0 80px hsl(280,90%,50%,0.2)",
-          padding: isMobile ? "0.75rem 1.25rem" : "0.875rem 1.5rem",
-        }}
-      >
-        <Pencil className="w-4 h-4 text-white" />
-        <span className="text-white text-sm font-bold">글쓰기</span>
-      </button>
+      {/* FAB - Rendered via Portal to document.body, completely outside any parent */}
+      {createPortal(
+        <button
+          onClick={() => setWriteOpen(true)}
+          className="flex items-center gap-2 rounded-full transition-transform duration-200 ease-out hover:scale-105 active:scale-95 will-change-transform"
+          style={{
+            position: "fixed",
+            zIndex: 9999,
+            bottom: isMobile ? "100px" : "2rem",
+            right: "20px",
+            background: "linear-gradient(135deg, hsl(270,80%,60%), hsl(280,90%,50%))",
+            boxShadow: "0 6px 32px hsl(270,80%,50%,0.6), 0 0 50px hsl(270,80%,60%,0.35), 0 0 80px hsl(280,90%,50%,0.2)",
+            padding: isMobile ? "0.75rem 1.25rem" : "0.875rem 1.5rem",
+          }}
+        >
+          <Pencil className="w-4 h-4 text-white" />
+          <span className="text-white text-sm font-bold">글쓰기</span>
+        </button>,
+        document.body
+      )}
 
       {/* Detail Modal */}
       <Dialog open={!!selectedPost} onOpenChange={() => setSelectedPost(null)}>
