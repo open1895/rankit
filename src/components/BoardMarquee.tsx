@@ -137,7 +137,7 @@ const BoardMarquee = () => {
                 <button
                   key={`${post.id}-${i}`}
                   onClick={() => setSelectedPost(post)}
-                  className="shrink-0 w-[180px] flex flex-col p-3.5 rounded-2xl border border-white/10 backdrop-blur-xl bg-white/[0.04] transition-all duration-300 hover:scale-[1.05] hover:border-white/25 text-left cursor-pointer group"
+                  className="shrink-0 w-[140px] h-[200px] flex flex-col p-3 rounded-2xl border border-white/10 backdrop-blur-xl bg-white/[0.04] transition-all duration-300 hover:scale-[1.05] hover:border-white/25 text-left cursor-pointer group"
                   style={{
                     boxShadow: "0 4px 24px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.03)",
                   }}
@@ -150,13 +150,13 @@ const BoardMarquee = () => {
                   </span>
 
                   {/* Title - 2 line clamp */}
-                  <p className="text-xs font-semibold text-foreground line-clamp-2 leading-[1.4] group-hover:text-neon-cyan transition-colors mb-auto min-h-[2.8em]">
+                  <p className="text-xs font-semibold text-foreground line-clamp-3 leading-[1.5] group-hover:text-neon-cyan transition-colors flex-1">
                     {post.title}
                   </p>
 
                   {/* Author & Likes */}
-                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
-                    <span className="text-[10px] text-muted-foreground truncate max-w-[60%]">
+                  <div className="flex flex-col gap-1 mt-auto pt-2 border-t border-white/5">
+                    <span className="text-[10px] text-muted-foreground truncate">
                       {post.author}
                     </span>
                     <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
