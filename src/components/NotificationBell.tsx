@@ -1,76 +1,62 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, BellRing } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Bell, BellRing, Check } from "lucide-react";
 import { toast } from "sonner";
 
-interface NotificationItem {
+interface Notification {
   id: string;
+  type: string;
+  title: string;
   message: string;
-  time: number;
-  read: boolean;
+  link: string | null;
+  is_read: boolean;
+  created_at: string;
 }
 
 const NotificationBell = () => {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
-    const saved = localStorage.getItem("rank_notifications");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [permissionState, setPermissionState] = useState<NotificationPermission>(
-    typeof Notification !== "undefined" ? Notification.permission : "denied"
-  );
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  const requestPermission = useCallback(async () => {
-    if (typeof Notification === "undefined") return;
-    const permission = await Notification.requestPermission();
-    setPermissionState(permission);
-    if (permission === "granted") {
-      toast.success("알림이 활성화되었습니다! 🔔");
-    }
-  }, []);
+  // Fetch notifications from DB
+  const fetchNotifications = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(30);
+    if (data) setNotifications(data as Notification[]);
+  }, [user]);
 
-  // Subscribe to rank changes
   useEffect(() => {
-    // Get favorite creators from localStorage
-    const favs: string[] = JSON.parse(localStorage.getItem("favorite_creators") || "[]");
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  // Realtime subscription for new notifications
+  useEffect(() => {
+    if (!user) return;
 
     const channel = supabase
-      .channel("rank-notifications")
+      .channel("user-notifications")
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "creators" },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
         (payload) => {
-          const updated = payload.new as any;
-          const old = payload.old as any;
-
-          if (!old?.rank || !updated?.rank || old.rank === updated.rank) return;
-
-          const direction = updated.rank < old.rank ? "상승" : "하락";
-          const emoji = updated.rank < old.rank ? "🔥" : "📉";
-          const message = `${updated.name} ${old.rank}위 → ${updated.rank}위 ${direction} ${emoji}`;
-
-          const newNotif: NotificationItem = {
-            id: `${updated.id}-${Date.now()}`,
-            message,
-            time: Date.now(),
-            read: false,
-          };
-
-          setNotifications((prev) => {
-            const updated = [newNotif, ...prev].slice(0, 50);
-            localStorage.setItem("rank_notifications", JSON.stringify(updated));
-            return updated;
-          });
-
-          // Send browser notification for favorited creators
-          if (permissionState === "granted" && favs.includes(updated.id)) {
-            new Notification("Rank It - 순위 변동!", {
-              body: message,
-              icon: "/favicon.ico",
-            });
-          }
+          const newNotif = payload.new as Notification;
+          setNotifications((prev) => [newNotif, ...prev].slice(0, 50));
+          toast.info(newNotif.title, { description: newNotif.message });
         }
       )
       .subscribe();
@@ -78,29 +64,67 @@ const NotificationBell = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [permissionState]);
+  }, [user]);
 
-  const markAllRead = () => {
-    const updated = notifications.map((n) => ({ ...n, read: true }));
-    setNotifications(updated);
-    localStorage.setItem("rank_notifications", JSON.stringify(updated));
+  const markAllRead = async () => {
+    if (!user) return;
+    const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+
+    await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .in("id", unreadIds);
+
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
   };
 
-  const toggleFavorite = (creatorId: string) => {
-    const favs: string[] = JSON.parse(localStorage.getItem("favorite_creators") || "[]");
-    const idx = favs.indexOf(creatorId);
-    if (idx >= 0) favs.splice(idx, 1);
-    else favs.push(creatorId);
-    localStorage.setItem("favorite_creators", JSON.stringify(favs));
+  const handleClick = async (notif: Notification) => {
+    // Mark as read
+    if (!notif.is_read) {
+      await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("id", notif.id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n))
+      );
+    }
+
+    // Navigate to link
+    if (notif.link) {
+      setIsOpen(false);
+      navigate(notif.link);
+    }
   };
+
+  const formatTime = (dateStr: string) => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "방금 전";
+    if (mins < 60) return `${mins}분 전`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}시간 전`;
+    const days = Math.floor(hours / 24);
+    return `${days}일 전`;
+  };
+
+  const typeIcon = (type: string) => {
+    switch (type) {
+      case "comment": return "💬";
+      case "prediction": return "🎯";
+      case "rank": return "📊";
+      default: return "🔔";
+    }
+  };
+
+  // If not logged in, show nothing
+  if (!user) return null;
 
   return (
     <div className="relative">
       <button
-        onClick={() => {
-          if (permissionState === "default") requestPermission();
-          setIsOpen(!isOpen);
-        }}
+        onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 rounded-lg glass-sm hover:border-neon-cyan/50 transition-all"
       >
         {unreadCount > 0 ? (
@@ -109,50 +133,68 @@ const NotificationBell = () => {
           <Bell className="w-4 h-4 text-muted-foreground" />
         )}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-neon-purple text-[9px] font-bold text-primary-foreground flex items-center justify-center">
-            {unreadCount > 9 ? "9+" : unreadCount}
+          <span className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground flex items-center justify-center px-1">
+            {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-72 glass p-3 space-y-2 z-50">
-          <div className="flex items-center justify-between">
-            <h4 className="text-xs font-semibold">🔔 순위 변동 알림</h4>
-            {unreadCount > 0 && (
-              <button onClick={markAllRead} className="text-[10px] text-neon-cyan hover:underline">
-                모두 읽음
-              </button>
-            )}
-          </div>
+        <>
+          {/* Backdrop */}
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
 
-          {permissionState !== "granted" && (
-            <button
-              onClick={requestPermission}
-              className="w-full text-[10px] p-2 rounded-lg bg-neon-purple/15 text-neon-purple hover:bg-neon-purple/25 transition-colors"
-            >
-              🔔 브라우저 알림 활성화하기
-            </button>
-          )}
-
-          <div className="max-h-60 overflow-y-auto space-y-1 scrollbar-hide">
-            {notifications.length === 0 ? (
-              <p className="text-[10px] text-muted-foreground text-center py-3">아직 알림이 없습니다</p>
-            ) : (
-              notifications.slice(0, 20).map((n) => (
-                <div
-                  key={n.id}
-                  className={`p-2 rounded-lg text-[11px] ${n.read ? "bg-muted/30" : "bg-neon-purple/10 border border-neon-purple/20"}`}
+          <div className="absolute right-0 top-full mt-2 w-80 glass rounded-xl p-3 space-y-2 z-50 shadow-xl border border-border/50">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-semibold text-foreground">🔔 알림 센터</h4>
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllRead}
+                  className="flex items-center gap-1 text-[10px] text-primary hover:underline"
                 >
-                  <p>{n.message}</p>
-                  <span className="text-[9px] text-muted-foreground">
-                    {new Date(n.time).toLocaleTimeString("ko-KR")}
-                  </span>
-                </div>
-              ))
-            )}
+                  <Check className="w-3 h-3" />
+                  모두 읽음
+                </button>
+              )}
+            </div>
+
+            <div className="max-h-72 overflow-y-auto space-y-1 scrollbar-hide">
+              {notifications.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground text-center py-6">
+                  아직 알림이 없습니다
+                </p>
+              ) : (
+                notifications.map((n) => (
+                  <button
+                    key={n.id}
+                    onClick={() => handleClick(n)}
+                    className={`w-full text-left p-2.5 rounded-lg text-[11px] transition-colors ${
+                      n.is_read
+                        ? "bg-muted/30 hover:bg-muted/50"
+                        : "bg-primary/10 border border-primary/20 hover:bg-primary/15"
+                    } ${n.link ? "cursor-pointer" : "cursor-default"}`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <span className="text-sm mt-0.5 shrink-0">{typeIcon(n.type)}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-medium truncate ${n.is_read ? "text-muted-foreground" : "text-foreground"}`}>
+                          {n.title}
+                        </p>
+                        <p className="text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
+                        <span className="text-[9px] text-muted-foreground/70 mt-1 block">
+                          {formatTime(n.created_at)}
+                        </span>
+                      </div>
+                      {!n.is_read && (
+                        <span className="w-2 h-2 rounded-full bg-destructive shrink-0 mt-1" />
+                      )}
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
