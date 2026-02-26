@@ -1208,6 +1208,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      batch_recalculate_ranks: { Args: never; Returns: undefined }
       deduct_tickets: {
         Args: { p_amount: number; p_user_id: string }
         Returns: boolean
