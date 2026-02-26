@@ -90,6 +90,7 @@ export type Database = {
           is_active: boolean
           likes: number
           title: string
+          user_id: string | null
         }
         Insert: {
           author?: string
@@ -102,6 +103,7 @@ export type Database = {
           is_active?: boolean
           likes?: number
           title: string
+          user_id?: string | null
         }
         Update: {
           author?: string
@@ -114,6 +116,7 @@ export type Database = {
           is_active?: boolean
           likes?: number
           title?: string
+          user_id?: string | null
         }
         Relationships: []
       }

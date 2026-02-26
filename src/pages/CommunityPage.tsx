@@ -4,7 +4,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
-import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Send, MessageCircle, User, ImagePlus, ChevronLeft, ChevronRight, Image as ImageIcon, EyeOff } from "lucide-react";
+import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Send, MessageCircle, User, ImagePlus, ChevronLeft, ChevronRight, Image as ImageIcon, EyeOff, Trash2, Edit3, MoreVertical } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SEOHead from "@/components/SEOHead";
@@ -22,6 +22,7 @@ interface BoardPost {
   created_at: string;
   comments_count: number;
   image_urls: string[] | null;
+  user_id: string | null;
 }
 
 interface PostComment {
@@ -229,6 +230,12 @@ const CommunityPage = () => {
   const [heartPop, setHeartPop] = useState<string | null>(null);
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
   const commentsEndRef = useRef<HTMLDivElement>(null);
+  // Edit/Delete state
+  const [editMode, setEditMode] = useState(false);
+  const [editForm, setEditForm] = useState({ title: "", content: "" });
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [showPostMenu, setShowPostMenu] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("write") === "true") {
@@ -408,7 +415,6 @@ const CommunityPage = () => {
         toast({ title: "티켓 부족", description: "익명 글쓰기에는 티켓 2장이 필요합니다.", variant: "destructive" });
         return;
       }
-      // Deduct tickets via edge function
       const { data: ticketRes } = await supabase.functions.invoke("tickets", {
         body: { action: "anonymous_post" },
       });
@@ -422,7 +428,6 @@ const CommunityPage = () => {
 
     setSubmitting(true);
 
-    // Upload images first
     let imageUrls: string[] = [];
     if (selectedImages.length > 0) {
       imageUrls = await uploadImages();
@@ -436,6 +441,7 @@ const CommunityPage = () => {
       author: authorName,
       category: writeForm.category,
       image_urls: imageUrls.length > 0 ? imageUrls : null,
+      user_id: user?.id || null,
     });
     if (error) {
       console.error("Post insert error:", error);
@@ -445,13 +451,63 @@ const CommunityPage = () => {
       setWriteOpen(false);
       setWriteForm({ title: "", content: "", author: "", category: "HOT" });
       setAnonymousMode(false);
-      // Clean up image previews
       selectedImages.forEach((img) => URL.revokeObjectURL(img.preview));
       setSelectedImages([]);
       await fetchPosts();
     }
     setSubmitting(false);
   };
+
+  // --- Edit Post ---
+  const handleEditStart = () => {
+    if (!selectedPost) return;
+    setEditForm({ title: selectedPost.title, content: selectedPost.content });
+    setEditMode(true);
+    setShowPostMenu(false);
+  };
+
+  const handleEditSubmit = async () => {
+    if (!selectedPost || !editForm.title.trim() || !editForm.content.trim()) {
+      toast({ title: "입력 오류", description: "제목과 내용을 입력해주세요.", variant: "destructive" });
+      return;
+    }
+    setEditSubmitting(true);
+    const { error } = await supabase
+      .from("board_posts")
+      .update({ title: editForm.title.trim(), content: editForm.content.trim() })
+      .eq("id", selectedPost.id);
+    if (error) {
+      console.error("Edit error:", error);
+      toast({ title: "수정 실패", description: "게시글 수정에 실패했습니다.", variant: "destructive" });
+    } else {
+      toast({ title: "✏️ 수정 완료", description: "게시글이 수정되었습니다." });
+      setSelectedPost({ ...selectedPost, title: editForm.title.trim(), content: editForm.content.trim() });
+      setPosts((prev) => prev.map((p) => p.id === selectedPost.id ? { ...p, title: editForm.title.trim(), content: editForm.content.trim() } : p));
+      setEditMode(false);
+    }
+    setEditSubmitting(false);
+  };
+
+  // --- Delete Post ---
+  const handleDelete = async () => {
+    if (!selectedPost) return;
+    const { error } = await supabase
+      .from("board_posts")
+      .delete()
+      .eq("id", selectedPost.id);
+    if (error) {
+      console.error("Delete error:", error);
+      toast({ title: "삭제 실패", description: "게시글 삭제에 실패했습니다.", variant: "destructive" });
+    } else {
+      toast({ title: "🗑️ 삭제 완료", description: "게시글이 삭제되었습니다." });
+      setSelectedPost(null);
+      setDeleteConfirm(false);
+      setShowPostMenu(false);
+      setPosts((prev) => prev.filter((p) => p.id !== selectedPost.id));
+    }
+  };
+
+  const isPostOwner = (post: BoardPost) => user && post.user_id && user.id === post.user_id;
 
   const filtered = posts.filter((p) => {
     if (selectedTab !== "all" && p.category !== selectedTab) return false;
@@ -623,7 +679,7 @@ const CommunityPage = () => {
       )}
 
       {/* ====== Detail Modal ====== */}
-      <Dialog open={!!selectedPost} onOpenChange={(open) => { if (!open) { setSelectedPost(null); setComments([]); } }}>
+      <Dialog open={!!selectedPost} onOpenChange={(open) => { if (!open) { setSelectedPost(null); setComments([]); setEditMode(false); setDeleteConfirm(false); setShowPostMenu(false); } }}>
         <DialogContent className="max-w-[92vw] sm:max-w-md rounded-2xl border border-white/10 backdrop-blur-xl p-0 flex flex-col" style={{ maxHeight: "85vh" }}>
           {selectedPost && (() => {
             const style = getCategoryStyle(selectedPost.category);
@@ -635,11 +691,41 @@ const CommunityPage = () => {
                 {/* Header */}
                 <div className="p-5 pb-0">
                   <DialogHeader>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${style.bg} ${style.text} ${style.border} ${style.glow}`}>
-                        [{selectedPost.category}]
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">{formatTimeAgo(selectedPost.created_at)}</span>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${style.bg} ${style.text} ${style.border} ${style.glow}`}>
+                          [{selectedPost.category}]
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">{formatTimeAgo(selectedPost.created_at)}</span>
+                      </div>
+                      {isPostOwner(selectedPost) && (
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowPostMenu(!showPostMenu)}
+                            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-muted-foreground hover:text-foreground"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                          {showPostMenu && (
+                            <div className="absolute right-0 top-8 z-50 w-28 rounded-xl border border-white/10 backdrop-blur-xl bg-card/95 shadow-xl overflow-hidden animate-fade-in">
+                              <button
+                                onClick={handleEditStart}
+                                className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-foreground hover:bg-white/10 transition-colors"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                                수정
+                              </button>
+                              <button
+                                onClick={() => { setDeleteConfirm(true); setShowPostMenu(false); }}
+                                className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                삭제
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <DialogTitle className="text-base font-bold">{selectedPost.title}</DialogTitle>
                     <p className="text-xs text-muted-foreground">{selectedPost.author}</p>
@@ -655,10 +741,71 @@ const CommunityPage = () => {
                     </div>
                   )}
 
-                  {/* Post content */}
-                  <div className="pt-3 pb-4 text-sm text-foreground/90 whitespace-pre-line leading-relaxed">
-                    {selectedPost.content}
-                  </div>
+                  {/* Delete Confirmation */}
+                  {deleteConfirm && (
+                    <div className="pt-3 pb-3">
+                      <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 space-y-3">
+                        <p className="text-sm font-semibold text-red-400">정말 이 게시글을 삭제하시겠습니까?</p>
+                        <p className="text-xs text-muted-foreground">삭제된 게시글은 복구할 수 없습니다.</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleDelete}
+                            className="flex-1 py-2 rounded-lg bg-red-500/20 text-red-400 text-xs font-bold hover:bg-red-500/30 transition-colors"
+                          >
+                            삭제
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirm(false)}
+                            className="flex-1 py-2 rounded-lg bg-white/5 text-muted-foreground text-xs font-bold hover:bg-white/10 transition-colors"
+                          >
+                            취소
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Post content or Edit form */}
+                  {editMode ? (
+                    <div className="pt-3 pb-4 space-y-3">
+                      <input
+                        type="text"
+                        value={editForm.title}
+                        onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+                        maxLength={100}
+                        className="w-full px-3 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50"
+                        placeholder="제목"
+                      />
+                      <textarea
+                        value={editForm.content}
+                        onChange={(e) => setEditForm((f) => ({ ...f, content: e.target.value }))}
+                        rows={5}
+                        maxLength={2000}
+                        className="w-full px-3 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50 resize-none"
+                        placeholder="내용"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleEditSubmit}
+                          disabled={editSubmitting || !editForm.title.trim() || !editForm.content.trim()}
+                          className="flex-1 py-2 rounded-xl text-xs font-bold text-white disabled:opacity-40 transition-all flex items-center justify-center gap-1.5"
+                          style={{ background: "linear-gradient(135deg, hsl(270,80%,60%), hsl(280,90%,50%))" }}
+                        >
+                          {editSubmitting ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Edit3 className="w-3 h-3" />수정 완료</>}
+                        </button>
+                        <button
+                          onClick={() => setEditMode(false)}
+                          className="px-4 py-2 rounded-xl text-xs font-bold glass-sm text-muted-foreground hover:text-foreground transition-all"
+                        >
+                          취소
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="pt-3 pb-4 text-sm text-foreground/90 whitespace-pre-line leading-relaxed">
+                      {selectedPost.content}
+                    </div>
+                  )}
 
                   {/* Like & Comment bar */}
                   <div className="flex items-center gap-4 py-3 border-t border-b border-white/10">
