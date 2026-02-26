@@ -1213,6 +1213,22 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: boolean
       }
+      get_creator_daily_votes: {
+        Args: { p_creator_id: string; p_days?: number }
+        Returns: {
+          vote_count: number
+          vote_date: string
+        }[]
+      }
+      get_creator_hourly_votes: {
+        Args: { p_creator_id: string }
+        Returns: {
+          today_count: number
+          vote_count: number
+          vote_hour: number
+          yesterday_count: number
+        }[]
+      }
       get_prediction_event_stats: {
         Args: never
         Returns: {

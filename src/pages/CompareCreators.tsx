@@ -2,9 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import Footer from "@/components/Footer";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Crown, Search, X, GitCompareArrows, Heart, Users, Trophy } from "lucide-react";
+import { ArrowLeft, Crown, Search, X, GitCompareArrows, Heart, Users, Trophy, TrendingUp } from "lucide-react";
 
 import SEOHead from "@/components/SEOHead";
+import VoteTrendChart from "@/components/VoteTrendChart";
 import {
   BarChart,
   Bar,
@@ -232,6 +233,25 @@ const CompareCreators = () => {
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
+                </div>
+
+                {/* 7-Day Vote Trend Comparison */}
+                <div className="glass p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-neon-purple" />
+                    <h3 className="text-sm font-semibold text-center">📈 최근 7일 득표 추이</h3>
+                  </div>
+                  <VoteTrendChart
+                    creatorId={creatorA.id}
+                    color="hsl(270 91% 65%)"
+                    label={creatorA.name}
+                  />
+                  <div className="border-t border-glass-border/30 my-2" />
+                  <VoteTrendChart
+                    creatorId={creatorB.id}
+                    color="hsl(187 94% 42%)"
+                    label={creatorB.name}
+                  />
                 </div>
 
                 {/* Winner */}

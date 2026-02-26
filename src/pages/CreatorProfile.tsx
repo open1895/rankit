@@ -16,6 +16,8 @@ import RankitVerifiedBadge from "@/components/RankitVerifiedBadge";
 import { generateWeeklyPDF } from "@/lib/pdfReport";
 import { useHallOfFameWins, getWinTitle } from "@/hooks/useHallOfFame";
 import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
+import VoteTrendChart from "@/components/VoteTrendChart";
+import VoteHeatmapChart from "@/components/VoteHeatmapChart";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -1179,6 +1181,24 @@ const CreatorProfile = () => {
               </AreaChart>
             </ResponsiveContainer>
           )}
+        </div>
+
+        {/* 7-Day Vote Trend */}
+        <div className="glass p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-neon-cyan" />
+            <h3 className="text-sm font-semibold">📈 최근 7일 득표 추이</h3>
+          </div>
+          <VoteTrendChart creatorId={id!} />
+        </div>
+
+        {/* Vote Heatmap */}
+        <div className="glass p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-orange-400" />
+            <h3 className="text-sm font-semibold">🔥 시간대별 화력 분석</h3>
+          </div>
+          <VoteHeatmapChart creatorId={id!} />
         </div>
 
         {/* Fan Ranking Leaderboard */}
