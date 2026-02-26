@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Plus, Send } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
@@ -89,7 +90,10 @@ const CommunityPage = () => {
   }, []);
 
   const handleSubmit = async () => {
-    if (!writeForm.title.trim() || !writeForm.content.trim() || !writeForm.author.trim()) return;
+    if (!writeForm.title.trim() || !writeForm.content.trim() || !writeForm.author.trim()) {
+      toast({ title: "입력 오류", description: "닉네임, 제목, 내용을 모두 입력해주세요.", variant: "destructive" });
+      return;
+    }
     setSubmitting(true);
     const { error } = await supabase.from("board_posts").insert({
       title: writeForm.title.trim(),
@@ -97,10 +101,12 @@ const CommunityPage = () => {
       author: writeForm.author.trim(),
       category: writeForm.category,
     });
-    if (!error) {
+    if (error) {
+      toast({ title: "등록 실패", description: "게시글 등록에 실패했습니다. 다시 시도해주세요.", variant: "destructive" });
+    } else {
+      toast({ title: "등록 완료 🎉", description: "게시글이 성공적으로 등록되었습니다!" });
       setWriteOpen(false);
       setWriteForm({ title: "", content: "", author: "", category: "HOT" });
-      // Refresh posts
       const { data } = await supabase
         .from("board_posts")
         .select("*")
