@@ -45,6 +45,7 @@ const App = () => (
                   <Route path="/creator/:id" element={<CreatorProfile />} />
                   <Route path="/creator/:id/board" element={<CreatorBoard />} />
                   <Route path="/mypage" element={<MyPage />} />
+                  <Route path="/my" element={<MyPage />} />
                   <Route path="/support" element={<Support />} />
                   <Route path="/seasons" element={<SeasonArchive />} />
                   <Route path="/compare" element={<CompareCreators />} />
@@ -55,6 +56,7 @@ const App = () => (
                   <Route path="/admin-panel" element={<AdminPanelPage />} />
                   <Route path="/hall-of-fame" element={<HallOfFame />} />
                   <Route path="/predictions" element={<PredictionGame />} />
+                  <Route path="/prediction" element={<PredictionGame />} />
                   <Route path="/community" element={<CommunityPage />} />
                   <Route path="/widget/creator/:id" element={<WidgetPage />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
