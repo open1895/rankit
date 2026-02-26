@@ -9,54 +9,76 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
-const ADMIN_SESSION_KEY = "rankit_admin_authenticated";
 const CATEGORIES = ["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크", "아트", "교육", "댄스"];
 
-const getAdminPw = () => sessionStorage.getItem("rankit_admin_pw") || "";
-
 const AdminPanelPage = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const { user, loading: authLoading } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingRole, setCheckingRole] = useState(true);
   const [tab, setTab] = useState<"nominations" | "creators" | "users" | "board">("nominations");
-  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (sessionStorage.getItem(ADMIN_SESSION_KEY) === "true") setIsAuthenticated(true);
-  }, []);
+    const checkAdminRole = async () => {
+      if (!user) {
+        setCheckingRole(false);
+        return;
+      }
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      setIsAdmin(!!data);
+      setCheckingRole(false);
+    };
+    if (!authLoading) checkAdminRole();
+  }, [user, authLoading]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    try {
-      const { data, error: fnError } = await supabase.functions.invoke("admin", {
-        body: { action: "verify_password", password },
-      });
-      if (fnError || !data?.verified) { setError("접근 권한이 없습니다"); setPassword(""); return; }
-      sessionStorage.setItem(ADMIN_SESSION_KEY, "true");
-      sessionStorage.setItem("rankit_admin_pw", password);
-      setIsAuthenticated(true);
-      toast.success("관리자 인증 완료");
-    } catch { setError("접근 권한이 없습니다"); setPassword(""); }
-  };
+  if (authLoading || checkingRole) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-full max-w-sm mx-auto p-6">
-          <form onSubmit={handleLogin} className="glass rounded-xl border border-glass-border p-8 space-y-6">
+          <div className="glass rounded-xl border border-glass-border p-8 space-y-6 text-center">
             <div className="flex flex-col items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Lock className="w-6 h-6 text-primary" />
               </div>
-              <h2 className="text-xl font-bold text-foreground">관리자 인증</h2>
-              <p className="text-sm text-muted-foreground text-center">관리자 비밀번호를 입력해주세요</p>
+              <h2 className="text-xl font-bold text-foreground">로그인 필요</h2>
+              <p className="text-sm text-muted-foreground">관리자 패널에 접근하려면 로그인이 필요합니다.</p>
             </div>
-            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="비밀번호" className="text-center" autoFocus />
-            {error && <p className="text-sm text-destructive text-center font-medium">{error}</p>}
-            <Button type="submit" className="w-full" disabled={!password}>인증</Button>
-          </form>
+            <Button onClick={() => navigate("/auth")} className="w-full">로그인</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-full max-w-sm mx-auto p-6">
+          <div className="glass rounded-xl border border-glass-border p-8 space-y-4 text-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                <Shield className="w-6 h-6 text-destructive" />
+              </div>
+              <h2 className="text-xl font-bold text-foreground">접근 거부</h2>
+              <p className="text-sm text-muted-foreground">관리자 권한이 없습니다.</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -113,7 +135,7 @@ const NominationsTab = () => {
     queryKey: ["pending-nominations"],
     queryFn: async () => {
       const { data } = await supabase.functions.invoke("admin", {
-        body: { action: "list_nominations", admin_password: getAdminPw() },
+        body: { action: "list_nominations" },
       });
       return (data?.nominations || []).filter((n: any) => n.status === "pending");
     },
@@ -121,7 +143,7 @@ const NominationsTab = () => {
 
   const approveMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { data, error } = await supabase.functions.invoke("admin", { body: { action: "approve_nomination", nomination_id: id, admin_password: getAdminPw() } });
+      const { data, error } = await supabase.functions.invoke("admin", { body: { action: "approve_nomination", nomination_id: id } });
       if (error) throw error; return data;
     },
     onSuccess: () => { toast.success("승인 완료!"); queryClient.invalidateQueries({ queryKey: ["pending-nominations"] }); },
@@ -130,7 +152,7 @@ const NominationsTab = () => {
 
   const rejectMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { data, error } = await supabase.functions.invoke("admin", { body: { action: "reject_nomination", nomination_id: id, admin_password: getAdminPw() } });
+      const { data, error } = await supabase.functions.invoke("admin", { body: { action: "reject_nomination", nomination_id: id } });
       if (error) throw error; return data;
     },
     onSuccess: () => { toast.success("반려 완료"); queryClient.invalidateQueries({ queryKey: ["pending-nominations"] }); },
@@ -182,7 +204,7 @@ const CreatorsTab = () => {
   const { data: creators, isLoading } = useQuery({
     queryKey: ["admin-creators"],
     queryFn: async () => {
-      const { data } = await supabase.functions.invoke("admin", { body: { action: "list_creators", admin_password: getAdminPw() } });
+      const { data } = await supabase.functions.invoke("admin", { body: { action: "list_creators" } });
       return data?.creators || [];
     },
   });
@@ -190,7 +212,7 @@ const CreatorsTab = () => {
   const updateMutation = useMutation({
     mutationFn: async ({ id, name, category }: { id: string; name: string; category: string }) => {
       const { data, error } = await supabase.functions.invoke("admin", {
-        body: { action: "update_creator", creator_id: id, name, category, admin_password: getAdminPw() },
+        body: { action: "update_creator", creator_id: id, name, category },
       });
       if (error) throw error; return data;
     },
@@ -201,7 +223,7 @@ const CreatorsTab = () => {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await supabase.functions.invoke("admin", {
-        body: { action: "delete_creator", creator_id: id, admin_password: getAdminPw() },
+        body: { action: "delete_creator", creator_id: id },
       });
       if (error) throw error; return data;
     },
@@ -302,7 +324,7 @@ const UsersTab = () => {
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const { data } = await supabase.functions.invoke("admin", { body: { action: "list_users", admin_password: getAdminPw() } });
+      const { data } = await supabase.functions.invoke("admin", { body: { action: "list_users" } });
       return data?.users || [];
     },
   });
@@ -310,7 +332,7 @@ const UsersTab = () => {
   const setRoleMutation = useMutation({
     mutationFn: async ({ user_id, role }: { user_id: string; role: string }) => {
       const { data, error } = await supabase.functions.invoke("admin", {
-        body: { action: "set_role", user_id, role, admin_password: getAdminPw() },
+        body: { action: "set_role", user_id, role },
       });
       if (error) throw error; return data;
     },
@@ -321,7 +343,7 @@ const UsersTab = () => {
   const removeRoleMutation = useMutation({
     mutationFn: async ({ user_id, role }: { user_id: string; role: string }) => {
       const { data, error } = await supabase.functions.invoke("admin", {
-        body: { action: "remove_role", user_id, role, admin_password: getAdminPw() },
+        body: { action: "remove_role", user_id, role },
       });
       if (error) throw error; return data;
     },
@@ -332,7 +354,7 @@ const UsersTab = () => {
   const deleteUserMutation = useMutation({
     mutationFn: async (user_id: string) => {
       const { data, error } = await supabase.functions.invoke("admin", {
-        body: { action: "delete_user", user_id, admin_password: getAdminPw() },
+        body: { action: "delete_user", user_id },
       });
       if (error) throw error; return data;
     },
@@ -468,7 +490,7 @@ const BoardTab = () => {
     queryKey: ["admin-board-posts"],
     queryFn: async () => {
       const { data } = await supabase.functions.invoke("admin", {
-        body: { action: "list_board_posts", admin_password: getAdminPw() },
+        body: { action: "list_board_posts" },
       });
       return data?.posts || [];
     },
@@ -477,7 +499,7 @@ const BoardTab = () => {
   const createMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.functions.invoke("admin", {
-        body: { action: "create_board_post", title, content, category, author, admin_password: getAdminPw() },
+        body: { action: "create_board_post", title, content, category, author },
       });
       if (error) throw error;
     },
@@ -493,7 +515,7 @@ const BoardTab = () => {
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
       const { error } = await supabase.functions.invoke("admin", {
-        body: { action: "update_board_post", post_id: id, ...updates, admin_password: getAdminPw() },
+        body: { action: "update_board_post", post_id: id, ...updates },
       });
       if (error) throw error;
     },
@@ -508,7 +530,7 @@ const BoardTab = () => {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.functions.invoke("admin", {
-        body: { action: "delete_board_post", post_id: id, admin_password: getAdminPw() },
+        body: { action: "delete_board_post", post_id: id },
       });
       if (error) throw error;
     },

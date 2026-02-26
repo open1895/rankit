@@ -7,10 +7,6 @@ const corsHeaders = {
   "Content-Type": "application/json",
 };
 
-function getAdminPassword(): string {
-  return Deno.env.get("ADMIN_PANEL_PASSWORD") || "rankit1234";
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -19,56 +15,37 @@ serve(async (req) => {
   try {
     const { action, ...body } = await req.json();
 
-    // ─── VERIFY PASSWORD (no auth required) ───────────────
-    if (action === "verify_password") {
-      const { password } = body;
-      const verified = password === getAdminPassword();
-      return new Response(JSON.stringify({ verified }), { headers: corsHeaders });
+    // ─── All actions require JWT + admin role ──────────────
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
     }
 
-    // ─── Panel actions (password-only, used by /admin-panel) ──
-    const panelActions = ["list_nominations", "approve_nomination", "reject_nomination", "list_creators", "update_creator", "delete_creator", "list_users", "set_role", "remove_role", "delete_user", "list_board_posts", "create_board_post", "update_board_post", "delete_board_post"];
-    const isPanelAction = panelActions.includes(action);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // ─── Auth: panel actions use password, others use JWT+admin ──
-    if (isPanelAction) {
-      const { admin_password } = body;
-      if (admin_password !== getAdminPassword()) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
-      }
-    } else {
-      const authHeader = req.headers.get("Authorization");
-      if (!authHeader) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
-      }
+    const authClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
 
-      const supabase = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_ANON_KEY")!,
-        { global: { headers: { Authorization: authHeader } } }
-      );
-
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
-      }
-
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-
-      if (!roleData) {
-        return new Response(JSON.stringify({ error: "Forbidden: Admin only" }), { status: 403, headers: corsHeaders });
-      }
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
     }
 
-    const adminClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    // Verify admin role
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const { data: roleData } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (!roleData) {
+      return new Response(JSON.stringify({ error: "Forbidden: Admin only" }), { status: 403, headers: corsHeaders });
+    }
 
     // ─── LIST USERS ───────────────────────────────────────
     if (action === "list_users") {
@@ -224,11 +201,11 @@ serve(async (req) => {
       await adminClient.from("nominations").update({ status: "approved" }).eq("id", nomination_id);
 
       try {
-        const statsUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/fetch-social-stats`;
+        const statsUrl = `${supabaseUrl}/functions/v1/fetch-social-stats`;
         await fetch(statsUrl, {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+            "Authorization": `Bearer ${serviceRoleKey}`,
             "Content-Type": "application/json",
           },
         });
@@ -276,8 +253,7 @@ serve(async (req) => {
     if (action === "update_board_post") {
       const { post_id, ...updates } = body;
       if (!post_id) return new Response(JSON.stringify({ error: "post_id required" }), { status: 400, headers: corsHeaders });
-      const { admin_password: _ap, ...cleanUpdates } = updates;
-      const { error } = await adminClient.from("board_posts").update(cleanUpdates).eq("id", post_id);
+      const { error } = await adminClient.from("board_posts").update(updates).eq("id", post_id);
       if (error) throw error;
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
