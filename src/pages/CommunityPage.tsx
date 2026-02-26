@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, Search, ArrowLeft, Megaphone, X } from "lucide-react";
+import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Plus, Send } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface BoardPost {
   id: string;
@@ -52,12 +53,24 @@ const TABS = [
 ];
 
 const CommunityPage = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [posts, setPosts] = useState<BoardPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPost, setSelectedPost] = useState<BoardPost | null>(null);
+  const [writeOpen, setWriteOpen] = useState(false);
+  const [writeForm, setWriteForm] = useState({ title: "", content: "", author: "", category: "HOT" });
+  const [submitting, setSubmitting] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Open write modal from URL param
+  useEffect(() => {
+    if (searchParams.get("write") === "true") {
+      setWriteOpen(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -75,6 +88,29 @@ const CommunityPage = () => {
     fetchPosts();
   }, []);
 
+  const handleSubmit = async () => {
+    if (!writeForm.title.trim() || !writeForm.content.trim() || !writeForm.author.trim()) return;
+    setSubmitting(true);
+    const { error } = await supabase.from("board_posts").insert({
+      title: writeForm.title.trim(),
+      content: writeForm.content.trim(),
+      author: writeForm.author.trim(),
+      category: writeForm.category,
+    });
+    if (!error) {
+      setWriteOpen(false);
+      setWriteForm({ title: "", content: "", author: "", category: "HOT" });
+      // Refresh posts
+      const { data } = await supabase
+        .from("board_posts")
+        .select("*")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
+      if (data) setPosts(data as BoardPost[]);
+    }
+    setSubmitting(false);
+  };
+
   const filtered = posts.filter((p) => {
     if (selectedTab !== "all" && p.category !== selectedTab) return false;
     if (searchQuery.trim()) {
@@ -90,14 +126,24 @@ const CommunityPage = () => {
 
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
-        <div className="container max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
-          <Link to="/" className="p-1 text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div className="flex items-center gap-2">
-            <Megaphone className="w-5 h-5 text-neon-purple animate-[shake_2s_ease-in-out_infinite]" />
-            <h1 className="text-base font-bold gradient-text neon-text">Rankit 게시판</h1>
+        <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link to="/" className="p-1 text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div className="flex items-center gap-2">
+              <Megaphone className="w-5 h-5 text-neon-purple animate-[shake_2s_ease-in-out_infinite]" />
+              <h1 className="text-base font-bold gradient-text neon-text">Rankit 게시판</h1>
+            </div>
           </div>
+          {/* Header write button */}
+          <button
+            onClick={() => setWriteOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border border-neon-purple/40 text-neon-purple hover:bg-neon-purple/10 transition-all"
+          >
+            <Pencil className="w-3 h-3" />
+            글쓰기
+          </button>
         </div>
       </header>
 
@@ -185,6 +231,22 @@ const CommunityPage = () => {
 
       <Footer />
 
+      {/* FAB - Fixed, above tab bar */}
+      <button
+        onClick={() => setWriteOpen(true)}
+        className="fixed z-50 flex items-center gap-2 rounded-full shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95"
+        style={{
+          bottom: isMobile ? "5.5rem" : "2rem",
+          right: "1.25rem",
+          background: "linear-gradient(135deg, hsl(270,80%,60%), hsl(280,90%,50%))",
+          boxShadow: "0 6px 28px hsl(270,80%,50%,0.5), 0 0 40px hsl(270,80%,60%,0.25)",
+          padding: isMobile ? "0.75rem 1.25rem" : "0.875rem 1.5rem",
+        }}
+      >
+        <Pencil className="w-4 h-4 text-white" />
+        <span className="text-white text-sm font-bold">글쓰기</span>
+      </button>
+
       {/* Detail Modal */}
       <Dialog open={!!selectedPost} onOpenChange={() => setSelectedPost(null)}>
         <DialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl border border-white/10 backdrop-blur-xl">
@@ -211,6 +273,80 @@ const CommunityPage = () => {
               </>
             );
           })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Write Modal */}
+      <Dialog open={writeOpen} onOpenChange={setWriteOpen}>
+        <DialogContent className="max-w-[92vw] sm:max-w-md rounded-2xl border border-neon-purple/20 backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold flex items-center gap-2">
+              <Pencil className="w-4 h-4 text-neon-purple" />
+              새 글 작성
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-1">
+            {/* Category Select */}
+            <div className="flex gap-2">
+              {(["HOT", "공지", "이벤트"] as const).map((cat) => {
+                const s = getCategoryStyle(cat);
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setWriteForm((f) => ({ ...f, category: cat }))}
+                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all ${s.bg} ${s.text} ${s.border} ${
+                      writeForm.category === cat ? `${s.glow} ring-1 ring-offset-1 ring-offset-background` : "opacity-50"
+                    }`}
+                  >
+                    [{cat}]
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Author */}
+            <input
+              type="text"
+              placeholder="닉네임"
+              value={writeForm.author}
+              onChange={(e) => setWriteForm((f) => ({ ...f, author: e.target.value }))}
+              maxLength={20}
+              className="w-full px-3 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50"
+            />
+
+            {/* Title */}
+            <input
+              type="text"
+              placeholder="제목을 입력하세요"
+              value={writeForm.title}
+              onChange={(e) => setWriteForm((f) => ({ ...f, title: e.target.value }))}
+              maxLength={100}
+              className="w-full px-3 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50"
+            />
+
+            {/* Content */}
+            <textarea
+              placeholder="내용을 입력하세요..."
+              value={writeForm.content}
+              onChange={(e) => setWriteForm((f) => ({ ...f, content: e.target.value }))}
+              rows={5}
+              maxLength={2000}
+              className="w-full px-3 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50 resize-none"
+            />
+
+            {/* Submit */}
+            <button
+              onClick={handleSubmit}
+              disabled={submitting || !writeForm.title.trim() || !writeForm.content.trim() || !writeForm.author.trim()}
+              className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              style={{
+                background: "linear-gradient(135deg, hsl(270,80%,60%), hsl(280,90%,50%))",
+              }}
+            >
+              <Send className="w-4 h-4" />
+              {submitting ? "등록 중..." : "게시하기"}
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
