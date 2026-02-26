@@ -86,6 +86,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          image_urls: string[] | null
           is_active: boolean
           likes: number
           title: string
@@ -97,6 +98,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          image_urls?: string[] | null
           is_active?: boolean
           likes?: number
           title: string
@@ -108,6 +110,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          image_urls?: string[] | null
           is_active?: boolean
           likes?: number
           title?: string

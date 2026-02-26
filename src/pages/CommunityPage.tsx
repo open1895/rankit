@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Send, MessageCircle, User } from "lucide-react";
+import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Send, MessageCircle, User, ImagePlus, ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SEOHead from "@/components/SEOHead";
@@ -19,6 +19,7 @@ interface BoardPost {
   is_active: boolean;
   created_at: string;
   comments_count: number;
+  image_urls: string[] | null;
 }
 
 interface PostComment {
@@ -52,9 +53,8 @@ const CATEGORY_STYLES: Record<CategoryKey, { bg: string; text: string; border: s
   },
 };
 
-const getCategoryStyle = (cat: string) => {
-  return CATEGORY_STYLES[cat as CategoryKey] || CATEGORY_STYLES["공지"];
-};
+const getCategoryStyle = (cat: string) =>
+  CATEGORY_STYLES[cat as CategoryKey] || CATEGORY_STYLES["공지"];
 
 const TABS = [
   { label: "전체", value: "all" },
@@ -63,7 +63,11 @@ const TABS = [
   { label: "🔥 자유", value: "HOT" },
 ];
 
-// Generate a stable anonymous identifier for likes
+const MAX_IMAGES = 5;
+const MAX_IMAGE_SIZE_MB = 5;
+const COMPRESS_MAX_WIDTH = 1200;
+const COMPRESS_QUALITY = 0.8;
+
 const getUserIdentifier = (): string => {
   let id = localStorage.getItem("rankit_anon_id");
   if (!id) {
@@ -84,6 +88,116 @@ const formatTimeAgo = (dateStr: string) => {
   return `${days}일 전`;
 };
 
+// Compress image in browser before upload
+const compressImage = (file: File): Promise<File> => {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith("image/")) {
+      resolve(file);
+      return;
+    }
+    const img = new window.Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width <= COMPRESS_MAX_WIDTH) {
+        resolve(file);
+        return;
+      }
+      const ratio = COMPRESS_MAX_WIDTH / width;
+      width = COMPRESS_MAX_WIDTH;
+      height = Math.round(height * ratio);
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(new File([blob], file.name, { type: "image/jpeg" }));
+          } else {
+            resolve(file);
+          }
+        },
+        "image/jpeg",
+        COMPRESS_QUALITY
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+};
+
+// --- Image Carousel Component ---
+const ImageCarousel = ({ images, className = "" }: { images: string[]; className?: string }) => {
+  const [current, setCurrent] = useState(0);
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
+
+  if (!images || images.length === 0) return null;
+
+  return (
+    <div className={`relative overflow-hidden rounded-xl ${className}`}>
+      <div className="relative aspect-[4/3] w-full">
+        {images.map((url, i) => (
+          <div
+            key={i}
+            className="absolute inset-0 transition-all duration-500 ease-out"
+            style={{
+              opacity: i === current ? 1 : 0,
+              transform: i === current ? "scale(1)" : "scale(1.05)",
+              pointerEvents: i === current ? "auto" : "none",
+            }}
+          >
+            {/* Skeleton */}
+            {!loadedImages.has(i) && (
+              <div className="absolute inset-0 rounded-xl overflow-hidden">
+                <div className="w-full h-full bg-gradient-to-r from-neon-purple/10 via-neon-cyan/10 to-neon-purple/10 animate-[shimmer_2s_ease-in-out_infinite]" />
+              </div>
+            )}
+            <img
+              src={url}
+              alt={`이미지 ${i + 1}`}
+              className="w-full h-full object-cover rounded-xl"
+              onLoad={() => setLoadedImages((s) => new Set(s).add(i))}
+              loading="lazy"
+            />
+          </div>
+        ))}
+      </div>
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={(e) => { e.stopPropagation(); setCurrent((c) => (c - 1 + images.length) % images.length); }}
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setCurrent((c) => (c + 1) % images.length); }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
+                className={`w-2 h-2 rounded-full transition-all ${i === current ? "bg-white w-5" : "bg-white/40"}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// ---- Main Component ----
 const CommunityPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [posts, setPosts] = useState<BoardPost[]>([]);
@@ -96,6 +210,11 @@ const CommunityPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const isMobile = useIsMobile();
 
+  // Image upload state
+  const [selectedImages, setSelectedImages] = useState<{ file: File; preview: string }[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
   // Detail modal state
   const [comments, setComments] = useState<PostComment[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
@@ -107,7 +226,6 @@ const CommunityPage = () => {
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
   const commentsEndRef = useRef<HTMLDivElement>(null);
 
-  // Open write modal from URL param
   useEffect(() => {
     if (searchParams.get("write") === "true") {
       setWriteOpen(true);
@@ -121,18 +239,12 @@ const CommunityPage = () => {
       .select("*")
       .eq("is_active", true)
       .order("created_at", { ascending: false });
-
-    if (!error && data) {
-      setPosts(data as BoardPost[]);
-    }
+    if (!error && data) setPosts(data as BoardPost[]);
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
+  useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
-  // Load liked status for current user
   useEffect(() => {
     const loadLikedPosts = async () => {
       const uid = getUserIdentifier();
@@ -140,14 +252,11 @@ const CommunityPage = () => {
         .from("board_post_likes")
         .select("post_id")
         .eq("user_identifier", uid);
-      if (data) {
-        setLikedPosts(new Set(data.map((d: any) => d.post_id)));
-      }
+      if (data) setLikedPosts(new Set(data.map((d: any) => d.post_id)));
     };
     loadLikedPosts();
   }, []);
 
-  // Load comments when detail modal opens
   useEffect(() => {
     if (!selectedPost) return;
     const loadComments = async () => {
@@ -163,47 +272,87 @@ const CommunityPage = () => {
     loadComments();
   }, [selectedPost?.id]);
 
+  // --- Image handling ---
+  const addImages = async (files: FileList | File[]) => {
+    const fileArr = Array.from(files);
+    const remaining = MAX_IMAGES - selectedImages.length;
+    if (remaining <= 0) {
+      toast({ title: "이미지 제한", description: `최대 ${MAX_IMAGES}장까지 첨부할 수 있습니다.`, variant: "destructive" });
+      return;
+    }
+    const validFiles = fileArr
+      .filter((f) => f.type.startsWith("image/"))
+      .filter((f) => f.size <= MAX_IMAGE_SIZE_MB * 1024 * 1024)
+      .slice(0, remaining);
+
+    if (validFiles.length < fileArr.filter(f => f.type.startsWith("image/")).length) {
+      toast({ title: "일부 파일 제외", description: `5MB 초과이거나 이미지가 아닌 파일은 제외되었습니다.` });
+    }
+
+    const compressed = await Promise.all(validFiles.map(compressImage));
+    const newImages = compressed.map((f) => ({ file: f, preview: URL.createObjectURL(f) }));
+    setSelectedImages((prev) => [...prev, ...newImages]);
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedImages((prev) => {
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files.length > 0) addImages(e.dataTransfer.files);
+  };
+
+  const uploadImages = async (): Promise<string[]> => {
+    if (selectedImages.length === 0) return [];
+    const urls: string[] = [];
+    for (const { file } of selectedImages) {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from("board-images").upload(path, file, { contentType: file.type });
+      if (!error) {
+        const { data: urlData } = supabase.storage.from("board-images").getPublicUrl(path);
+        urls.push(urlData.publicUrl);
+      }
+    }
+    return urls;
+  };
+
+  // --- Likes ---
   const handleLike = async (postId: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
     const uid = getUserIdentifier();
     const isLiked = likedPosts.has(postId);
-
-    // Optimistic update
     const newLiked = new Set(likedPosts);
-    const currentLikes = likeCounts[postId] ?? posts.find(p => p.id === postId)?.likes ?? 0;
+    const currentLikes = likeCounts[postId] ?? posts.find((p) => p.id === postId)?.likes ?? 0;
 
     if (isLiked) {
       newLiked.delete(postId);
-      setLikeCounts(prev => ({ ...prev, [postId]: Math.max(currentLikes - 1, 0) }));
+      setLikeCounts((prev) => ({ ...prev, [postId]: Math.max(currentLikes - 1, 0) }));
     } else {
       newLiked.add(postId);
-      setLikeCounts(prev => ({ ...prev, [postId]: currentLikes + 1 }));
-      // Pop animation
+      setLikeCounts((prev) => ({ ...prev, [postId]: currentLikes + 1 }));
       setHeartPop(postId);
       setTimeout(() => setHeartPop(null), 600);
     }
     setLikedPosts(newLiked);
 
-    // DB operation
     if (isLiked) {
-      await supabase
-        .from("board_post_likes")
-        .delete()
-        .eq("post_id", postId)
-        .eq("user_identifier", uid);
+      await supabase.from("board_post_likes").delete().eq("post_id", postId).eq("user_identifier", uid);
     } else {
-      await supabase
-        .from("board_post_likes")
-        .insert({ post_id: postId, user_identifier: uid });
+      await supabase.from("board_post_likes").insert({ post_id: postId, user_identifier: uid });
     }
-
-    // Update selectedPost if viewing
     if (selectedPost?.id === postId) {
       const newCount = isLiked ? Math.max(currentLikes - 1, 0) : currentLikes + 1;
-      setSelectedPost(prev => prev ? { ...prev, likes: newCount } : null);
+      setSelectedPost((prev) => (prev ? { ...prev, likes: newCount } : null));
     }
   };
 
+  // --- Comments ---
   const handleCommentSubmit = async () => {
     if (!selectedPost || !commentText.trim() || !commentNickname.trim()) {
       toast({ title: "입력 오류", description: "닉네임과 댓글을 입력해주세요.", variant: "destructive" });
@@ -215,51 +364,60 @@ const CommunityPage = () => {
     }
     setCommentSubmitting(true);
     localStorage.setItem("rankit_nickname", commentNickname.trim());
-
     const { error } = await supabase.from("board_post_comments").insert({
       post_id: selectedPost.id,
       nickname: commentNickname.trim(),
       message: commentText.trim(),
     });
-
     if (error) {
       toast({ title: "등록 실패", description: "댓글 등록에 실패했습니다.", variant: "destructive" });
     } else {
       toast({ title: "💬 댓글 등록 완료", description: "댓글이 성공적으로 등록되었습니다!" });
       setCommentText("");
-      // Reload comments
       const { data } = await supabase
         .from("board_post_comments")
         .select("*")
         .eq("post_id", selectedPost.id)
         .order("created_at", { ascending: true });
       if (data) setComments(data as PostComment[]);
-      // Update comment count
-      setSelectedPost(prev => prev ? { ...prev, comments_count: (prev.comments_count || 0) + 1 } : null);
-      setPosts(prev => prev.map(p => p.id === selectedPost.id ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p));
+      setSelectedPost((prev) => (prev ? { ...prev, comments_count: (prev.comments_count || 0) + 1 } : null));
+      setPosts((prev) => prev.map((p) => (p.id === selectedPost.id ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p)));
       setTimeout(() => commentsEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     }
     setCommentSubmitting(false);
   };
 
+  // --- Post Submit ---
   const handleSubmit = async () => {
     if (!writeForm.title.trim() || !writeForm.content.trim() || !writeForm.author.trim()) {
       toast({ title: "입력 오류", description: "닉네임, 제목, 내용을 모두 입력해주세요.", variant: "destructive" });
       return;
     }
     setSubmitting(true);
+
+    // Upload images first
+    let imageUrls: string[] = [];
+    if (selectedImages.length > 0) {
+      imageUrls = await uploadImages();
+    }
+
     const { error } = await supabase.from("board_posts").insert({
       title: writeForm.title.trim(),
       content: writeForm.content.trim(),
       author: writeForm.author.trim(),
       category: writeForm.category,
+      image_urls: imageUrls.length > 0 ? imageUrls : null,
     });
     if (error) {
+      console.error("Post insert error:", error);
       toast({ title: "등록 실패", description: "게시글 등록에 실패했습니다. 다시 시도해주세요.", variant: "destructive" });
     } else {
       toast({ title: "등록 완료 🎉", description: "게시글이 성공적으로 등록되었습니다!" });
       setWriteOpen(false);
       setWriteForm({ title: "", content: "", author: "", category: "HOT" });
+      // Clean up image previews
+      selectedImages.forEach((img) => URL.revokeObjectURL(img.preview));
+      setSelectedImages([]);
       await fetchPosts();
     }
     setSubmitting(false);
@@ -275,6 +433,7 @@ const CommunityPage = () => {
   });
 
   const getLikeCount = (post: BoardPost) => likeCounts[post.id] ?? post.likes;
+  const hasImages = (post: BoardPost) => post.image_urls && post.image_urls.length > 0;
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
@@ -353,6 +512,7 @@ const CommunityPage = () => {
             {filtered.map((post) => {
               const style = getCategoryStyle(post.category);
               const liked = likedPosts.has(post.id);
+              const postHasImages = hasImages(post);
               return (
                 <button
                   key={post.id}
@@ -365,6 +525,12 @@ const CommunityPage = () => {
                         <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${style.bg} ${style.text} ${style.border} ${style.glow}`}>
                           [{post.category}]
                         </span>
+                        {postHasImages && (
+                          <span className="flex items-center gap-0.5 text-[9px] text-neon-cyan/70">
+                            <ImageIcon className="w-3 h-3" />
+                            {post.image_urls!.length}
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm font-semibold text-foreground line-clamp-2 group-hover:text-neon-cyan transition-colors">
                         {post.title}
@@ -384,6 +550,17 @@ const CommunityPage = () => {
                         </span>
                       </div>
                     </div>
+                    {/* Thumbnail for image posts */}
+                    {postHasImages && (
+                      <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 border border-white/10">
+                        <img
+                          src={post.image_urls![0]}
+                          alt=""
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
                   </div>
                 </button>
               );
@@ -415,13 +592,14 @@ const CommunityPage = () => {
         document.body
       )}
 
-      {/* Detail Modal with Comments & Likes */}
+      {/* ====== Detail Modal ====== */}
       <Dialog open={!!selectedPost} onOpenChange={(open) => { if (!open) { setSelectedPost(null); setComments([]); } }}>
         <DialogContent className="max-w-[92vw] sm:max-w-md rounded-2xl border border-white/10 backdrop-blur-xl p-0 flex flex-col" style={{ maxHeight: "85vh" }}>
           {selectedPost && (() => {
             const style = getCategoryStyle(selectedPost.category);
             const liked = likedPosts.has(selectedPost.id);
             const currentLikes = likeCounts[selectedPost.id] ?? selectedPost.likes;
+            const postImages = selectedPost.image_urls?.filter(Boolean) || [];
             return (
               <>
                 {/* Header */}
@@ -438,25 +616,25 @@ const CommunityPage = () => {
                   </DialogHeader>
                 </div>
 
-                {/* Scrollable content area */}
+                {/* Scrollable content */}
                 <div className="flex-1 overflow-y-auto px-5 min-h-0" style={{ scrollbarWidth: "thin", scrollbarColor: "hsl(270,50%,40%) transparent" }}>
+                  {/* Image Carousel */}
+                  {postImages.length > 0 && (
+                    <div className="pt-3">
+                      <ImageCarousel images={postImages} />
+                    </div>
+                  )}
+
                   {/* Post content */}
                   <div className="pt-3 pb-4 text-sm text-foreground/90 whitespace-pre-line leading-relaxed">
                     {selectedPost.content}
                   </div>
 
-                  {/* Like & Comment count bar */}
+                  {/* Like & Comment bar */}
                   <div className="flex items-center gap-4 py-3 border-t border-b border-white/10">
-                    <button
-                      onClick={() => handleLike(selectedPost.id)}
-                      className="flex items-center gap-1.5 text-sm transition-all active:scale-90"
-                    >
-                      <Heart
-                        className={`w-5 h-5 transition-all duration-300 ${liked ? "fill-red-400 text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.6)]" : "text-muted-foreground hover:text-red-300"} ${heartPop === selectedPost.id ? "animate-[heart-pop_0.6s_ease-out]" : ""}`}
-                      />
-                      <span className={`font-semibold ${liked ? "text-red-400" : "text-muted-foreground"}`}>
-                        {currentLikes}
-                      </span>
+                    <button onClick={() => handleLike(selectedPost.id)} className="flex items-center gap-1.5 text-sm transition-all active:scale-90">
+                      <Heart className={`w-5 h-5 transition-all duration-300 ${liked ? "fill-red-400 text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.6)]" : "text-muted-foreground hover:text-red-300"} ${heartPop === selectedPost.id ? "animate-[heart-pop_0.6s_ease-out]" : ""}`} />
+                      <span className={`font-semibold ${liked ? "text-red-400" : "text-muted-foreground"}`}>{currentLikes}</span>
                     </button>
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <MessageCircle className="w-5 h-5" />
@@ -464,12 +642,12 @@ const CommunityPage = () => {
                     </div>
                   </div>
 
-                  {/* Comments section */}
+                  {/* Comments */}
                   <div className="py-3 space-y-3">
                     {commentsLoading ? (
                       <div className="space-y-2">
-                        {[1, 2, 3].map(i => (
-                          <div key={i} className="h-12 rounded-xl bg-white/5 animate-pulse" />
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="h-12 rounded-xl bg-gradient-to-r from-neon-purple/5 via-neon-cyan/5 to-neon-purple/5 animate-[shimmer_2s_ease-in-out_infinite]" />
                         ))}
                       </div>
                     ) : comments.length === 0 ? (
@@ -498,7 +676,6 @@ const CommunityPage = () => {
 
                 {/* Fixed comment input */}
                 <div className="p-4 border-t border-white/10 bg-card/50 backdrop-blur-sm" style={{ paddingBottom: isMobile ? "calc(1rem + env(safe-area-inset-bottom))" : "1rem" }}>
-                  {/* Nickname row */}
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-neon-purple/40 to-neon-cyan/30 flex items-center justify-center flex-shrink-0">
                       <User className="w-3 h-3 text-neon-purple/80" />
@@ -542,8 +719,8 @@ const CommunityPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Write Modal */}
-      <Dialog open={writeOpen} onOpenChange={setWriteOpen}>
+      {/* ====== Write Modal ====== */}
+      <Dialog open={writeOpen} onOpenChange={(open) => { if (!open) { selectedImages.forEach((img) => URL.revokeObjectURL(img.preview)); setSelectedImages([]); } setWriteOpen(open); }}>
         <DialogContent className="max-w-[92vw] sm:max-w-md rounded-2xl border border-neon-purple/20 backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle className="text-base font-bold flex items-center gap-2">
@@ -552,6 +729,7 @@ const CommunityPage = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 pt-1">
+            {/* Category Select */}
             <div className="flex gap-2">
               {(["HOT", "공지", "이벤트"] as const).map((cat) => {
                 const s = getCategoryStyle(cat);
@@ -568,6 +746,7 @@ const CommunityPage = () => {
                 );
               })}
             </div>
+
             <input
               type="text"
               placeholder="닉네임"
@@ -588,10 +767,73 @@ const CommunityPage = () => {
               placeholder="내용을 입력하세요..."
               value={writeForm.content}
               onChange={(e) => setWriteForm((f) => ({ ...f, content: e.target.value }))}
-              rows={5}
+              rows={4}
               maxLength={2000}
               className="w-full px-3 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50 resize-none"
             />
+
+            {/* Image Upload Area */}
+            <div
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              className={`relative rounded-xl border-2 border-dashed transition-all duration-200 p-3 ${
+                isDragging
+                  ? "border-neon-purple bg-neon-purple/10"
+                  : "border-white/15 hover:border-white/30"
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => { if (e.target.files) addImages(e.target.files); e.target.value = ""; }}
+              />
+
+              {selectedImages.length === 0 ? (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full flex flex-col items-center gap-2 py-4 text-muted-foreground hover:text-neon-purple transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-full bg-neon-purple/10 flex items-center justify-center">
+                    <ImagePlus className="w-5 h-5 text-neon-purple" />
+                  </div>
+                  <span className="text-xs">이미지를 선택하거나 여기로 드래그하세요</span>
+                  <span className="text-[10px] text-muted-foreground/60">최대 {MAX_IMAGES}장 · {MAX_IMAGE_SIZE_MB}MB 이하</span>
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  {/* Preview Grid */}
+                  <div className="flex gap-2 flex-wrap">
+                    {selectedImages.map((img, i) => (
+                      <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-white/10 group">
+                        <img src={img.preview} alt="" className="w-full h-full object-cover" />
+                        <button
+                          onClick={() => removeImage(i)}
+                          className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3 text-white" />
+                        </button>
+                      </div>
+                    ))}
+                    {selectedImages.length < MAX_IMAGES && (
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-16 h-16 rounded-lg border-2 border-dashed border-white/15 flex items-center justify-center text-muted-foreground hover:text-neon-purple hover:border-neon-purple/40 transition-all"
+                      >
+                        <ImagePlus className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">{selectedImages.length}/{MAX_IMAGES}장 선택됨</p>
+                </div>
+              )}
+            </div>
+
+            {/* Submit */}
             <button
               onClick={handleSubmit}
               disabled={submitting || !writeForm.title.trim() || !writeForm.content.trim() || !writeForm.author.trim()}
@@ -599,13 +841,13 @@ const CommunityPage = () => {
               style={{ background: "linear-gradient(135deg, hsl(270,80%,60%), hsl(280,90%,50%))" }}
             >
               <Send className="w-4 h-4" />
-              {submitting ? "등록 중..." : "게시하기"}
+              {submitting ? (selectedImages.length > 0 ? "이미지 업로드 중..." : "등록 중...") : "게시하기"}
             </button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Heart pop animation */}
+      {/* Animations */}
       <style>{`
         @keyframes heart-pop {
           0% { transform: scale(1); }
@@ -614,6 +856,14 @@ const CommunityPage = () => {
           45% { transform: scale(1.2); }
           60% { transform: scale(1); }
           100% { transform: scale(1); }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        .animate-\\[shimmer_2s_ease-in-out_infinite\\] {
+          background-size: 200% 100%;
+          animation: shimmer 2s ease-in-out infinite;
         }
       `}</style>
     </div>
