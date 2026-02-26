@@ -237,7 +237,7 @@ const CommunityPage = () => {
         className="fixed flex items-center gap-2 rounded-full transition-transform duration-200 ease-out hover:scale-105 active:scale-95 will-change-transform"
         style={{
           zIndex: 9999,
-          bottom: isMobile ? "88px" : "2rem",
+          bottom: isMobile ? "100px" : "2rem",
           right: "20px",
           background: "linear-gradient(135deg, hsl(270,80%,60%), hsl(280,90%,50%))",
           boxShadow: "0 6px 32px hsl(270,80%,50%,0.6), 0 0 50px hsl(270,80%,60%,0.35), 0 0 80px hsl(280,90%,50%,0.2)",
