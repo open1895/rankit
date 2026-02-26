@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { Megaphone, Heart } from "lucide-react";
+import { Megaphone, Heart, ChevronRight, Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface BoardPost {
   id: string;
@@ -24,10 +26,25 @@ const FALLBACK_POSTS: BoardPost[] = [
 
 type CategoryKey = "공지" | "이벤트" | "HOT";
 
-const CATEGORY_STYLES: Record<CategoryKey, string> = {
-  "공지": "bg-[hsl(170,80%,45%)]/20 text-[hsl(170,90%,55%)] border-[hsl(170,80%,45%)]/40 shadow-[0_0_8px_hsl(170,80%,45%,0.3)]",
-  "이벤트": "bg-[hsl(330,80%,55%)]/20 text-[hsl(330,90%,65%)] border-[hsl(330,80%,55%)]/40 shadow-[0_0_8px_hsl(330,80%,55%,0.3)]",
-  "HOT": "bg-[hsl(25,90%,55%)]/20 text-[hsl(25,95%,60%)] border-[hsl(25,90%,55%)]/40 shadow-[0_0_8px_hsl(25,90%,55%,0.3)]",
+const CATEGORY_STYLES: Record<CategoryKey, { bg: string; text: string; border: string; glow: string }> = {
+  "공지": {
+    bg: "bg-[hsl(170,80%,45%)]/15",
+    text: "text-[hsl(170,90%,55%)]",
+    border: "border-[hsl(170,80%,45%)]/30",
+    glow: "shadow-[0_0_12px_hsl(170,80%,45%,0.4)]",
+  },
+  "이벤트": {
+    bg: "bg-[hsl(330,80%,55%)]/15",
+    text: "text-[hsl(330,90%,65%)]",
+    border: "border-[hsl(330,80%,55%)]/30",
+    glow: "shadow-[0_0_12px_hsl(330,80%,55%,0.4)]",
+  },
+  "HOT": {
+    bg: "bg-[hsl(25,90%,55%)]/15",
+    text: "text-[hsl(25,95%,60%)]",
+    border: "border-[hsl(25,90%,55%)]/30",
+    glow: "shadow-[0_0_12px_hsl(25,90%,55%,0.4)]",
+  },
 };
 
 const getCategoryStyle = (cat: string) => {
@@ -38,6 +55,7 @@ const BoardMarquee = () => {
   const [posts, setPosts] = useState<BoardPost[]>([]);
   const [selectedPost, setSelectedPost] = useState<BoardPost | null>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -63,82 +81,136 @@ const BoardMarquee = () => {
 
   return (
     <>
-      <div className="container max-w-lg mx-auto px-4">
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
+      <div className="space-y-3">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <Link to="/community" className="flex items-center gap-2 group">
             <div className="relative">
               <Megaphone className="w-5 h-5 text-neon-purple animate-[shake_2s_ease-in-out_infinite]" />
               <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-neon-purple rounded-full animate-ping" />
             </div>
-            <h3 className="text-sm font-bold gradient-text neon-text">Rankit 게시판</h3>
+            <h3 className="text-sm font-bold gradient-text neon-text group-hover:opacity-80 transition-opacity">
+              Rankit 게시판
+            </h3>
+            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
+          </Link>
+          <div className="flex items-center gap-2">
+            {/* PC write button */}
+            {!isMobile && (
+              <Link
+                to="/community?write=true"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold glass-sm border border-neon-purple/30 text-neon-purple hover:bg-neon-purple/10 transition-all"
+              >
+                <Pencil className="w-3 h-3" />
+                글쓰기
+              </Link>
+            )}
+            <Link
+              to="/community"
+              className="text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
+            >
+              전체보기 &gt;
+            </Link>
           </div>
+        </div>
+
+        {/* Marquee */}
+        <div
+          className="overflow-hidden relative rounded-2xl"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          {/* Fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
           <div
-            className="overflow-hidden relative rounded-xl"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
+            className="flex gap-3 py-2"
+            style={{
+              animation: "marquee-board 30s linear infinite",
+              animationPlayState: isPaused ? "paused" : "running",
+            }}
           >
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-
-            <div
-              className="flex gap-3 py-2"
-              style={{
-                animation: "marquee-reverse 25s linear infinite",
-                animationPlayState: isPaused ? "paused" : "running",
-              }}
-            >
-              {marqueeItems.map((post, i) => (
+            {marqueeItems.map((post, i) => {
+              const style = getCategoryStyle(post.category);
+              return (
                 <button
                   key={`${post.id}-${i}`}
                   onClick={() => setSelectedPost(post)}
-                  className="shrink-0 w-[220px] p-3 rounded-xl border border-white/10 backdrop-blur-md bg-white/5 hover:bg-white/10 transition-all duration-300 hover:scale-105 hover:border-white/20 text-left cursor-pointer group"
-                  style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1)" }}
+                  className="shrink-0 w-[180px] flex flex-col p-3.5 rounded-2xl border border-white/10 backdrop-blur-xl bg-white/[0.04] transition-all duration-300 hover:scale-[1.05] hover:border-white/25 text-left cursor-pointer group"
+                  style={{
+                    boxShadow: "0 4px 24px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(255,255,255,0.03)",
+                  }}
                 >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${getCategoryStyle(post.category)}`}>
-                      {post.category}
+                  {/* Category Tag */}
+                  <span
+                    className={`self-start text-[9px] font-bold px-2 py-0.5 rounded-full border ${style.bg} ${style.text} ${style.border} ${style.glow} mb-2`}
+                  >
+                    [{post.category}]
+                  </span>
+
+                  {/* Title - 2 line clamp */}
+                  <p className="text-xs font-semibold text-foreground line-clamp-2 leading-[1.4] group-hover:text-neon-cyan transition-colors mb-auto min-h-[2.8em]">
+                    {post.title}
+                  </p>
+
+                  {/* Author & Likes */}
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                    <span className="text-[10px] text-muted-foreground truncate max-w-[60%]">
+                      {post.author}
                     </span>
                     <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
                       <Heart className="w-3 h-3" />
                       {post.likes}
                     </span>
                   </div>
-                  <p className="text-xs font-semibold text-foreground truncate group-hover:text-neon-cyan transition-colors">
-                    {post.title}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground mt-1 truncate">
-                    {post.author}
-                  </p>
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
       </div>
 
+      {/* Mobile FAB */}
+      {isMobile && (
+        <Link
+          to="/community?write=true"
+          className="fixed bottom-20 right-4 z-30 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110 active:scale-95"
+          style={{
+            background: "linear-gradient(135deg, hsl(var(--neon-purple)), hsl(var(--neon-cyan)))",
+            boxShadow: "0 4px 20px hsl(var(--neon-purple) / 0.4)",
+          }}
+        >
+          <Pencil className="w-5 h-5 text-white" />
+        </Link>
+      )}
+
+      {/* Detail Modal */}
       <Dialog open={!!selectedPost} onOpenChange={() => setSelectedPost(null)}>
-        <DialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl">
-          {selectedPost && (
-            <>
-              <DialogHeader>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getCategoryStyle(selectedPost.category)}`}>
-                    {selectedPost.category}
-                  </span>
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Heart className="w-3 h-3" />
-                    {selectedPost.likes}
-                  </span>
+        <DialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl border border-white/10 backdrop-blur-xl">
+          {selectedPost && (() => {
+            const style = getCategoryStyle(selectedPost.category);
+            return (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${style.bg} ${style.text} ${style.border} ${style.glow}`}>
+                      [{selectedPost.category}]
+                    </span>
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Heart className="w-3 h-3" />
+                      {selectedPost.likes}
+                    </span>
+                  </div>
+                  <DialogTitle className="text-base font-bold">{selectedPost.title}</DialogTitle>
+                  <p className="text-xs text-muted-foreground">{selectedPost.author}</p>
+                </DialogHeader>
+                <div className="pt-2 text-sm text-foreground/90 whitespace-pre-line leading-relaxed">
+                  {selectedPost.content}
                 </div>
-                <DialogTitle className="text-base font-bold">{selectedPost.title}</DialogTitle>
-                <p className="text-xs text-muted-foreground">{selectedPost.author}</p>
-              </DialogHeader>
-              <div className="pt-2 text-sm text-foreground/90 whitespace-pre-line leading-relaxed">
-                {selectedPost.content}
-              </div>
-            </>
-          )}
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </>

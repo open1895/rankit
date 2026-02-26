@@ -25,7 +25,7 @@ import AdminPanelPage from "./pages/AdminPanelPage";
 import WidgetPage from "./pages/WidgetPage";
 import HallOfFame from "./pages/HallOfFame";
 import PredictionGame from "./pages/PredictionGame";
-
+import CommunityPage from "./pages/CommunityPage";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -55,6 +55,7 @@ const App = () => (
                   <Route path="/admin-panel" element={<AdminPanelPage />} />
                   <Route path="/hall-of-fame" element={<HallOfFame />} />
                   <Route path="/predictions" element={<PredictionGame />} />
+                  <Route path="/community" element={<CommunityPage />} />
                   <Route path="/widget/creator/:id" element={<WidgetPage />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
