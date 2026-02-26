@@ -753,17 +753,17 @@ const Index = () => {
           )}
         </div>
 
-        {/* Rankit 게시판 */}
-        {!searchQuery.trim() && (
-          <ScrollReveal>
-            <BoardMarquee />
-          </ScrollReveal>
-        )}
-
         {/* 실시간 응원 톡 - 검색 중이 아닐 때만 표시 */}
         {!searchQuery.trim() && (
           <ScrollReveal>
             <FanComments />
+          </ScrollReveal>
+        )}
+
+        {/* Rankit 게시판 - 응원 톡 아래 */}
+        {!searchQuery.trim() && (
+          <ScrollReveal>
+            <BoardMarquee />
           </ScrollReveal>
         )}
       </main>
