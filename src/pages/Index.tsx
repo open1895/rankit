@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Creator } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTickets } from "@/hooks/useTickets";
 import RankingCard from "@/components/RankingCard";
 import RankitLogo from "@/components/RankitLogo";
 import CountdownTimer from "@/components/CountdownTimer";
@@ -164,6 +165,7 @@ const NominationSection = ({ externalOpen, onOpenChange }: { externalOpen?: bool
 
 const Index = () => {
   const { user } = useAuth();
+  const { tickets } = useTickets();
   const { days } = useCountdown();
   const navigate = useNavigate();
   const [creators, setCreators] = useState<Creator[]>([]);
@@ -349,8 +351,8 @@ const Index = () => {
             <div className="glass-sm px-2 py-1 flex items-center gap-1">
               <Ticket className="w-3.5 h-3.5 text-neon-cyan" />
               <span className="text-xs font-medium">
-                <span className="text-neon-cyan font-bold">{remainingVotes}</span>
-                <span className="text-muted-foreground ml-0.5">표</span>
+                <span className="text-neon-cyan font-bold">{user ? tickets : remainingVotes}</span>
+                <span className="text-muted-foreground ml-0.5">{user ? "🎫" : "표"}</span>
               </span>
             </div>
             {user ? (

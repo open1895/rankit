@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.fetch-social-stats]
 verify_jwt = false
+
+[functions.tickets]
+verify_jwt = false

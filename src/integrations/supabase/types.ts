@@ -648,24 +648,30 @@ export type Database = {
         Row: {
           avatar_url: string
           created_at: string
+          daily_ticket_claimed_at: string | null
           display_name: string
           id: string
+          tickets: number
           updated_at: string
           user_id: string
         }
         Insert: {
           avatar_url?: string
           created_at?: string
+          daily_ticket_claimed_at?: string | null
           display_name?: string
           id?: string
+          tickets?: number
           updated_at?: string
           user_id: string
         }
         Update: {
           avatar_url?: string
           created_at?: string
+          daily_ticket_claimed_at?: string | null
           display_name?: string
           id?: string
+          tickets?: number
           updated_at?: string
           user_id?: string
         }
@@ -891,6 +897,33 @@ export type Database = {
           name?: string
           price?: number
           stock?: number | null
+        }
+        Relationships: []
+      }
+      ticket_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string
+          id?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          id?: string
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1163,6 +1196,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_tickets: {
+        Args: {
+          p_amount: number
+          p_description: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
+      deduct_tickets: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
