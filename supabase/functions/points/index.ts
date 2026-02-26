@@ -178,6 +178,28 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Validate bank_info format and length
+      if (typeof bank_info !== 'string') {
+        return new Response(JSON.stringify({ error: "은행 정보가 올바르지 않습니다." }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const sanitizedBankInfo = bank_info.trim();
+      if (sanitizedBankInfo.length < 5 || sanitizedBankInfo.length > 500) {
+        return new Response(JSON.stringify({ error: "은행 정보는 5~500자 사이여야 합니다." }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const bankInfoPattern = /^[가-힣a-zA-Z0-9\s\-()]+$/;
+      if (!bankInfoPattern.test(sanitizedBankInfo)) {
+        return new Response(JSON.stringify({ error: "은행 정보에 허용되지 않는 문자가 포함되어 있습니다." }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       // Verify creator ownership
       const { data: creator } = await supabaseAdmin
         .from("creators")
@@ -211,7 +233,7 @@ Deno.serve(async (req) => {
       await supabaseAdmin.from("settlement_requests").insert({
         creator_id,
         amount: requestedAmount,
-        bank_info,
+        bank_info: sanitizedBankInfo,
       });
 
       // Update pending amount
