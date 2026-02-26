@@ -14,10 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      board_post_comments: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          nickname: string
+          post_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          nickname: string
+          post_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          nickname?: string
+          post_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "board_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      board_post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_identifier: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_identifier: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_identifier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "board_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       board_posts: {
         Row: {
           author: string
           category: string
+          comments_count: number
           content: string
           created_at: string
           id: string
@@ -28,6 +93,7 @@ export type Database = {
         Insert: {
           author?: string
           category?: string
+          comments_count?: number
           content?: string
           created_at?: string
           id?: string
@@ -38,6 +104,7 @@ export type Database = {
         Update: {
           author?: string
           category?: string
+          comments_count?: number
           content?: string
           created_at?: string
           id?: string

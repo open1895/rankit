@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Plus, Send } from "lucide-react";
+import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Send, MessageCircle, User } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SEOHead from "@/components/SEOHead";
@@ -17,6 +17,15 @@ interface BoardPost {
   likes: number;
   content: string;
   is_active: boolean;
+  created_at: string;
+  comments_count: number;
+}
+
+interface PostComment {
+  id: string;
+  post_id: string;
+  nickname: string;
+  message: string;
   created_at: string;
 }
 
@@ -54,6 +63,27 @@ const TABS = [
   { label: "🔥 자유", value: "HOT" },
 ];
 
+// Generate a stable anonymous identifier for likes
+const getUserIdentifier = (): string => {
+  let id = localStorage.getItem("rankit_anon_id");
+  if (!id) {
+    id = "anon_" + crypto.randomUUID();
+    localStorage.setItem("rankit_anon_id", id);
+  }
+  return id;
+};
+
+const formatTimeAgo = (dateStr: string) => {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "방금 전";
+  if (mins < 60) return `${mins}분 전`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}시간 전`;
+  const days = Math.floor(hours / 24);
+  return `${days}일 전`;
+};
+
 const CommunityPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [posts, setPosts] = useState<BoardPost[]>([]);
@@ -66,6 +96,17 @@ const CommunityPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const isMobile = useIsMobile();
 
+  // Detail modal state
+  const [comments, setComments] = useState<PostComment[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [commentNickname, setCommentNickname] = useState(() => localStorage.getItem("rankit_nickname") || "");
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const [heartPop, setHeartPop] = useState<string | null>(null);
+  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+  const commentsEndRef = useRef<HTMLDivElement>(null);
+
   // Open write modal from URL param
   useEffect(() => {
     if (searchParams.get("write") === "true") {
@@ -74,21 +115,132 @@ const CommunityPage = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      const { data, error } = await supabase
-        .from("board_posts")
-        .select("*")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
+  const fetchPosts = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("board_posts")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
 
-      if (!error && data) {
-        setPosts(data as BoardPost[]);
-      }
-      setLoading(false);
-    };
-    fetchPosts();
+    if (!error && data) {
+      setPosts(data as BoardPost[]);
+    }
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
+
+  // Load liked status for current user
+  useEffect(() => {
+    const loadLikedPosts = async () => {
+      const uid = getUserIdentifier();
+      const { data } = await supabase
+        .from("board_post_likes")
+        .select("post_id")
+        .eq("user_identifier", uid);
+      if (data) {
+        setLikedPosts(new Set(data.map((d: any) => d.post_id)));
+      }
+    };
+    loadLikedPosts();
+  }, []);
+
+  // Load comments when detail modal opens
+  useEffect(() => {
+    if (!selectedPost) return;
+    const loadComments = async () => {
+      setCommentsLoading(true);
+      const { data } = await supabase
+        .from("board_post_comments")
+        .select("*")
+        .eq("post_id", selectedPost.id)
+        .order("created_at", { ascending: true });
+      if (data) setComments(data as PostComment[]);
+      setCommentsLoading(false);
+    };
+    loadComments();
+  }, [selectedPost?.id]);
+
+  const handleLike = async (postId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const uid = getUserIdentifier();
+    const isLiked = likedPosts.has(postId);
+
+    // Optimistic update
+    const newLiked = new Set(likedPosts);
+    const currentLikes = likeCounts[postId] ?? posts.find(p => p.id === postId)?.likes ?? 0;
+
+    if (isLiked) {
+      newLiked.delete(postId);
+      setLikeCounts(prev => ({ ...prev, [postId]: Math.max(currentLikes - 1, 0) }));
+    } else {
+      newLiked.add(postId);
+      setLikeCounts(prev => ({ ...prev, [postId]: currentLikes + 1 }));
+      // Pop animation
+      setHeartPop(postId);
+      setTimeout(() => setHeartPop(null), 600);
+    }
+    setLikedPosts(newLiked);
+
+    // DB operation
+    if (isLiked) {
+      await supabase
+        .from("board_post_likes")
+        .delete()
+        .eq("post_id", postId)
+        .eq("user_identifier", uid);
+    } else {
+      await supabase
+        .from("board_post_likes")
+        .insert({ post_id: postId, user_identifier: uid });
+    }
+
+    // Update selectedPost if viewing
+    if (selectedPost?.id === postId) {
+      const newCount = isLiked ? Math.max(currentLikes - 1, 0) : currentLikes + 1;
+      setSelectedPost(prev => prev ? { ...prev, likes: newCount } : null);
+    }
+  };
+
+  const handleCommentSubmit = async () => {
+    if (!selectedPost || !commentText.trim() || !commentNickname.trim()) {
+      toast({ title: "입력 오류", description: "닉네임과 댓글을 입력해주세요.", variant: "destructive" });
+      return;
+    }
+    if (commentNickname.trim().length < 2) {
+      toast({ title: "닉네임 오류", description: "닉네임은 2자 이상이어야 합니다.", variant: "destructive" });
+      return;
+    }
+    setCommentSubmitting(true);
+    localStorage.setItem("rankit_nickname", commentNickname.trim());
+
+    const { error } = await supabase.from("board_post_comments").insert({
+      post_id: selectedPost.id,
+      nickname: commentNickname.trim(),
+      message: commentText.trim(),
+    });
+
+    if (error) {
+      toast({ title: "등록 실패", description: "댓글 등록에 실패했습니다.", variant: "destructive" });
+    } else {
+      toast({ title: "💬 댓글 등록 완료", description: "댓글이 성공적으로 등록되었습니다!" });
+      setCommentText("");
+      // Reload comments
+      const { data } = await supabase
+        .from("board_post_comments")
+        .select("*")
+        .eq("post_id", selectedPost.id)
+        .order("created_at", { ascending: true });
+      if (data) setComments(data as PostComment[]);
+      // Update comment count
+      setSelectedPost(prev => prev ? { ...prev, comments_count: (prev.comments_count || 0) + 1 } : null);
+      setPosts(prev => prev.map(p => p.id === selectedPost.id ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p));
+      setTimeout(() => commentsEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+    }
+    setCommentSubmitting(false);
+  };
 
   const handleSubmit = async () => {
     if (!writeForm.title.trim() || !writeForm.content.trim() || !writeForm.author.trim()) {
@@ -108,12 +260,7 @@ const CommunityPage = () => {
       toast({ title: "등록 완료 🎉", description: "게시글이 성공적으로 등록되었습니다!" });
       setWriteOpen(false);
       setWriteForm({ title: "", content: "", author: "", category: "HOT" });
-      const { data } = await supabase
-        .from("board_posts")
-        .select("*")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
-      if (data) setPosts(data as BoardPost[]);
+      await fetchPosts();
     }
     setSubmitting(false);
   };
@@ -126,6 +273,8 @@ const CommunityPage = () => {
     }
     return true;
   });
+
+  const getLikeCount = (post: BoardPost) => likeCounts[post.id] ?? post.likes;
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
@@ -143,7 +292,6 @@ const CommunityPage = () => {
               <h1 className="text-base font-bold gradient-text neon-text">Rankit 게시판</h1>
             </div>
           </div>
-          {/* Header write button */}
           <button
             onClick={() => setWriteOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border border-neon-purple/40 text-neon-purple hover:bg-neon-purple/10 transition-all"
@@ -204,6 +352,7 @@ const CommunityPage = () => {
           <div className="space-y-2">
             {filtered.map((post) => {
               const style = getCategoryStyle(post.category);
+              const liked = likedPosts.has(post.id);
               return (
                 <button
                   key={post.id}
@@ -222,9 +371,16 @@ const CommunityPage = () => {
                       </p>
                       <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
                         <span>{post.author}</span>
+                        <span
+                          className={`flex items-center gap-0.5 transition-colors ${liked ? "text-red-400" : ""}`}
+                          onClick={(e) => handleLike(post.id, e)}
+                        >
+                          <Heart className={`w-3 h-3 transition-all ${liked ? "fill-red-400 text-red-400" : ""} ${heartPop === post.id ? "animate-[heart-pop_0.6s_ease-out]" : ""}`} />
+                          {getLikeCount(post)}
+                        </span>
                         <span className="flex items-center gap-0.5">
-                          <Heart className="w-3 h-3" />
-                          {post.likes}
+                          <MessageCircle className="w-3 h-3" />
+                          {post.comments_count || 0}
                         </span>
                       </div>
                     </div>
@@ -238,7 +394,7 @@ const CommunityPage = () => {
 
       <Footer />
 
-      {/* FAB - Rendered via Portal to document.body, completely outside any parent */}
+      {/* FAB */}
       {createPortal(
         <button
           onClick={() => setWriteOpen(true)}
@@ -259,28 +415,126 @@ const CommunityPage = () => {
         document.body
       )}
 
-      {/* Detail Modal */}
-      <Dialog open={!!selectedPost} onOpenChange={() => setSelectedPost(null)}>
-        <DialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl border border-white/10 backdrop-blur-xl">
+      {/* Detail Modal with Comments & Likes */}
+      <Dialog open={!!selectedPost} onOpenChange={(open) => { if (!open) { setSelectedPost(null); setComments([]); } }}>
+        <DialogContent className="max-w-[92vw] sm:max-w-md rounded-2xl border border-white/10 backdrop-blur-xl p-0 flex flex-col" style={{ maxHeight: "85vh" }}>
           {selectedPost && (() => {
             const style = getCategoryStyle(selectedPost.category);
+            const liked = likedPosts.has(selectedPost.id);
+            const currentLikes = likeCounts[selectedPost.id] ?? selectedPost.likes;
             return (
               <>
-                <DialogHeader>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${style.bg} ${style.text} ${style.border} ${style.glow}`}>
-                      [{selectedPost.category}]
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Heart className="w-3 h-3" />
-                      {selectedPost.likes}
-                    </span>
+                {/* Header */}
+                <div className="p-5 pb-0">
+                  <DialogHeader>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${style.bg} ${style.text} ${style.border} ${style.glow}`}>
+                        [{selectedPost.category}]
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">{formatTimeAgo(selectedPost.created_at)}</span>
+                    </div>
+                    <DialogTitle className="text-base font-bold">{selectedPost.title}</DialogTitle>
+                    <p className="text-xs text-muted-foreground">{selectedPost.author}</p>
+                  </DialogHeader>
+                </div>
+
+                {/* Scrollable content area */}
+                <div className="flex-1 overflow-y-auto px-5 min-h-0" style={{ scrollbarWidth: "thin", scrollbarColor: "hsl(270,50%,40%) transparent" }}>
+                  {/* Post content */}
+                  <div className="pt-3 pb-4 text-sm text-foreground/90 whitespace-pre-line leading-relaxed">
+                    {selectedPost.content}
                   </div>
-                  <DialogTitle className="text-base font-bold">{selectedPost.title}</DialogTitle>
-                  <p className="text-xs text-muted-foreground">{selectedPost.author}</p>
-                </DialogHeader>
-                <div className="pt-2 text-sm text-foreground/90 whitespace-pre-line leading-relaxed">
-                  {selectedPost.content}
+
+                  {/* Like & Comment count bar */}
+                  <div className="flex items-center gap-4 py-3 border-t border-b border-white/10">
+                    <button
+                      onClick={() => handleLike(selectedPost.id)}
+                      className="flex items-center gap-1.5 text-sm transition-all active:scale-90"
+                    >
+                      <Heart
+                        className={`w-5 h-5 transition-all duration-300 ${liked ? "fill-red-400 text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.6)]" : "text-muted-foreground hover:text-red-300"} ${heartPop === selectedPost.id ? "animate-[heart-pop_0.6s_ease-out]" : ""}`}
+                      />
+                      <span className={`font-semibold ${liked ? "text-red-400" : "text-muted-foreground"}`}>
+                        {currentLikes}
+                      </span>
+                    </button>
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <MessageCircle className="w-5 h-5" />
+                      <span className="font-semibold">{comments.length}</span>
+                    </div>
+                  </div>
+
+                  {/* Comments section */}
+                  <div className="py-3 space-y-3">
+                    {commentsLoading ? (
+                      <div className="space-y-2">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="h-12 rounded-xl bg-white/5 animate-pulse" />
+                        ))}
+                      </div>
+                    ) : comments.length === 0 ? (
+                      <p className="text-center text-xs text-muted-foreground py-6">
+                        아직 댓글이 없어요. 첫 댓글을 남겨보세요! 💬
+                      </p>
+                    ) : (
+                      comments.map((c) => (
+                        <div key={c.id} className="flex gap-2.5 animate-fade-in">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-neon-purple/30 to-neon-cyan/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <User className="w-3.5 h-3.5 text-neon-purple/70" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-foreground">{c.nickname}</span>
+                              <span className="text-[10px] text-muted-foreground">{formatTimeAgo(c.created_at)}</span>
+                            </div>
+                            <p className="text-xs text-foreground/80 mt-0.5 break-words">{c.message}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                    <div ref={commentsEndRef} />
+                  </div>
+                </div>
+
+                {/* Fixed comment input */}
+                <div className="p-4 border-t border-white/10 bg-card/50 backdrop-blur-sm" style={{ paddingBottom: isMobile ? "calc(1rem + env(safe-area-inset-bottom))" : "1rem" }}>
+                  {/* Nickname row */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-neon-purple/40 to-neon-cyan/30 flex items-center justify-center flex-shrink-0">
+                      <User className="w-3 h-3 text-neon-purple/80" />
+                    </div>
+                    <input
+                      type="text"
+                      value={commentNickname}
+                      onChange={(e) => setCommentNickname(e.target.value)}
+                      placeholder="닉네임"
+                      maxLength={20}
+                      className="flex-1 px-2 py-1 rounded-lg bg-white/5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/40"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleCommentSubmit()}
+                      placeholder="따뜻한 댓글을 남겨주세요 ✨"
+                      maxLength={500}
+                      className="flex-1 px-3 py-2 rounded-xl bg-white/5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/40"
+                    />
+                    <button
+                      onClick={handleCommentSubmit}
+                      disabled={commentSubmitting || !commentText.trim() || !commentNickname.trim()}
+                      className="p-2 rounded-xl disabled:opacity-30 transition-all active:scale-90"
+                      style={{ background: "linear-gradient(135deg, hsl(270,80%,60%), hsl(280,90%,50%))" }}
+                    >
+                      {commentSubmitting ? (
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4 text-white" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </>
             );
@@ -298,7 +552,6 @@ const CommunityPage = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 pt-1">
-            {/* Category Select */}
             <div className="flex gap-2">
               {(["HOT", "공지", "이벤트"] as const).map((cat) => {
                 const s = getCategoryStyle(cat);
@@ -315,8 +568,6 @@ const CommunityPage = () => {
                 );
               })}
             </div>
-
-            {/* Author */}
             <input
               type="text"
               placeholder="닉네임"
@@ -325,8 +576,6 @@ const CommunityPage = () => {
               maxLength={20}
               className="w-full px-3 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50"
             />
-
-            {/* Title */}
             <input
               type="text"
               placeholder="제목을 입력하세요"
@@ -335,8 +584,6 @@ const CommunityPage = () => {
               maxLength={100}
               className="w-full px-3 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50"
             />
-
-            {/* Content */}
             <textarea
               placeholder="내용을 입력하세요..."
               value={writeForm.content}
@@ -345,15 +592,11 @@ const CommunityPage = () => {
               maxLength={2000}
               className="w-full px-3 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50 resize-none"
             />
-
-            {/* Submit */}
             <button
               onClick={handleSubmit}
               disabled={submitting || !writeForm.title.trim() || !writeForm.content.trim() || !writeForm.author.trim()}
               className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              style={{
-                background: "linear-gradient(135deg, hsl(270,80%,60%), hsl(280,90%,50%))",
-              }}
+              style={{ background: "linear-gradient(135deg, hsl(270,80%,60%), hsl(280,90%,50%))" }}
             >
               <Send className="w-4 h-4" />
               {submitting ? "등록 중..." : "게시하기"}
@@ -361,6 +604,18 @@ const CommunityPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Heart pop animation */}
+      <style>{`
+        @keyframes heart-pop {
+          0% { transform: scale(1); }
+          15% { transform: scale(1.5); }
+          30% { transform: scale(0.9); }
+          45% { transform: scale(1.2); }
+          60% { transform: scale(1); }
+          100% { transform: scale(1); }
+        }
+      `}</style>
     </div>
   );
 };
