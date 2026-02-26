@@ -2,12 +2,16 @@ import { useState, useEffect, useRef } from "react";
 import { getPublishedOrigin } from "@/lib/clipboard";
 import { Link } from "react-router-dom";
 import { Creator, getVotesUntilNext } from "@/lib/data";
-import { Trophy, TrendingUp, TrendingDown, Minus, CheckCircle2, Heart, Crown } from "lucide-react";
+import { Trophy, TrendingUp, TrendingDown, Minus, CheckCircle2, Heart, Crown, Flame } from "lucide-react";
 import { useHallOfFameWins, getWinTitle } from "@/hooks/useHallOfFame";
+import { useTickets } from "@/hooks/useTickets";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import CommentInput from "./CommentInput";
 import MiniInfluenceChart from "./MiniInfluenceChart";
 import VoteResultModal from "./VoteResultModal";
 import CelebrationEffect from "./CelebrationEffect";
+import { toast } from "sonner";
 
 interface RankingCardProps {
   creator: Creator;
@@ -19,9 +23,13 @@ interface RankingCardProps {
 
 const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false }: RankingCardProps) => {
   const hallOfFameWins = useHallOfFameWins();
+  const { user } = useAuth();
+  const { tickets, refreshTickets } = useTickets();
   const creatorWins = hallOfFameWins[creator.id] || 0;
   const winTitle = getWinTitle(creatorWins);
   const [isVoting, setIsVoting] = useState(false);
+  const [isFireVoting, setIsFireVoting] = useState(false);
+  const [showFireEffect, setShowFireEffect] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [showVoteModal, setShowVoteModal] = useState(false);
@@ -87,6 +95,32 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
   const sorted = [...creators].sort((a, b) => a.rank - b.rank);
   const idx = sorted.findIndex(c => c.id === creator.id);
   const aboveCreator = idx > 0 ? sorted[idx - 1] : null;
+
+  const handleFireVote = async () => {
+    if (!user) {
+      toast.error("불꽃 투표는 로그인이 필요합니다.");
+      return;
+    }
+    if (tickets < 5) {
+      toast.error("티켓이 부족합니다! (필요: 5장)");
+      return;
+    }
+    setIsFireVoting(true);
+    const { data, error } = await supabase.functions.invoke("tickets", {
+      body: { action: "fire_vote", creator_id: creator.id },
+    });
+    if (error || data?.error) {
+      toast.error(data?.error || "불꽃 투표에 실패했습니다.");
+    } else {
+      toast.success("🔥 불꽃 투표! 5표가 한 번에 반영되었습니다!");
+      setShowFireEffect(true);
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
+      setTimeout(() => setShowFireEffect(false), 3000);
+      await refreshTickets();
+    }
+    setIsFireVoting(false);
+  };
 
   const handleBonusVote = () => {
     onBonusVote?.();
@@ -222,20 +256,63 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
           lastStatsUpdated={creator.last_stats_updated}
         />
 
-        {/* Vote Button */}
-        <button
-          onClick={handleVote}
-          disabled={isVoting || hasVoted}
-          className={`shrink-0 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 ${
-            hasVoted
-              ? "glass-sm border-muted/30 text-muted-foreground cursor-not-allowed opacity-60"
-              : isVoting
-              ? "gradient-primary scale-110 animate-count-up shadow-lg shadow-primary/30"
-              : "glass-sm border-neon-purple/30 text-neon-purple hover:border-neon-purple/60 hover:shadow-lg hover:shadow-primary/10 active:scale-95"
-          }`}
-        >
-          {hasVoted ? "✓ 완료" : isVoting ? "🎉" : "투표"}
-        </button>
+        {/* Vote Buttons */}
+        <div className="flex flex-col gap-1 shrink-0">
+          <button
+            onClick={handleVote}
+            disabled={isVoting || hasVoted}
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 ${
+              hasVoted
+                ? "glass-sm border-muted/30 text-muted-foreground cursor-not-allowed opacity-60"
+                : isVoting
+                ? "gradient-primary scale-110 animate-count-up shadow-lg shadow-primary/30"
+                : "glass-sm border-neon-purple/30 text-neon-purple hover:border-neon-purple/60 hover:shadow-lg hover:shadow-primary/10 active:scale-95"
+            }`}
+          >
+            {hasVoted ? "✓ 완료" : isVoting ? "🎉" : "투표"}
+          </button>
+          {user && (
+            <button
+              onClick={handleFireVote}
+              disabled={isFireVoting || tickets < 5}
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center justify-center gap-0.5 ${
+                tickets < 5
+                  ? "glass-sm text-muted-foreground/50 cursor-not-allowed"
+                  : isFireVoting
+                  ? "bg-orange-500/30 text-orange-300 animate-pulse"
+                  : "bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 hover:shadow-[0_0_12px_hsl(25,90%,55%,0.3)] active:scale-95"
+              }`}
+              title="5장의 티켓으로 5표를 한 번에!"
+            >
+              <Flame className="w-3 h-3" />
+              {isFireVoting ? "..." : "불꽃×5"}
+            </button>
+          )}
+        </div>
+
+        {/* Fire Effect Overlay */}
+        {showFireEffect && (
+          <div className="fixed inset-0 pointer-events-none z-50">
+            <div className="absolute inset-0 overflow-hidden">
+              {Array.from({ length: 30 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute text-2xl animate-bounce"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 0.5}s`,
+                    animationDuration: `${0.8 + Math.random() * 1.2}s`,
+                    opacity: 0,
+                    animation: `fire-particle ${1 + Math.random() * 1.5}s ease-out forwards`,
+                  }}
+                >
+                  {["🔥", "✨", "💥", "⚡"][Math.floor(Math.random() * 4)]}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {showCommentInput && (

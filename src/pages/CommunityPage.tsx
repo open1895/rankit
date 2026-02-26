@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Send, MessageCircle, User, ImagePlus, ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useTickets } from "@/hooks/useTickets";
+import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Send, MessageCircle, User, ImagePlus, ChevronLeft, ChevronRight, Image as ImageIcon, EyeOff } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SEOHead from "@/components/SEOHead";
@@ -209,7 +211,9 @@ const CommunityPage = () => {
   const [writeForm, setWriteForm] = useState({ title: "", content: "", author: "", category: "HOT" });
   const [submitting, setSubmitting] = useState(false);
   const isMobile = useIsMobile();
-
+  const { user } = useAuth();
+  const { tickets, refreshTickets } = useTickets();
+  const [anonymousMode, setAnonymousMode] = useState(false);
   // Image upload state
   const [selectedImages, setSelectedImages] = useState<{ file: File; preview: string }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -389,10 +393,33 @@ const CommunityPage = () => {
 
   // --- Post Submit ---
   const handleSubmit = async () => {
-    if (!writeForm.title.trim() || !writeForm.content.trim() || !writeForm.author.trim()) {
+    if (!writeForm.title.trim() || !writeForm.content.trim() || (!anonymousMode && !writeForm.author.trim())) {
       toast({ title: "입력 오류", description: "닉네임, 제목, 내용을 모두 입력해주세요.", variant: "destructive" });
       return;
     }
+
+    // Handle anonymous mode ticket deduction
+    if (anonymousMode) {
+      if (!user) {
+        toast({ title: "로그인 필요", description: "익명 글쓰기는 로그인이 필요합니다.", variant: "destructive" });
+        return;
+      }
+      if (tickets < 2) {
+        toast({ title: "티켓 부족", description: "익명 글쓰기에는 티켓 2장이 필요합니다.", variant: "destructive" });
+        return;
+      }
+      // Deduct tickets via edge function
+      const { data: ticketRes } = await supabase.functions.invoke("tickets", {
+        body: { action: "anonymous_post" },
+      });
+      if (!ticketRes?.success) {
+        toast({ title: "티켓 부족", description: ticketRes?.error || "티켓이 부족합니다.", variant: "destructive" });
+        return;
+      }
+      await refreshTickets();
+      toast({ title: "🎫 티켓 2장 사용", description: "익명 크루로 글이 작성됩니다." });
+    }
+
     setSubmitting(true);
 
     // Upload images first
@@ -401,10 +428,12 @@ const CommunityPage = () => {
       imageUrls = await uploadImages();
     }
 
+    const authorName = anonymousMode ? "익명 크루" : writeForm.author.trim();
+
     const { error } = await supabase.from("board_posts").insert({
       title: writeForm.title.trim(),
       content: writeForm.content.trim(),
-      author: writeForm.author.trim(),
+      author: authorName,
       category: writeForm.category,
       image_urls: imageUrls.length > 0 ? imageUrls : null,
     });
@@ -415,6 +444,7 @@ const CommunityPage = () => {
       toast({ title: "등록 완료 🎉", description: "게시글이 성공적으로 등록되었습니다!" });
       setWriteOpen(false);
       setWriteForm({ title: "", content: "", author: "", category: "HOT" });
+      setAnonymousMode(false);
       // Clean up image previews
       selectedImages.forEach((img) => URL.revokeObjectURL(img.preview));
       setSelectedImages([]);
@@ -747,14 +777,38 @@ const CommunityPage = () => {
               })}
             </div>
 
-            <input
-              type="text"
-              placeholder="닉네임"
-              value={writeForm.author}
-              onChange={(e) => setWriteForm((f) => ({ ...f, author: e.target.value }))}
-              maxLength={20}
-              className="w-full px-3 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50"
-            />
+            {/* Anonymous Toggle */}
+            {user && (
+              <button
+                onClick={() => setAnonymousMode(!anonymousMode)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                  anonymousMode
+                    ? "bg-neon-purple/20 text-neon-purple border border-neon-purple/40"
+                    : "glass-sm text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <EyeOff className="w-3.5 h-3.5" />
+                <span>익명으로 작성</span>
+                {anonymousMode && <span className="text-[10px] opacity-70">(🎫 2장)</span>}
+              </button>
+            )}
+
+            {!anonymousMode && (
+              <input
+                type="text"
+                placeholder="닉네임"
+                value={writeForm.author}
+                onChange={(e) => setWriteForm((f) => ({ ...f, author: e.target.value }))}
+                maxLength={20}
+                className="w-full px-3 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50"
+              />
+            )}
+            {anonymousMode && (
+              <div className="w-full px-3 py-2.5 rounded-xl glass-sm bg-neon-purple/10 text-sm text-neon-purple font-medium flex items-center gap-2">
+                <EyeOff className="w-4 h-4" />
+                익명 크루
+              </div>
+            )}
             <input
               type="text"
               placeholder="제목을 입력하세요"
@@ -836,7 +890,7 @@ const CommunityPage = () => {
             {/* Submit */}
             <button
               onClick={handleSubmit}
-              disabled={submitting || !writeForm.title.trim() || !writeForm.content.trim() || !writeForm.author.trim()}
+              disabled={submitting || !writeForm.title.trim() || !writeForm.content.trim() || (!anonymousMode && !writeForm.author.trim())}
               className="w-full py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               style={{ background: "linear-gradient(135deg, hsl(270,80%,60%), hsl(280,90%,50%))" }}
             >

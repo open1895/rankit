@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTickets } from "@/hooks/useTickets";
 
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ import {
   Banknote,
   UserX,
   ShieldCheck,
+  Ticket,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -75,6 +77,8 @@ const CATEGORIES = [
 const MyPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
+  const { tickets } = useTickets();
+  const [ticketHistory, setTicketHistory] = useState<any[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [votes, setVotes] = useState<VoteRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -201,6 +205,14 @@ const MyPage = () => {
             creator_category: creatorMap.get(v.creator_id)?.category || "",
           }))
         );
+      }
+
+      // Fetch ticket history
+      const { data: ticketData } = await supabase.functions.invoke("tickets", {
+        body: { action: "get_history" },
+      });
+      if (ticketData?.transactions) {
+        setTicketHistory(ticketData.transactions.slice(0, 5));
       }
 
       setLoading(false);
@@ -620,7 +632,36 @@ const MyPage = () => {
             </div>
           </div>
 
-          {/* Point Dashboard */}
+          {/* Ticket Dashboard */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Ticket className="w-4 h-4 text-neon-purple" />
+              <span className="text-xs font-bold">내 티켓 🎫</span>
+            </div>
+            <div className="glass-sm p-4 text-center space-y-1 relative overflow-hidden">
+              <div className="text-3xl font-black gradient-text neon-text-purple">
+                {tickets.toLocaleString()}
+              </div>
+              <div className="text-[11px] text-muted-foreground">보유 티켓</div>
+              <div className="text-[10px] text-muted-foreground mt-1">
+                불꽃투표(5장) · 익명글(2장) · 응원강조(3장)
+              </div>
+            </div>
+            {ticketHistory.length > 0 && (
+              <div className="space-y-1">
+                <div className="text-[11px] font-bold text-muted-foreground px-1">최근 사용 내역</div>
+                {ticketHistory.map((tx: any) => (
+                  <div key={tx.id} className="glass-sm px-3 py-2 flex items-center justify-between text-[11px]">
+                    <span className="text-foreground">{tx.description || tx.type}</span>
+                    <span className={tx.amount > 0 ? "text-green-400 font-bold" : "text-destructive font-bold"}>
+                      {tx.amount > 0 ? "+" : ""}{tx.amount}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

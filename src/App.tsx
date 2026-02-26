@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/hooks/useAuth";
+import { TicketProvider } from "@/hooks/useTickets";
 import PageTransition from "@/components/PageTransition";
 import MobileTabBar from "@/components/MobileTabBar";
 import Index from "./pages/Index";
@@ -32,6 +33,7 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <TicketProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -67,6 +69,7 @@ const App = () => (
             </div>
           </BrowserRouter>
         </TooltipProvider>
+        </TicketProvider>
       </AuthProvider>
     </QueryClientProvider>
   </HelmetProvider>
