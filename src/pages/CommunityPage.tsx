@@ -231,13 +231,14 @@ const CommunityPage = () => {
 
       <Footer />
 
-      {/* FAB - Fixed, above tab bar */}
+      {/* FAB - Fixed, above tab bar, never overlaps */}
       <button
         onClick={() => setWriteOpen(true)}
-        className="fixed z-50 flex items-center gap-2 rounded-full shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95"
+        className="fixed flex items-center gap-2 rounded-full transition-transform duration-200 ease-out hover:scale-105 active:scale-95 will-change-transform"
         style={{
-          bottom: isMobile ? "5.5rem" : "2rem",
-          right: "1.25rem",
+          zIndex: 9999,
+          bottom: isMobile ? "calc(3.5rem + 16px)" : "2rem",
+          right: "20px",
           background: "linear-gradient(135deg, hsl(270,80%,60%), hsl(280,90%,50%))",
           boxShadow: "0 6px 28px hsl(270,80%,50%,0.5), 0 0 40px hsl(270,80%,60%,0.25)",
           padding: isMobile ? "0.75rem 1.25rem" : "0.875rem 1.5rem",
