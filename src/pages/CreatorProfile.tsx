@@ -18,6 +18,7 @@ import { useHallOfFameWins, getWinTitle } from "@/hooks/useHallOfFame";
 import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
 import VoteTrendChart from "@/components/VoteTrendChart";
 import VoteHeatmapChart from "@/components/VoteHeatmapChart";
+import CreatorRewards from "@/components/CreatorRewards";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -1352,6 +1353,11 @@ const CreatorProfile = () => {
               </div>
             )}
           </div>
+
+          {/* 팬 전용 리워드 */}
+          {creator && (
+            <CreatorRewards creatorId={creator.id} currentVotes={creator.votes_count} />
+          )}
 
           {/* 주간 PDF 리포트 */}
           <button
