@@ -7,7 +7,6 @@ const corsHeaders = {
 };
 
 const MISSION_REWARDS: Record<string, { reward: number; label: string }> = {
-  change_nickname: { reward: 2, label: "닉네임 변경" },
   first_comment: { reward: 3, label: "첫 응원톡 작성" },
   first_post: { reward: 5, label: "첫 게시글 작성" },
 };
@@ -57,17 +56,11 @@ Deno.serve(async (req) => {
       // Check actual completion status from DB
       const completionStatus: Record<string, boolean> = {};
 
-      // Check nickname changed (display_name != '' and != email)
       const { data: profile } = await admin
         .from("profiles")
         .select("display_name")
         .eq("user_id", user.id)
         .single();
-      const hasNickname =
-        profile?.display_name &&
-        profile.display_name !== "" &&
-        profile.display_name !== user.email;
-      completionStatus["change_nickname"] = !!hasNickname;
 
       // Check first comment (comments table)
       const { count: commentCount } = await admin
@@ -138,12 +131,7 @@ Deno.serve(async (req) => {
         .eq("user_id", user.id)
         .single();
 
-      if (mission_key === "change_nickname") {
-        eligible =
-          !!profile?.display_name &&
-          profile.display_name !== "" &&
-          profile.display_name !== user.email;
-      } else if (mission_key === "first_comment") {
+      if (mission_key === "first_comment") {
         const { count } = await admin
           .from("comments")
           .select("id", { count: "exact", head: true })

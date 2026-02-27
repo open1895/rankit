@@ -7,36 +7,31 @@ import SEOHead from "@/components/SEOHead";
 import MissionItem, { type MissionData } from "@/components/MissionItem";
 import Footer from "@/components/Footer";
 import { ArrowLeft, Zap, Gift, Ticket, Star, Sparkles, Users, Megaphone } from "lucide-react";
-import { Edit3, MessageCircle, FileText } from "lucide-react";
+import { MessageCircle, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 const MISSION_ICONS: Record<string, any> = {
-  change_nickname: Edit3,
   first_comment: MessageCircle,
   first_post: FileText,
 };
 
 const MISSION_LINKS: Record<string, string> = {
-  change_nickname: "/my",
   first_comment: "/",
   first_post: "/community",
 };
 
 const MISSION_CATEGORIES: Record<string, string> = {
-  change_nickname: "간편 참여",
   first_comment: "참여형",
   first_post: "참여형",
 };
 
 const MISSION_DESCRIPTIONS: Record<string, string> = {
-  change_nickname: "프로필에서 닉네임을 설정하세요",
   first_comment: "크리에이터에게 첫 응원톡을 남기세요",
   first_post: "커뮤니티에 첫 게시글을 작성하세요",
 };
 
 const TABS = [
   { key: "all", label: "전체", icon: Star },
-  { key: "간편 참여", label: "간편참여", icon: Zap },
   { key: "참여형", label: "참여형", icon: Sparkles },
 ];
 
