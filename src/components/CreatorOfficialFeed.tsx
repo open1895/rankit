@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -55,9 +55,11 @@ const CreatorOfficialFeed = ({
   const [loading, setLoading] = useState(true);
   const [showCompose, setShowCompose] = useState(false);
   const [content, setContent] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [floatingHearts, setFloatingHearts] = useState<{ id: number; postId: string }[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   let heartCounter = 0;
 
   useEffect(() => {
@@ -89,18 +91,54 @@ const CreatorOfficialFeed = ({
     fetchLikes();
   }, [user]);
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowed.includes(file.type)) {
+      toast.error("JPG, PNG, WEBP, GIF만 업로드 가능합니다.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("이미지는 5MB 이하만 가능합니다.");
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
   const handlePost = async () => {
+    if (!user) return;
     if (content.trim().length < 1) {
       toast.error("내용을 입력해주세요.");
       return;
     }
     setSubmitting(true);
+
+    let uploadedUrl = "";
+
+    // Upload image if selected
+    if (imageFile) {
+      const ext = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
+      const filePath = `${user.id}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("feed-images")
+        .upload(filePath, imageFile, { upsert: false });
+      if (upErr) {
+        toast.error("이미지 업로드에 실패했습니다.");
+        setSubmitting(false);
+        return;
+      }
+      const { data: urlData } = supabase.storage.from("feed-images").getPublicUrl(filePath);
+      uploadedUrl = urlData.publicUrl;
+    }
+
     const { data, error } = await supabase
       .from("creator_feed_posts")
       .insert({
         creator_id: creatorId,
         content: content.trim(),
-        image_url: imageUrl.trim(),
+        image_url: uploadedUrl,
       })
       .select()
       .single();
@@ -112,7 +150,8 @@ const CreatorOfficialFeed = ({
     if (data) {
       setPosts((prev) => [data as FeedPost, ...prev]);
       setContent("");
-      setImageUrl("");
+      setImageFile(null);
+      setImagePreview(null);
       setShowCompose(false);
       toast.success("공식 피드가 등록되었습니다! ✨");
     }
@@ -289,16 +328,33 @@ const CreatorOfficialFeed = ({
               maxLength={2000}
               className="w-full h-32 p-3 rounded-xl bg-background/50 border border-glass-border text-xs resize-none focus:outline-none focus:ring-1 focus:ring-[hsl(var(--neon-purple))]"
             />
-            <div className="flex items-center gap-2">
-              <ImagePlus className="w-4 h-4 text-muted-foreground" />
-              <input
-                type="url"
-                placeholder="이미지 URL (선택사항)"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="flex-1 h-8 px-3 rounded-lg bg-background/50 border border-glass-border text-xs focus:outline-none focus:ring-1 focus:ring-[hsl(var(--neon-purple))]"
-              />
-            </div>
+            {/* Image upload */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={handleImageSelect}
+            />
+            {imagePreview ? (
+              <div className="relative rounded-xl overflow-hidden border border-glass-border">
+                <img src={imagePreview} alt="미리보기" className="w-full max-h-48 object-cover" />
+                <button
+                  onClick={() => { setImageFile(null); setImagePreview(null); }}
+                  className="absolute top-2 right-2 w-6 h-6 rounded-full bg-background/80 flex items-center justify-center"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-glass-border text-xs text-muted-foreground hover:border-[hsl(var(--neon-purple)/0.5)] hover:text-foreground transition-colors"
+              >
+                <ImagePlus className="w-4 h-4" />
+                이미지 첨부 (선택, 최대 5MB)
+              </button>
+            )}
             <Button
               onClick={handlePost}
               disabled={submitting || content.trim().length < 1}
