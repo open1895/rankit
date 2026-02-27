@@ -6,7 +6,7 @@ import { useTickets } from "@/hooks/useTickets";
 import SEOHead from "@/components/SEOHead";
 import MissionItem, { type MissionData } from "@/components/MissionItem";
 import Footer from "@/components/Footer";
-import { ArrowLeft, Zap, Gift, Ticket, Star, Sparkles, Users, Megaphone } from "lucide-react";
+import { ArrowLeft, Zap, Gift, Ticket, Star, Sparkles, Users, Megaphone, ExternalLink } from "lucide-react";
 import { MessageCircle, FileText } from "lucide-react";
 import { toast } from "sonner";
 
@@ -212,6 +212,26 @@ const RechargePage = () => {
             );
           })}
         </div>
+
+        {/* Adpopcorn Offerwall Button */}
+        <button
+          onClick={() => {
+            if (!user) return;
+            const appKey = import.meta.env.VITE_ADPOPCORN_APP_KEY || "TEST_APP_KEY";
+            const offerwallUrl = `https://offerwall.adpopcorn.com?appkey=${encodeURIComponent(appKey)}&usertid=${encodeURIComponent(user.id)}`;
+            window.open(offerwallUrl, "_blank", "noopener,noreferrer");
+          }}
+          className="w-full flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-yellow-500/15 border border-amber-500/30 hover:border-amber-400/60 transition-all group"
+        >
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-[0_0_16px_rgba(245,158,11,0.3)] group-hover:shadow-[0_0_24px_rgba(245,158,11,0.5)] transition-shadow">
+            <Megaphone className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-bold text-foreground">더 많은 티켓 얻기 (광고)</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">광고 참여하고 티켓을 무제한 적립하세요!</p>
+          </div>
+          <ExternalLink className="w-4 h-4 text-amber-500 opacity-60 group-hover:opacity-100 transition" />
+        </button>
 
         {/* Section header */}
         <div className="flex items-center justify-between">
