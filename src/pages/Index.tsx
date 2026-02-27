@@ -24,7 +24,7 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import HeroSection from "@/components/HeroSection";
 import RankingFormula from "@/components/RankingFormula";
-import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X } from "lucide-react";
+import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -348,13 +348,17 @@ const Index = () => {
             >
               <Search className="w-3.5 h-3.5" />
             </button>
-            <div className="glass-sm px-2 py-1 flex items-center gap-1">
+            <Link
+              to={user ? "/recharge" : "#"}
+              className="glass-sm px-2 py-1 flex items-center gap-1 hover:bg-neon-cyan/10 transition-colors rounded-lg"
+            >
               <Ticket className="w-3.5 h-3.5 text-neon-cyan" />
               <span className="text-xs font-medium">
                 <span className="text-neon-cyan font-bold">{user ? tickets : remainingVotes}</span>
                 <span className="text-muted-foreground ml-0.5">{user ? "🎫" : "표"}</span>
               </span>
-            </div>
+              {user && <Zap className="w-3 h-3 text-neon-purple" />}
+            </Link>
             {user ? (
               <Link
                 to="/mypage"
