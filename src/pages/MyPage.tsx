@@ -33,6 +33,7 @@ import {
   UserX,
   ShieldCheck,
   Ticket,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -660,6 +661,13 @@ const MyPage = () => {
                 ))}
               </div>
             )}
+            <Button
+              onClick={() => navigate("/recharge")}
+              className="w-full min-h-[44px] bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white font-bold rounded-xl shadow-[0_0_16px_rgba(168,85,247,0.4)] gap-2"
+            >
+              <Zap className="w-4 h-4" />
+              무료 충전소 바로가기
+            </Button>
           </div>
 
           <div className="space-y-2">

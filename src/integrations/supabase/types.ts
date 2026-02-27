@@ -1106,6 +1106,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_missions: {
+        Row: {
+          completed_at: string
+          id: string
+          mission_key: string
+          reward_amount: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          mission_key: string
+          reward_amount?: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          mission_key?: string
+          reward_amount?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_points: {
         Row: {
           balance: number
