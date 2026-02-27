@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.tickets]
 verify_jwt = false
+
+[functions.adpopcorn-callback]
+verify_jwt = false
