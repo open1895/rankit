@@ -228,6 +228,47 @@ export type Database = {
           },
         ]
       }
+      creator_rewards: {
+        Row: {
+          created_at: string
+          creator_id: string
+          display_order: number
+          id: string
+          media_url: string
+          reward_type: string
+          thanks_message: string
+          threshold_votes: number
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          display_order?: number
+          id?: string
+          media_url?: string
+          reward_type?: string
+          thanks_message?: string
+          threshold_votes?: number
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          display_order?: number
+          id?: string
+          media_url?: string
+          reward_type?: string
+          thanks_message?: string
+          threshold_votes?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_rewards_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creators: {
         Row: {
           avatar_url: string
