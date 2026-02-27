@@ -6,10 +6,9 @@ import { useTickets } from "@/hooks/useTickets";
 import SEOHead from "@/components/SEOHead";
 import MissionItem, { type MissionData } from "@/components/MissionItem";
 import Footer from "@/components/Footer";
-import { ArrowLeft, Zap, Gift, Ticket, Star } from "lucide-react";
+import { ArrowLeft, Zap, Gift, Ticket, Star, Sparkles, Users, Megaphone } from "lucide-react";
 import { Edit3, MessageCircle, FileText } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 
 const MISSION_ICONS: Record<string, any> = {
   change_nickname: Edit3,
@@ -23,9 +22,22 @@ const MISSION_LINKS: Record<string, string> = {
   first_post: "/community",
 };
 
+const MISSION_CATEGORIES: Record<string, string> = {
+  change_nickname: "간편 참여",
+  first_comment: "참여형",
+  first_post: "참여형",
+};
+
+const MISSION_DESCRIPTIONS: Record<string, string> = {
+  change_nickname: "프로필에서 닉네임을 설정하세요",
+  first_comment: "크리에이터에게 첫 응원톡을 남기세요",
+  first_post: "커뮤니티에 첫 게시글을 작성하세요",
+};
+
 const TABS = [
   { key: "all", label: "전체", icon: Star },
-  { key: "participatory", label: "참여형", icon: Zap },
+  { key: "간편 참여", label: "간편참여", icon: Zap },
+  { key: "참여형", label: "참여형", icon: Sparkles },
 ];
 
 const RechargePage = () => {
@@ -58,6 +70,8 @@ const RechargePage = () => {
           link: MISSION_LINKS[m.key],
           eligible: m.eligible,
           claimed: m.claimed,
+          category: MISSION_CATEGORIES[m.key] || "기타",
+          description: MISSION_DESCRIPTIONS[m.key] || "미션을 완료하고 보상을 받으세요",
         }))
       );
     }
@@ -99,6 +113,11 @@ const RechargePage = () => {
   const completedCount = missions.filter((m) => m.claimed).length;
   const totalReward = missions.reduce((s, m) => s + m.reward, 0);
   const earnedReward = missions.filter((m) => m.claimed).reduce((s, m) => s + m.reward, 0);
+  const remainingReward = totalReward - earnedReward;
+
+  const filteredMissions = activeTab === "all"
+    ? missions
+    : missions.filter((m) => m.category === activeTab);
 
   if (authLoading || !user) {
     return (
@@ -116,7 +135,7 @@ const RechargePage = () => {
       />
 
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="flex items-center gap-3 px-4 h-14 max-w-lg mx-auto">
           <button
             onClick={() => navigate(-1)}
@@ -125,32 +144,46 @@ const RechargePage = () => {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-lg font-bold flex-1">무료 충전소</h1>
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-100 text-purple-700 font-bold text-sm">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/15 text-primary font-bold text-sm">
             <Ticket className="w-4 h-4" />
-            {tickets}
+            {tickets.toLocaleString()}
           </div>
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-5 space-y-5">
-        {/* Hero Banner */}
-        <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-purple-600 via-violet-600 to-indigo-700 text-white shadow-[0_0_30px_rgba(168,85,247,0.4)]">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+      <main className="max-w-lg mx-auto px-4 py-5 space-y-4">
+        {/* Available Reward Banner — inspired by reference */}
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-muted/60 border border-border/50">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground font-medium">현재 적립 가능 리워드</span>
+          </div>
+          <span className="text-base font-black text-primary">
+            {remainingReward.toLocaleString()} 🎫
+          </span>
+        </div>
+
+        {/* Hero Progress Card */}
+        <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-primary via-purple-600 to-violet-700 text-white shadow-[0_0_30px_hsl(var(--primary)/0.4)]">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-white/8 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-xl" />
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-2">
               <Zap className="w-5 h-5" />
-              <span className="text-sm font-medium opacity-90">미션 클리어</span>
+              <span className="text-sm font-medium opacity-90">미션 진행률</span>
             </div>
-            <h2 className="text-2xl font-black mb-1">
-              {completedCount}/{missions.length} 완료
-            </h2>
-            <p className="text-sm opacity-80">
-              {earnedReward}/{totalReward} 🎫 획득
+            <div className="flex items-end gap-2">
+              <h2 className="text-3xl font-black">
+                {completedCount}<span className="text-lg opacity-60">/{missions.length}</span>
+              </h2>
+              <span className="text-sm opacity-70 mb-1">완료</span>
+            </div>
+            <p className="text-sm opacity-80 mt-1">
+              획득: <span className="font-bold">{earnedReward}</span> / {totalReward} 🎫
             </p>
             {/* Progress bar */}
-            <div className="mt-3 h-2 bg-white/20 rounded-full overflow-hidden">
+            <div className="mt-3 h-2.5 bg-white/20 rounded-full overflow-hidden">
               <div
-                className="h-full bg-white rounded-full transition-all duration-500"
+                className="h-full bg-white rounded-full transition-all duration-700 ease-out"
                 style={{
                   width: missions.length
                     ? `${(completedCount / missions.length) * 100}%`
@@ -161,25 +194,38 @@ const RechargePage = () => {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2">
+        {/* Tabs — scrollable like reference */}
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
           {TABS.map((tab) => {
             const active = activeTab === tab.key;
+            const count = tab.key === "all" ? missions.length : missions.filter(m => m.category === tab.key).length;
             return (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
+                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap border min-h-[40px] ${
                   active
-                    ? "bg-purple-600 text-white shadow-[0_0_16px_rgba(168,85,247,0.4)]"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    ? "bg-primary text-primary-foreground border-primary shadow-[0_0_16px_hsl(var(--primary)/0.4)]"
+                    : "bg-card text-muted-foreground border-border hover:border-primary/40 hover:text-foreground"
                 }`}
               >
-                <tab.icon className="w-4 h-4" />
                 {tab.label}
+                <span className={`text-xs ${active ? "opacity-80" : "opacity-50"}`}>
+                  {count}
+                </span>
               </button>
             );
           })}
+        </div>
+
+        {/* Section header */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-foreground">
+            {TABS.find(t => t.key === activeTab)?.label || "전체"}
+          </h3>
+          <span className="text-xs text-muted-foreground">
+            {filteredMissions.filter(m => !m.claimed).length}개 참여 가능
+          </span>
         </div>
 
         {/* Mission List */}
@@ -188,12 +234,12 @@ const RechargePage = () => {
             <div className="text-center py-12 text-muted-foreground text-sm">
               미션 불러오는 중...
             </div>
-          ) : missions.length === 0 ? (
+          ) : filteredMissions.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground text-sm">
-              등록된 미션이 없습니다.
+              {activeTab === "all" ? "등록된 미션이 없습니다." : "해당 카테고리에 미션이 없습니다."}
             </div>
           ) : (
-            missions.map((mission) => (
+            filteredMissions.map((mission) => (
               <MissionItem
                 key={mission.key}
                 mission={mission}
@@ -206,9 +252,9 @@ const RechargePage = () => {
         </div>
 
         {/* Info card */}
-        <div className="p-4 rounded-2xl bg-muted/50 border border-border">
+        <div className="p-4 rounded-2xl bg-muted/40 border border-border/50">
           <h3 className="text-sm font-bold text-foreground mb-2 flex items-center gap-1.5">
-            <Gift className="w-4 h-4 text-purple-500" />
+            <Gift className="w-4 h-4 text-primary" />
             안내사항
           </h3>
           <ul className="text-xs text-muted-foreground space-y-1.5">
