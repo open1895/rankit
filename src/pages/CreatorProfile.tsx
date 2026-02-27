@@ -19,6 +19,7 @@ import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
 import VoteTrendChart from "@/components/VoteTrendChart";
 import VoteHeatmapChart from "@/components/VoteHeatmapChart";
 import CreatorRewards from "@/components/CreatorRewards";
+import CreatorOfficialFeed from "@/components/CreatorOfficialFeed";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -186,6 +187,7 @@ const CreatorProfile = () => {
   const [embedCopied, setEmbedCopied] = useState(false);
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [showFanCert, setShowFanCert] = useState(false);
+  const [feedTab, setFeedTab] = useState<"cheer" | "official">("cheer");
 
   useEffect(() => {
     if (!id) return;
@@ -1273,36 +1275,75 @@ const CreatorProfile = () => {
 
         {/* Comments Section */}
         <div className="glass p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <MessageCircle className="w-4 h-4 text-neon-cyan" />
-            <h3 className="text-sm font-semibold">응원 메시지</h3>
-            <span className="text-xs text-muted-foreground">({comments.length})</span>
+          {/* Tab Header */}
+          <div className="flex gap-1 p-0.5 rounded-xl bg-muted/50">
+            <button
+              onClick={() => setFeedTab("cheer")}
+              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                feedTab === "cheer"
+                  ? "bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-cyan))] text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              💬 응원톡
+            </button>
+            <button
+              onClick={() => setFeedTab("official")}
+              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                feedTab === "official"
+                  ? "bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-cyan))] text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              ✨ 공식 피드
+            </button>
           </div>
 
-          {/* Comment Input Form */}
-          <CommentForm creatorId={creator.id} onCommentAdded={(newComment) => setComments(prev => [newComment, ...prev])} />
+          {/* Cheer Tab */}
+          {feedTab === "cheer" && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4 text-neon-cyan" />
+                <h3 className="text-sm font-semibold">응원 메시지</h3>
+                <span className="text-xs text-muted-foreground">({comments.length})</span>
+              </div>
 
-          {comments.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground text-xs">
-              아직 응원 메시지가 없어요.
-              <br />
-              첫 번째 응원을 남겨보세요! 💬
-            </div>
-          ) : (
-            <div className="space-y-2 max-h-80 overflow-y-auto">
-              {comments.map((c) => (
-                <div key={c.id} className="glass-sm px-3 py-2.5 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-neon-purple">{c.nickname}</span>
-                    <FanBadge voteCount={c.vote_count} postCount={c.post_count} />
-                    <span className="text-[10px] text-muted-foreground ml-auto shrink-0">
-                      {formatDistanceToNow(new Date(c.created_at), { locale: ko, addSuffix: true })}
-                    </span>
-                  </div>
-                  <p className="text-xs text-foreground/90">{c.message}</p>
+              <CommentForm creatorId={creator.id} onCommentAdded={(newComment) => setComments(prev => [newComment, ...prev])} />
+
+              {comments.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-xs">
+                  아직 응원 메시지가 없어요.
+                  <br />
+                  첫 번째 응원을 남겨보세요! 💬
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {comments.map((c) => (
+                    <div key={c.id} className="glass-sm px-3 py-2.5 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-neon-purple">{c.nickname}</span>
+                        <FanBadge voteCount={c.vote_count} postCount={c.post_count} />
+                        <span className="text-[10px] text-muted-foreground ml-auto shrink-0">
+                          {formatDistanceToNow(new Date(c.created_at), { locale: ko, addSuffix: true })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-foreground/90">{c.message}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+          )}
+
+          {/* Official Feed Tab */}
+          {feedTab === "official" && creator && (
+            <CreatorOfficialFeed
+              creatorId={creator.id}
+              creatorName={creator.name}
+              creatorAvatar={creator.avatar_url}
+              creatorUserId={creator.user_id}
+              isVerified={creator.is_verified}
+            />
           )}
         </div>
 

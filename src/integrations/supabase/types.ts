@@ -228,6 +228,70 @@ export type Database = {
           },
         ]
       }
+      creator_feed_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_feed_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "creator_feed_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_feed_posts: {
+        Row: {
+          content: string
+          created_at: string
+          creator_id: string
+          id: string
+          image_url: string
+          likes_count: number
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          creator_id: string
+          id?: string
+          image_url?: string
+          likes_count?: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          creator_id?: string
+          id?: string
+          image_url?: string
+          likes_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_feed_posts_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creator_rewards: {
         Row: {
           created_at: string
