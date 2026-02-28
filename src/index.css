@@ -352,3 +352,13 @@ html *::before, html *::after {
 .animate-float-heart {
   animation: float-heart 1.2s ease-out forwards;
 }
+
+@keyframes recharge-pulse {
+  0% { box-shadow: 0 8px 40px hsl(var(--neon-purple) / 0.12), 0 2px 16px hsl(var(--neon-cyan) / 0.08); }
+  50% { box-shadow: 0 8px 50px hsl(var(--neon-purple) / 0.3), 0 4px 24px hsl(var(--neon-cyan) / 0.2), 0 0 60px hsl(var(--neon-purple) / 0.15); }
+  100% { box-shadow: 0 8px 40px hsl(var(--neon-purple) / 0.12), 0 2px 16px hsl(var(--neon-cyan) / 0.08); }
+}
+
+.recharge-card-pulse {
+  animation: recharge-pulse 1.2s ease-in-out;
+}
