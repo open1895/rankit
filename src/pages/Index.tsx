@@ -331,18 +331,18 @@ const Index = () => {
   const remainingVotes = Math.max(0, 1 - todayVoted.size + extraVotes);
 
   return (
-    <div className="min-h-screen bg-background mesh-bg pb-24">
+    <div className="min-h-screen bg-background mesh-bg pb-24 overflow-x-hidden">
       <SEOHead
         title="홈"
         description="팬의 투표로 결정되는 크리에이터 영향력 순위! 게임, 먹방, 뷰티, 음악 등 다양한 카테고리에서 당신의 한 표가 순위를 바꿉니다."
         path="/"
       />
       {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
-        <div className="w-full pl-4 pr-4 py-2.5 flex items-center justify-between">
-          <RankitLogo size="md" className="flex-shrink-0" />
+      <header className="sticky top-0 z-40 w-full overflow-x-hidden glass border-b border-glass-border/50">
+        <div className="w-full py-2.5 flex items-center justify-between">
+          <RankitLogo size="md" className="flex-shrink-0 ml-4" />
           {/* Right: Unified Icon Capsule Bar */}
-          <nav className="flex items-center gap-0 rounded-full border border-border/40 flex-shrink-0 ml-auto overflow-hidden"
+          <nav className="flex items-center gap-0 rounded-full border border-border/40 flex-shrink-0 ml-auto mr-4 max-w-fit overflow-hidden"
             style={{ background: "hsl(var(--card) / 0.65)", padding: "4px 8px 4px 4px" }}
           >
             <button
