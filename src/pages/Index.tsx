@@ -343,7 +343,7 @@ const Index = () => {
           <RankitLogo size="md" className="flex-shrink-0" />
           {/* Right: Unified Icon Capsule Bar */}
           <nav className="flex items-center gap-0 rounded-full border border-border/40 flex-shrink-0 ml-auto overflow-hidden"
-            style={{ background: "hsl(var(--card) / 0.65)", padding: "4px 4px" }}
+            style={{ background: "hsl(var(--card) / 0.65)", padding: "4px 8px 4px 4px" }}
           >
             <button
               onClick={() => setSearchOpen(true)}
