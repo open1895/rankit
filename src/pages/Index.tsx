@@ -339,10 +339,10 @@ const Index = () => {
       />
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
-        <div className="w-full px-4 py-3 flex items-center justify-between">
+        <div className="w-full pl-4 pr-3 py-3 flex items-center justify-between">
           <RankitLogo size="md" className="flex-shrink-0" />
-          {/* Right: All-in-one Icon Bar - pushed to far right */}
-          <div className="flex items-center gap-1 px-1.5 py-1 rounded-2xl border border-border/60 flex-shrink-0 ml-auto"
+          {/* Right: All-in-one Icon Bar - flush to right edge */}
+          <div className="flex items-center gap-1 px-1 py-1 rounded-2xl border border-border/60 flex-shrink-0 ml-auto"
             style={{ background: "hsl(var(--card) / 0.7)" }}
           >
             <button
