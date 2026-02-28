@@ -125,7 +125,7 @@ const NotificationBell = () => {
     <div className="relative flex items-center">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 hover:bg-muted/60 transition-all min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl"
+        className="relative p-2 hover:bg-muted/50 transition-all flex items-center justify-center rounded-full"
         style={{ background: "transparent", border: "none", boxShadow: "none" }}
       >
         {unreadCount > 0 ? (
@@ -134,7 +134,7 @@ const NotificationBell = () => {
           <Bell className="w-4 h-4 text-muted-foreground" />
         )}
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground flex items-center justify-center px-1">
+          <span className="absolute top-0 right-0 min-w-[16px] h-4 rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground flex items-center justify-center px-1">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
