@@ -341,41 +341,54 @@ const Index = () => {
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <RankitLogo size="md" />
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          {/* Right: All-in-one Icon Bar */}
+          <div className="flex items-center gap-1 px-1.5 py-1 rounded-2xl border border-border/60 flex-shrink-0"
+            style={{ background: "hsl(var(--card) / 0.7)" }}
+          >
             <button
               onClick={() => setSearchOpen(true)}
-              className="glass-sm p-1.5 text-neon-cyan hover:text-foreground transition-colors flex items-center"
+              className="p-2 rounded-xl hover:bg-muted/60 transition min-w-[36px] min-h-[36px] flex items-center justify-center"
             >
-              <Search className="w-3.5 h-3.5" />
+              <Search className="w-4 h-4 text-muted-foreground" />
             </button>
+
+            <div className="w-px h-5 bg-border/50" />
+
             <Link
               to={user ? "/recharge" : "#"}
-              className="glass-sm px-2 py-1 flex items-center gap-1 hover:bg-neon-cyan/10 transition-colors rounded-lg"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold hover:scale-105 transition-transform"
+              style={{
+                background: "hsl(var(--neon-purple) / 0.12)",
+                color: "hsl(var(--primary))",
+              }}
             >
-              <Ticket className="w-3.5 h-3.5 text-neon-cyan" />
-              <span className="text-xs font-medium">
-                <span className="text-neon-cyan font-bold">{user ? tickets : remainingVotes}</span>
-                <span className="text-muted-foreground ml-0.5">{user ? "🎫" : "표"}</span>
-              </span>
-              {user && <Zap className="w-3 h-3 text-neon-purple" />}
+              <Ticket className="w-3.5 h-3.5" />
+              <span className="font-bold">{user ? tickets : remainingVotes}</span>
+              <span className="opacity-70">{user ? "🎫" : "표"}</span>
+              {user && <Zap className="w-3 h-3 ml-0.5 opacity-70" />}
             </Link>
+
+            <div className="w-px h-5 bg-border/50" />
+
             {user ? (
               <Link
                 to="/mypage"
-                className="glass-sm p-1.5 text-neon-cyan hover:text-foreground transition-colors flex items-center"
+                className="p-2 rounded-xl hover:bg-muted/60 transition min-w-[36px] min-h-[36px] flex items-center justify-center"
               >
-                <User className="w-3.5 h-3.5" />
+                <User className="w-4 h-4 text-muted-foreground" />
               </Link>
             ) : (
               <Link
                 to="/auth"
-                className="glass-sm p-1.5 text-neon-cyan flex items-center"
+                className="p-2 rounded-xl hover:bg-muted/60 transition min-w-[36px] min-h-[36px] flex items-center justify-center"
               >
-                <LogIn className="w-3.5 h-3.5" />
+                <LogIn className="w-4 h-4 text-muted-foreground" />
               </Link>
             )}
+
+            <div className="w-px h-5 bg-border/50" />
+
             <NotificationBell />
-            
           </div>
         </div>
       </header>
