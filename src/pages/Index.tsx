@@ -339,54 +339,55 @@ const Index = () => {
       />
       {/* Header */}
       <header className="sticky top-0 z-40 w-full overflow-x-hidden glass border-b border-glass-border/50">
-        <div className="w-full py-2.5 flex items-center justify-between">
-          <RankitLogo size="md" className="flex-shrink-0 ml-4" />
+        <div className="w-full py-2.5 flex items-center justify-between gap-1 px-2 sm:px-0">
+          <RankitLogo size="md" className="flex-shrink-0 ml-1 sm:ml-4" />
           {/* Right: Unified Icon Capsule Bar */}
-          <nav className="flex items-center gap-0 rounded-full border border-border/40 flex-shrink-0 ml-auto mr-4 max-w-fit overflow-visible"
-            style={{ background: "hsl(var(--card) / 0.65)", padding: "4px 8px 4px 4px" }}
+          <nav
+            className="flex items-center gap-0 rounded-full border border-border/40 flex-shrink-0 ml-auto mr-1 sm:mr-4 max-w-fit overflow-visible pl-1 pr-1.5 py-1 sm:pl-1 sm:pr-2"
+            style={{ background: "hsl(var(--card) / 0.65)" }}
           >
             <button
               onClick={() => setSearchOpen(true)}
-              className="p-2 hover:bg-muted/50 transition rounded-full flex items-center justify-center"
+              className="p-1.5 sm:p-2 hover:bg-muted/50 transition rounded-full flex items-center justify-center"
             >
               <Search className="w-[18px] h-[18px] text-muted-foreground" />
             </button>
 
-            <div className="w-px h-5 bg-border/40 mx-0.5" />
+            <div className="w-px h-5 bg-border/40 mx-0 sm:mx-0.5" />
 
             <Link
               to={user ? "/recharge" : "#"}
-              className="flex items-center gap-1 px-2 py-1.5 rounded-full text-xs font-bold hover:scale-105 transition-transform"
+              className="flex items-center gap-1 px-1.5 sm:px-2 py-1.5 rounded-full text-xs font-bold hover:scale-105 transition-transform"
               style={{
                 background: "hsl(var(--neon-purple) / 0.12)",
                 color: "hsl(var(--primary))",
               }}
             >
               <Ticket className="w-3.5 h-3.5" />
-              <span className="font-bold">{user ? tickets : remainingVotes}</span>
-              <span className="opacity-70">{user ? "🎫" : "표"}</span>
-              {user && <Zap className="w-3 h-3 ml-0.5 opacity-70" />}
+              <span className="font-bold leading-none">{user ? tickets : remainingVotes}</span>
+              <span className="opacity-70 hidden sm:inline">{user ? "🎫" : "표"}</span>
+              {user && <Zap className="w-3 h-3 ml-0.5 opacity-70 hidden sm:inline" />}
             </Link>
 
-            <div className="w-px h-5 bg-border/40 mx-0.5" />
+            <div className="w-px h-5 bg-border/40 mx-0 sm:mx-0.5" />
 
             {user ? (
               <Link
                 to="/mypage"
-                className="p-2 hover:bg-muted/50 transition rounded-full flex items-center justify-center"
+                className="p-1.5 sm:p-2 hover:bg-muted/50 transition rounded-full flex items-center justify-center"
               >
                 <User className="w-[18px] h-[18px] text-muted-foreground" />
               </Link>
             ) : (
               <Link
                 to="/auth"
-                className="p-2 hover:bg-muted/50 transition rounded-full flex items-center justify-center"
+                className="p-1.5 sm:p-2 hover:bg-muted/50 transition rounded-full flex items-center justify-center"
               >
                 <LogIn className="w-[18px] h-[18px] text-muted-foreground" />
               </Link>
             )}
 
-            <div className="w-px h-5 bg-border/40 mx-0.5" />
+            <div className="w-px h-5 bg-border/40 mx-0 sm:mx-0.5" />
 
             <NotificationBell />
           </nav>
