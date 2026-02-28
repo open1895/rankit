@@ -342,7 +342,7 @@ const Index = () => {
         <div className="w-full py-2.5 flex items-center justify-between">
           <RankitLogo size="md" className="flex-shrink-0 ml-4" />
           {/* Right: Unified Icon Capsule Bar */}
-          <nav className="flex items-center gap-0 rounded-full border border-border/40 flex-shrink-0 ml-auto mr-4 max-w-fit overflow-hidden"
+          <nav className="flex items-center gap-0 rounded-full border border-border/40 flex-shrink-0 ml-auto mr-4 max-w-fit overflow-visible"
             style={{ background: "hsl(var(--card) / 0.65)", padding: "4px 8px 4px 4px" }}
           >
             <button
