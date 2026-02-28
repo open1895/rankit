@@ -125,7 +125,7 @@ const NotificationBell = () => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-lg glass-sm hover:border-neon-cyan/50 transition-all"
+        className="relative p-2 rounded-xl hover:bg-muted/60 transition-all min-w-[36px] min-h-[36px] flex items-center justify-center"
       >
         {unreadCount > 0 ? (
           <BellRing className="w-4 h-4 text-neon-cyan animate-pulse" />
