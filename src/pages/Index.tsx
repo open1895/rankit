@@ -339,7 +339,7 @@ const Index = () => {
       />
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
-        <div className="w-full pl-4 pr-2 py-2.5 flex items-center justify-between">
+        <div className="w-full pl-4 pr-4 py-2.5 flex items-center justify-between">
           <RankitLogo size="md" className="flex-shrink-0" />
           {/* Right: Unified Icon Capsule Bar */}
           <nav className="flex items-center gap-0 rounded-full border border-border/40 flex-shrink-0 ml-auto overflow-hidden"
