@@ -178,14 +178,19 @@ const RechargePage = () => {
             <span className="text-base font-bold text-foreground tracking-tight">Rankit</span>
           </button>
 
-          {/* Right: Icons */}
-          <div className="flex items-center gap-1.5">
+          {/* Right: Icons — unified rounded container */}
+          <div
+            className="flex items-center gap-1 px-1.5 py-1 rounded-2xl border border-border/60"
+            style={{ background: "hsl(var(--card) / 0.7)" }}
+          >
             <button
               onClick={() => navigate("/")}
               className="p-2 rounded-xl hover:bg-muted/60 transition min-w-[36px] min-h-[36px] flex items-center justify-center"
             >
               <Search className="w-4 h-4 text-muted-foreground" />
             </button>
+
+            <div className="w-px h-5 bg-border/50" />
 
             <div
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold cursor-pointer hover:scale-105 transition-transform"
@@ -200,12 +205,16 @@ const RechargePage = () => {
               <Zap className="w-3 h-3 ml-0.5 opacity-70" />
             </div>
 
+            <div className="w-px h-5 bg-border/50" />
+
             <button
               onClick={() => navigate("/my")}
               className="p-2 rounded-xl hover:bg-muted/60 transition min-w-[36px] min-h-[36px] flex items-center justify-center"
             >
               <User className="w-4 h-4 text-muted-foreground" />
             </button>
+
+            <div className="w-px h-5 bg-border/50" />
 
             <NotificationBell />
           </div>
