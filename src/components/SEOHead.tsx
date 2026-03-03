@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet-async";
 
-const BASE_URL = "https://rank-pulse-glow.lovable.app";
+const BASE_URL = "https://rankit.today";
 const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png?v=rankit-fix-20260303`;
 const SITE_NAME = "Rankit";
 
