@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { getPublishedOrigin } from "@/lib/clipboard";
+import { getPublishedUrl } from "@/lib/clipboard";
 import { Link } from "react-router-dom";
 import { Creator, getVotesUntilNext } from "@/lib/data";
 import { Trophy, TrendingUp, TrendingDown, Minus, CheckCircle2, Heart, Crown, Flame } from "lucide-react";
@@ -126,7 +126,7 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
     onBonusVote?.();
   };
 
-  const siteUrl = getPublishedOrigin();
+  const siteUrl = getPublishedUrl();
 
   const rankStyle = creator.rank === 1
     ? "rank-gold"

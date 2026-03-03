@@ -16,11 +16,13 @@ export function getPublishedOrigin(): string {
  * Returns the full published URL for the current path.
  */
 export function getPublishedUrl(): string {
-  if (typeof window === "undefined") return PUBLISHED_ORIGIN;
+  if (typeof window === "undefined") return `${PUBLISHED_ORIGIN}/?v=rankit-fix-20260303-3`;
   const path = window.location.pathname + window.location.search + window.location.hash;
   // Strip lovable token from query
   const url = new URL(path, getPublishedOrigin());
   url.searchParams.delete("__lovable_token");
+  // Force Kakao/social recrawl on a fresh URL key
+  url.searchParams.set("v", "rankit-fix-20260303-3");
   return url.toString();
 }
 
