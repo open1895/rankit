@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 
-const BASE_URL = "https://rankit.today";
-const DEFAULT_OG_IMAGE = `${BASE_URL}/og-rankit-20260303.png`;
+const BASE_URL = "https://rank-pulse-glow.lovable.app";
+const DEFAULT_OG_IMAGE = `${BASE_URL}/og-rankit-20260303.png?v=20260303-2`;
 const SITE_NAME = "Rankit";
 
 interface SEOHeadProps {

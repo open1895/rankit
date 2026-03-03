@@ -1,7 +1,7 @@
 // Kakao SDK utility
 // Replace with your Kakao JavaScript App Key from https://developers.kakao.com
 const KAKAO_JS_KEY = "YOUR_KAKAO_JS_KEY";
-const DEFAULT_KAKAO_IMAGE = "https://rankit.today/og-rankit-20260303.png";
+const DEFAULT_KAKAO_IMAGE = "https://rank-pulse-glow.lovable.app/og-rankit-20260303.png?v=20260303-2";
 declare global {
   interface Window {
     Kakao: any;
