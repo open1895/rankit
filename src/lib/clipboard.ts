@@ -2,7 +2,7 @@
  * Robust clipboard copy with fallback for insecure contexts / iframe sandboxes.
  * Returns true if copy succeeded.
  */
-const PUBLISHED_ORIGIN = "https://rank-pulse-glow.lovable.app";
+const PUBLISHED_ORIGIN = "https://rankit.today";
 
 /**
  * Returns the published site origin, avoiding preview/lovable internal URLs.
