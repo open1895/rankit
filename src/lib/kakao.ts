@@ -1,7 +1,7 @@
 // Kakao SDK utility
 // Replace with your Kakao JavaScript App Key from https://developers.kakao.com
 const KAKAO_JS_KEY = "YOUR_KAKAO_JS_KEY";
-
+const DEFAULT_KAKAO_IMAGE = "https://rankit.today/og-rankit-20260303.png";
 declare global {
   interface Window {
     Kakao: any;
@@ -52,7 +52,7 @@ export function shareToKakao(options: KakaoShareOptions) {
     content: {
       title: options.title,
       description: options.description,
-      imageUrl: options.imageUrl || `${window.location.origin}/og-image.png`,
+      imageUrl: options.imageUrl || DEFAULT_KAKAO_IMAGE,
       link: {
         webUrl: options.webUrl,
         mobileWebUrl: options.mobileWebUrl,
