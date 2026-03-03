@@ -8,13 +8,8 @@ const PUBLISHED_ORIGIN = "https://rankit.today";
  * Returns the published site origin, avoiding preview/lovable internal URLs.
  */
 export function getPublishedOrigin(): string {
-  if (typeof window === "undefined") return PUBLISHED_ORIGIN;
-  const { origin } = window.location;
-  // If running inside lovable preview or localhost, use published URL
-  if (origin.includes("lovableproject.com") || origin.includes("lovable.app/id-preview") || origin.includes("localhost")) {
-    return PUBLISHED_ORIGIN;
-  }
-  return origin;
+  // Always return canonical production origin to avoid preview URLs being shared.
+  return PUBLISHED_ORIGIN;
 }
 
 /**
