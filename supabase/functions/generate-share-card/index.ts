@@ -102,7 +102,7 @@ Text content in Korean:
 - Current rank: #${creator.rank}
 - Total votes: ${creator.votes_count.toLocaleString()}표
 - Category: ${creator.category}
-- Bottom text: "나도 투표하러 가기 → rank-pulse-glow.lovable.app"
+- Bottom text: "나도 투표하러 가기 → rankit.today"
 Style: Futuristic, glassmorphism card, neon purple (#8B5CF6) and cyan (#06B6D4) accents on dark (#0F172A) background. Modern typography. Make it look like a gaming/esports ranking card.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
