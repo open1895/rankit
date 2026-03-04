@@ -1422,6 +1422,8 @@ const CreatorProfile = () => {
           creatorName={creator.name}
           rank={creator.rank}
           votesCount={creator.votes_count}
+          avatarUrl={creator.avatar_url}
+          category={creator.category}
           onClose={() => { setShowShare(false); setAutoShareCard(false); }}
           autoGenerate={autoShareCard}
           onShareBonus={() => {
