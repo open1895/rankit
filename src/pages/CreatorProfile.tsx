@@ -23,6 +23,7 @@ import VoteHeatmapChart from "@/components/VoteHeatmapChart";
 import CreatorRewards from "@/components/CreatorRewards";
 import CreatorOfficialFeed from "@/components/CreatorOfficialFeed";
 import AICreatorInsights from "@/components/AICreatorInsights";
+import CreatorRecommendations from "@/components/CreatorRecommendations";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -696,6 +697,14 @@ const CreatorProfile = () => {
                 <div className="flex items-center gap-2"><BarChart3 className="w-4 h-4 text-orange-400" /><h3 className="text-sm font-semibold">🔥 시간대별 화력 분석</h3></div>
                 <VoteHeatmapChart creatorId={id!} />
               </div>
+
+              {/* Similar Creator Recommendations */}
+              <CreatorRecommendations
+                mode="similar"
+                creatorId={id!}
+                title="이 크리에이터의 팬이 좋아하는"
+                subtitle="AI 추천"
+              />
             </>
           )}
 

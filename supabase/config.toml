@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.creator-insights]
 verify_jwt = false
+
+[functions.creator-recommendations]
+verify_jwt = false

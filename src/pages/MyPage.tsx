@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import FanLevelProgress from "@/components/FanLevelProgress";
 import { getEarnedBadges, getAllBadges } from "@/lib/fanBadges";
 import CreatorDashboard from "@/components/CreatorDashboard";
+import CreatorRecommendations from "@/components/CreatorRecommendations";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -765,6 +766,14 @@ const MyPage = () => {
               )}
             </button>
           </div>
+
+          {/* AI Recommendations for user */}
+          <CreatorRecommendations
+            mode="user"
+            userId={user?.id}
+            title="🎯 맞춤 추천 크리에이터"
+            subtitle="AI 추천"
+          />
 
 
           {isAdminUser && (
