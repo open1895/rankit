@@ -241,6 +241,12 @@ const CreatorProfile = () => {
     checkVote();
   }, [user, id]);
 
+  // Check if creator is rising
+  useEffect(() => {
+    if (!id) return;
+    isCreatorRising(id).then(setIsRising);
+  }, [id]);
+
   // ─── Handlers ───────────────────────────────────────────
   const handleVote = async () => {
     if (!id) return;
