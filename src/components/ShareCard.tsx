@@ -281,7 +281,7 @@ const ShareCard = ({ creatorId, creatorName, rank, votesCount, avatarUrl, catego
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-background/60 backdrop-blur-md p-4 pt-4 sm:pt-4 animate-fade-in overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-background/60 backdrop-blur-md p-4 pt-4 sm:pt-8 animate-fade-in overflow-y-auto">
       {/* Ambient glow effects */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-[hsl(var(--neon-purple))] rounded-full opacity-10 blur-[100px] animate-pulse" />
