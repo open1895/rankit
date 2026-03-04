@@ -304,7 +304,8 @@ serve(async (req) => {
 
     // ─── RESOLVE PREDICTION EVENT ────────────────────────
     if (action === "resolve_prediction_event") {
-      const { event_id, winner_id } = body;
+      const { event_id, winner_id, reward_multiplier } = body;
+      const multiplier = Math.max(1, Math.min(reward_multiplier || 2, 10)); // clamp 1~10x
       if (!event_id || !winner_id) return new Response(JSON.stringify({ error: "event_id and winner_id required" }), { status: 400, headers: corsHeaders });
 
       // Get the event
@@ -312,26 +313,46 @@ serve(async (req) => {
       if (evErr || !event) return new Response(JSON.stringify({ error: "Event not found" }), { status: 404, headers: corsHeaders });
       if (event.status === "resolved") return new Response(JSON.stringify({ error: "Already resolved" }), { status: 400, headers: corsHeaders });
 
-      // Mark winners in bets
+      // Mark winners/losers in bets
       await adminClient.from("prediction_bets").update({ is_winner: true }).eq("event_id", event_id).eq("predicted_creator_id", winner_id);
       await adminClient.from("prediction_bets").update({ is_winner: false }).eq("event_id", event_id).neq("predicted_creator_id", winner_id);
 
-      // Calculate rewards for winners
+      // Calculate and distribute rewards (bet amount × multiplier)
       const { data: winnerBets } = await adminClient.from("prediction_bets").select("*").eq("event_id", event_id).eq("predicted_creator_id", winner_id);
-      const totalPool = event.total_pool || 0;
-      const totalWinnerAmount = (winnerBets || []).reduce((s: number, b: any) => s + b.amount, 0);
 
+      let totalRewarded = 0;
       for (const bet of (winnerBets || [])) {
-        const reward = totalWinnerAmount > 0 ? Math.round((bet.amount / totalWinnerAmount) * totalPool) : bet.amount * 2;
+        const reward = bet.amount * multiplier;
+        totalRewarded += reward;
         await adminClient.from("prediction_bets").update({ reward_amount: reward }).eq("id", bet.id);
-        // Return tickets to winner
-        await adminClient.rpc("add_tickets", { p_user_id: bet.user_id, p_amount: reward, p_type: "prediction_win", p_description: `예측 적중 보상` });
+        // Add tickets to winner
+        await adminClient.rpc("add_tickets", { p_user_id: bet.user_id, p_amount: reward, p_type: "prediction_win", p_description: `예측 적중 보상 (${multiplier}배)` });
+        // Create notification for winner
+        await adminClient.from("notifications").insert({
+          user_id: bet.user_id,
+          type: "prediction_win",
+          title: "🎉 예측 성공!",
+          message: `축하합니다! 예측이 적중하여 티켓 ${reward}장이 지급되었습니다!`,
+          link: "/predictions",
+        });
+      }
+
+      // Also notify losers
+      const { data: loserBets } = await adminClient.from("prediction_bets").select("*").eq("event_id", event_id).neq("predicted_creator_id", winner_id);
+      for (const bet of (loserBets || [])) {
+        await adminClient.from("notifications").insert({
+          user_id: bet.user_id,
+          type: "prediction_lose",
+          title: "예측 결과 발표",
+          message: `아쉽게도 예측이 빗나갔어요. 다음엔 꼭 맞혀보세요! 💪`,
+          link: "/predictions",
+        });
       }
 
       // Update event status
       await adminClient.from("prediction_events").update({ status: "resolved", winner_id, resolved_at: new Date().toISOString() }).eq("id", event_id);
 
-      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+      return new Response(JSON.stringify({ success: true, total_rewarded: totalRewarded, winners_count: (winnerBets || []).length }), { headers: corsHeaders });
     }
 
     // ─── DELETE PREDICTION EVENT ─────────────────────────

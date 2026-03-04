@@ -28,6 +28,7 @@ import HallOfFame from "./pages/HallOfFame";
 import PredictionGame from "./pages/PredictionGame";
 import CommunityPage from "./pages/CommunityPage";
 import RechargePage from "./pages/RechargePage";
+import PredictionWinPopup from "@/components/PredictionWinPopup";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -39,6 +40,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <PredictionWinPopup />
             <div className="flex flex-col min-h-screen">
               <PageTransition>
                 <Routes>
