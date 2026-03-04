@@ -8,7 +8,7 @@ import SEOHead from "@/components/SEOHead";
 import { Crown, Swords, Trophy, ArrowLeft, Zap, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
-import { shareToKakao, initKakao } from "@/lib/kakao";
+import { shareToKakao, initKakao, isKakaoReady } from "@/lib/kakao";
 
 interface MatchCreator {
   id: string;
@@ -145,26 +145,34 @@ const Tournament = () => {
     return acc;
   }, {});
 
-  const handleShareMatch = (match: Match) => {
+  const handleShareMatch = async (match: Match) => {
     const a = creators.get(match.creator_a_id);
     const b = creators.get(match.creator_b_id);
     const shareUrl = `${getPublishedOrigin()}/tournament`;
     const shareText = `🔥 누가 이길까?\n${a?.name || "???"} VS ${b?.name || "???"}\nRankit에서 투표하고 결정하세요! ⚔️`;
 
-    shareToKakao({
-      title: `${a?.name} VS ${b?.name} - Rankit 대결`,
-      description: "누가 이길까? 지금 투표하러 가기!",
-      webUrl: shareUrl,
-      mobileWebUrl: shareUrl,
-      buttonTitle: "투표하러 가기",
-    });
-
-    if (navigator.share) {
-      navigator.share({ title: "Rankit 크리에이터 대결", text: shareText, url: shareUrl }).catch(() => {});
-    } else {
-      copyToClipboard(shareText + "\n" + shareUrl).then(ok => {
-        if (ok) toast.success("대결 공유 텍스트가 복사되었습니다!");
+    // Try Kakao first — if SDK is ready it opens Kakao dialog and we're done
+    if (isKakaoReady()) {
+      shareToKakao({
+        title: `${a?.name} VS ${b?.name} - Rankit 대결`,
+        description: "누가 이길까? 지금 투표하러 가기!",
+        webUrl: shareUrl,
+        mobileWebUrl: shareUrl,
+        buttonTitle: "투표하러 가기",
       });
+      return;
+    }
+
+    // Fallback: native share or clipboard
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Rankit 크리에이터 대결", text: shareText, url: shareUrl });
+      } catch {
+        // user cancelled
+      }
+    } else {
+      const ok = await copyToClipboard(shareText + "\n" + shareUrl);
+      if (ok) toast.success("대결 공유 텍스트가 복사되었습니다!");
     }
   };
 
