@@ -235,6 +235,26 @@ Deno.serve(async (req) => {
       });
     }
 
+    // === ADD TICKETS (share reward etc.) ===
+    if (action === "add" && amount && amount > 0 && amount <= 5) {
+      await supabase.rpc("add_tickets", {
+        p_user_id: userId,
+        p_amount: amount,
+        p_type: "share_reward",
+        p_description: "팬 인증 카드 공유 보상",
+      });
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("tickets")
+        .eq("user_id", userId)
+        .single();
+
+      return new Response(JSON.stringify({ success: true, tickets: profile?.tickets ?? 0 }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "알 수 없는 액션입니다." }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
