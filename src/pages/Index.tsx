@@ -24,6 +24,7 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import HeroSection from "@/components/HeroSection";
 import RankingFormula from "@/components/RankingFormula";
+import LivePredictionBattle from "@/components/LivePredictionBattle";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
 import { toast } from "sonner";
@@ -560,6 +561,11 @@ const Index = () => {
         {/* NEW: Live Hero Section with VS Battle */}
         <ScrollReveal>
           {creators.length >= 2 && <HeroSection creators={creators} />}
+        </ScrollReveal>
+
+        {/* LIVE Prediction Battle */}
+        <ScrollReveal delay={50}>
+          <LivePredictionBattle />
         </ScrollReveal>
 
         {/* Countdown */}
