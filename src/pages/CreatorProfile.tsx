@@ -516,6 +516,17 @@ const CreatorProfile = () => {
               <Edit3 className="w-3 h-3 mr-1" /> 프로필 수정
             </Button>
           )}
+
+          {/* Claim Profile Button - show for logged in users when creator has no owner */}
+          {!isEditing && user && !creator.user_id && (
+            <Button
+              onClick={() => setShowClaimModal(true)}
+              variant="outline" size="sm"
+              className="w-full glass-sm border-[hsl(var(--neon-cyan)/0.3)] text-[hsl(var(--neon-cyan))] text-xs rounded-xl hover:border-[hsl(var(--neon-cyan)/0.6)]"
+            >
+              <Shield className="w-3 h-3 mr-1" /> 이 크리에이터 프로필 인증하기
+            </Button>
+          )}
         </div>
 
         {/* ═══════════════════════════════════════════════════ */}
