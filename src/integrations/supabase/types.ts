@@ -1400,6 +1400,18 @@ export type Database = {
           total_amount: number
         }[]
       }
+      get_prediction_leaderboard: {
+        Args: { p_month_offset?: number }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          hit_rate: number
+          total_bets: number
+          total_reward: number
+          user_id: string
+          wins: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
