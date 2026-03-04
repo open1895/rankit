@@ -107,6 +107,15 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Deduct tickets first
+      const { data: deducted } = await supabase.rpc("deduct_tickets", { p_user_id: userId, p_amount: amount });
+      if (!deducted) {
+        return new Response(JSON.stringify({ error: "티켓이 부족합니다." }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       // Insert bet
       const { error: betError } = await supabase
         .from("prediction_bets")
@@ -119,6 +128,8 @@ Deno.serve(async (req) => {
 
       if (betError) {
         console.error("Bet insert error:", betError);
+        // Refund tickets on failure
+        await supabase.rpc("add_tickets", { p_user_id: userId, p_amount: amount, p_type: "prediction_refund", p_description: "베팅 실패 환불" });
         return new Response(JSON.stringify({ error: "베팅 처리 중 오류가 발생했습니다." }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -131,7 +142,20 @@ Deno.serve(async (req) => {
         .update({ total_pool: event.total_pool + amount })
         .eq("id", event_id);
 
-      return new Response(JSON.stringify({ success: true, message: "예측 완료! 결과를 기대하세요 🎯" }), {
+      // Calculate current odds for response
+      const { data: stats } = await supabase.rpc("get_prediction_event_stats");
+      let aPool = 0, bPool = 0;
+      (stats || []).forEach((s: any) => {
+        if (s.event_id === event_id) {
+          if (s.predicted_creator_id === event.creator_a_id) aPool = Number(s.total_amount);
+          else bPool = Number(s.total_amount);
+        }
+      });
+      const totalPool = aPool + bPool;
+      const myPool = predicted_creator_id === event.creator_a_id ? aPool : bPool;
+      const currentOdds = myPool > 0 ? Math.min(10, Math.max(1.5, totalPool / myPool)) : 2;
+
+      return new Response(JSON.stringify({ success: true, message: `예측 완료! 현재 예상 배당 ${(Math.round(currentOdds * 10) / 10)}배 🎯` }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
