@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Target, Clock, Trophy, Zap, Users, TrendingUp, Check, Lock, Award } from "lucide-react";
+import { ArrowLeft, Target, Clock, Trophy, Zap, Users, TrendingUp, Check, Lock, Award, BarChart3 } from "lucide-react";
 import LivePredictionBattle from "@/components/LivePredictionBattle";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -173,6 +173,48 @@ const PredictionGame = () => {
 
         {/* Hero Battle Card */}
         <LivePredictionBattle />
+
+        {/* My Prediction Stats */}
+        {user && userBets.size > 0 && (() => {
+          const allBets = Array.from(userBets.values());
+          const resolved = allBets.filter(b => b.is_winner !== null);
+          const correct = resolved.filter(b => b.is_winner === true).length;
+          const wrong = resolved.filter(b => b.is_winner === false).length;
+          const accuracy = resolved.length > 0 ? Math.round((correct / resolved.length) * 100) : 0;
+          const totalReward = allBets.reduce((s, b) => s + (b.is_winner ? b.reward_amount : 0), 0);
+
+          return (
+            <div className="glass rounded-2xl p-4 space-y-3 border border-neon-cyan/10">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" style={{ color: "hsl(var(--neon-cyan))" }} />
+                <span className="text-sm font-bold">내 예측 기록</span>
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                <div className="glass-sm rounded-xl p-2.5 text-center">
+                  <div className="text-lg font-black" style={{ color: "hsl(var(--neon-purple))" }}>{allBets.length}</div>
+                  <div className="text-[10px] text-muted-foreground">총 참여</div>
+                </div>
+                <div className="glass-sm rounded-xl p-2.5 text-center">
+                  <div className="text-lg font-black text-green-400">{correct}</div>
+                  <div className="text-[10px] text-muted-foreground">적중</div>
+                </div>
+                <div className="glass-sm rounded-xl p-2.5 text-center">
+                  <div className="text-lg font-black text-destructive">{wrong}</div>
+                  <div className="text-[10px] text-muted-foreground">실패</div>
+                </div>
+                <div className="glass-sm rounded-xl p-2.5 text-center">
+                  <div className="text-lg font-black" style={{ color: accuracy >= 60 ? "hsl(var(--neon-cyan))" : "hsl(var(--foreground))" }}>{accuracy}%</div>
+                  <div className="text-[10px] text-muted-foreground">적중률</div>
+                </div>
+              </div>
+              {totalReward > 0 && (
+                <div className="text-center text-xs text-muted-foreground">
+                  총 보상: <span className="font-bold" style={{ color: "hsl(var(--neon-purple))" }}>+{totalReward}표</span>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Prediction Leaderboard Link */}
         <Link
