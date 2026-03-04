@@ -28,6 +28,7 @@ import HallOfFame from "./pages/HallOfFame";
 import PredictionGame from "./pages/PredictionGame";
 import CommunityPage from "./pages/CommunityPage";
 import RechargePage from "./pages/RechargePage";
+import PredictionLeaderboard from "./pages/PredictionLeaderboard";
 import PredictionWinPopup from "@/components/PredictionWinPopup";
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ const App = () => (
                   <Route path="/prediction" element={<PredictionGame />} />
                   <Route path="/community" element={<CommunityPage />} />
                   <Route path="/recharge" element={<RechargePage />} />
+                  <Route path="/prediction-leaderboard" element={<PredictionLeaderboard />} />
                   <Route path="/widget/creator/:id" element={<WidgetPage />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
