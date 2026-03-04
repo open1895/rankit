@@ -120,6 +120,88 @@ export type Database = {
         }
         Relationships: []
       }
+      boost_campaigns: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          creator_id: string
+          current_points: number
+          ends_at: string
+          goal: number
+          id: string
+          started_at: string
+          started_by: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          creator_id: string
+          current_points?: number
+          ends_at?: string
+          goal?: number
+          id?: string
+          started_at?: string
+          started_by: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          creator_id?: string
+          current_points?: number
+          ends_at?: string
+          goal?: number
+          id?: string
+          started_at?: string
+          started_by?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boost_campaigns_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      boost_contributions: {
+        Row: {
+          action_type: string
+          campaign_id: string
+          created_at: string
+          id: string
+          points: number
+          user_id: string
+        }
+        Insert: {
+          action_type?: string
+          campaign_id: string
+          created_at?: string
+          id?: string
+          points?: number
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          points?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boost_contributions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "boost_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           created_at: string
