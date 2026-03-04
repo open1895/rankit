@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Footer from "@/components/Footer";
+import FanLevelProgress from "@/components/FanLevelProgress";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -631,6 +632,15 @@ const MyPage = () => {
               </div>
               <div className="text-[11px] text-muted-foreground">응원한 크리에이터</div>
             </div>
+          </div>
+
+          {/* Fan Level */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Crown className="w-4 h-4 text-neon-purple" />
+              <span className="text-xs font-bold">팬 레벨</span>
+            </div>
+            <FanLevelProgress activity={{ votes: votes.length, posts: 0, comments: 0 }} />
           </div>
 
           {/* Ticket Dashboard */}
