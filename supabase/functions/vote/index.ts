@@ -136,6 +136,28 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Auto-contribute to active boost campaign
+    if (userId) {
+      try {
+        const { data: activeCampaigns } = await supabase
+          .from("boost_campaigns")
+          .select("id, current_points, goal, ends_at, status")
+          .eq("creator_id", creator_id)
+          .eq("status", "active")
+          .limit(1);
+        if (activeCampaigns && activeCampaigns.length > 0) {
+          const camp = activeCampaigns[0];
+          if (new Date(camp.ends_at).getTime() > Date.now()) {
+            await supabase.from("boost_contributions").insert({ campaign_id: camp.id, user_id: userId, action_type: "vote", points: 1 });
+            const newPts = camp.current_points + 1;
+            const updates: any = { current_points: newPts };
+            if (newPts >= camp.goal) { updates.status = "completed"; updates.completed_at = new Date().toISOString(); }
+            await supabase.from("boost_campaigns").update(updates).eq("id", camp.id);
+          }
+        }
+      } catch (e) { console.error("Boost contribution error:", e); }
+    }
+
     // Handle referral bonus (only for logged-in users)
     let referralBonus = false;
     if (userId && referral_code && typeof referral_code === "string" && referral_code.length >= 6) {
