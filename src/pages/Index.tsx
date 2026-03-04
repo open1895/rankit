@@ -24,7 +24,7 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import HeroSection from "@/components/HeroSection";
 import RankingFormula from "@/components/RankingFormula";
-import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap } from "lucide-react";
+import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -796,6 +796,45 @@ const Index = () => {
       {/* Ranking Formula transparency */}
       <div className="container max-w-lg mx-auto px-4 py-6">
         <RankingFormula />
+      </div>
+
+      {/* PC Navigation Bar - below Ranking Formula */}
+      <div className="hidden md:block container max-w-lg mx-auto px-4 py-4">
+        <nav className="flex items-center justify-around glass rounded-2xl p-3 border border-glass-border/50">
+          {[
+            { to: "/", icon: Home, label: "홈" },
+            { to: "/ranking", icon: Trophy, label: "랭킹" },
+            { to: "/predictions", icon: TrendingUp, label: "예측" },
+            { to: "/compare", icon: GitCompareArrows, label: "비교" },
+            { to: "/my", icon: User, label: "내 정보" },
+          ].map(({ to, icon: Icon, label }) => {
+            const active = to === "/" ? location.pathname === "/" : location.pathname.startsWith(to);
+            return (
+              <button
+                key={to}
+                onClick={() => {
+                  if (to === "/ranking") {
+                    document.getElementById("ranking-section")?.scrollIntoView({ behavior: "smooth" });
+                  } else {
+                    navigate(to);
+                  }
+                }}
+                className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-200 ${
+                  active ? "text-primary" : "text-muted-foreground hover:text-primary/70"
+                }`}
+              >
+                <div className={`p-2 rounded-xl transition-all duration-200 ${
+                  active ? "bg-primary/10 shadow-[0_0_16px_hsl(var(--primary)/0.3)]" : ""
+                }`}>
+                  <Icon className={`w-5 h-5 transition-all ${active ? "stroke-[2.5]" : ""}`} />
+                </div>
+                <span className={`text-xs leading-tight ${active ? "font-bold" : "font-medium"}`}>
+                  {label}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
       {/* Live Feed */}
