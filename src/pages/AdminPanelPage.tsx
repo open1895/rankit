@@ -702,7 +702,6 @@ const PredictionsTab = () => {
   const [searchA, setSearchA] = useState("");
   const [searchB, setSearchB] = useState("");
   const [resolveTarget, setResolveTarget] = useState<any>(null);
-  const [rewardMultiplier, setRewardMultiplier] = useState(2);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
 
   const { data: events, isLoading } = useQuery({
@@ -738,18 +737,17 @@ const PredictionsTab = () => {
   });
 
   const resolveMutation = useMutation({
-    mutationFn: async ({ event_id, winner_id, reward_multiplier }: { event_id: string; winner_id: string; reward_multiplier: number }) => {
+    mutationFn: async ({ event_id, winner_id }: { event_id: string; winner_id: string }) => {
       const { data, error } = await supabase.functions.invoke("admin", {
-        body: { action: "resolve_prediction_event", event_id, winner_id, reward_multiplier },
+        body: { action: "resolve_prediction_event", event_id, winner_id },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       return data;
     },
     onSuccess: (data) => {
-      toast.success(`결과 확정! ${data?.winners_count || 0}명에게 총 ${data?.total_rewarded || 0}표 보상 지급 완료`);
+      toast.success(`결과 확정! ${data?.winners_count || 0}명에게 총 ${data?.total_rewarded || 0}표 보상 (${data?.multiplier || "?"}배) 지급 완료`);
       setResolveTarget(null);
-      setRewardMultiplier(2);
       queryClient.invalidateQueries({ queryKey: ["admin-prediction-events"] });
     },
     onError: (e: any) => toast.error(`확정 실패: ${e.message}`),
@@ -890,38 +888,25 @@ const PredictionsTab = () => {
       </Dialog>
 
       {/* Resolve Dialog */}
-      <Dialog open={!!resolveTarget} onOpenChange={(v) => { if (!v) { setResolveTarget(null); setRewardMultiplier(2); } }}>
+      <Dialog open={!!resolveTarget} onOpenChange={(v) => { if (!v) setResolveTarget(null); }}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm rounded-2xl">
           <DialogHeader><DialogTitle className="text-base font-bold">승자 확정</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">"{resolveTarget?.title}" 대결의 승자를 선택하세요.</p>
           
-          {/* Reward Multiplier */}
+          {/* Dynamic Odds Info */}
           <div className="space-y-1.5 pt-1">
-            <label className="text-xs font-semibold text-muted-foreground">보상 배수</label>
-            <div className="flex items-center gap-2">
-              {[1, 2, 3, 5, 10].map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setRewardMultiplier(m)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    rewardMultiplier === m
-                      ? "bg-primary text-primary-foreground"
-                      : "glass-sm text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {m}배
-                </button>
-              ))}
+            <div className="glass-sm rounded-xl p-3 space-y-1">
+              <p className="text-xs font-bold" style={{ color: "hsl(var(--neon-purple))" }}>🎲 동적 역배당 시스템</p>
+              <p className="text-[10px] text-muted-foreground">베팅 비율에 따라 자동으로 배당이 결정됩니다. 언더독(소수파)에 베팅한 유저일수록 더 높은 보상을 받습니다. (최소 1.5배 ~ 최대 10배)</p>
             </div>
-            <p className="text-[10px] text-muted-foreground">승자에게 베팅한 유저들에게 베팅액 × {rewardMultiplier}배의 티켓을 지급합니다.</p>
           </div>
 
           <div className="flex gap-2 pt-2">
-            <Button onClick={() => resolveTarget && resolveMutation.mutate({ event_id: resolveTarget.id, winner_id: resolveTarget.creator_a_id, reward_multiplier: rewardMultiplier })}
+            <Button onClick={() => resolveTarget && resolveMutation.mutate({ event_id: resolveTarget.id, winner_id: resolveTarget.creator_a_id })}
               disabled={resolveMutation.isPending} variant="outline" className="flex-1 text-xs">
               {resolveTarget?.creator_a?.name || "A"}
             </Button>
-            <Button onClick={() => resolveTarget && resolveMutation.mutate({ event_id: resolveTarget.id, winner_id: resolveTarget.creator_b_id, reward_multiplier: rewardMultiplier })}
+            <Button onClick={() => resolveTarget && resolveMutation.mutate({ event_id: resolveTarget.id, winner_id: resolveTarget.creator_b_id })}
               disabled={resolveMutation.isPending} variant="outline" className="flex-1 text-xs">
               {resolveTarget?.creator_b?.name || "B"}
             </Button>

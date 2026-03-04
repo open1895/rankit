@@ -302,10 +302,9 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
 
-    // ─── RESOLVE PREDICTION EVENT ────────────────────────
+    // ─── RESOLVE PREDICTION EVENT (동적 역배당) ─────────
     if (action === "resolve_prediction_event") {
-      const { event_id, winner_id, reward_multiplier } = body;
-      const multiplier = Math.max(1, Math.min(reward_multiplier || 2, 10)); // clamp 1~10x
+      const { event_id, winner_id } = body;
       if (!event_id || !winner_id) return new Response(JSON.stringify({ error: "event_id and winner_id required" }), { status: 400, headers: corsHeaders });
 
       // Get the event
@@ -317,29 +316,39 @@ serve(async (req) => {
       await adminClient.from("prediction_bets").update({ is_winner: true }).eq("event_id", event_id).eq("predicted_creator_id", winner_id);
       await adminClient.from("prediction_bets").update({ is_winner: false }).eq("event_id", event_id).neq("predicted_creator_id", winner_id);
 
-      // Calculate and distribute rewards (bet amount × multiplier)
-      const { data: winnerBets } = await adminClient.from("prediction_bets").select("*").eq("event_id", event_id).eq("predicted_creator_id", winner_id);
+      // Fetch all bets to calculate dynamic odds
+      const { data: allBets } = await adminClient.from("prediction_bets").select("*").eq("event_id", event_id);
+      const totalPool = (allBets || []).reduce((s, b) => s + b.amount, 0);
+      const winnerPool = (allBets || []).filter(b => b.predicted_creator_id === winner_id).reduce((s, b) => s + b.amount, 0);
+      const loserPool = totalPool - winnerPool;
 
+      // Dynamic multiplier: totalPool / winnerPool (underdog gets higher return)
+      // Minimum 1.5x, cap at 10x
+      const dynamicMultiplier = winnerPool > 0
+        ? Math.min(10, Math.max(1.5, totalPool / winnerPool))
+        : 2;
+      const displayMultiplier = Math.round(dynamicMultiplier * 10) / 10;
+
+      // Distribute rewards
+      const winnerBets = (allBets || []).filter(b => b.predicted_creator_id === winner_id);
       let totalRewarded = 0;
-      for (const bet of (winnerBets || [])) {
-        const reward = bet.amount * multiplier;
+      for (const bet of winnerBets) {
+        const reward = Math.round(bet.amount * dynamicMultiplier);
         totalRewarded += reward;
         await adminClient.from("prediction_bets").update({ reward_amount: reward }).eq("id", bet.id);
-        // Add tickets to winner
-        await adminClient.rpc("add_tickets", { p_user_id: bet.user_id, p_amount: reward, p_type: "prediction_win", p_description: `예측 적중 보상 (${multiplier}배)` });
-        // Create notification for winner
+        await adminClient.rpc("add_tickets", { p_user_id: bet.user_id, p_amount: reward, p_type: "prediction_win", p_description: `예측 적중 보상 (${displayMultiplier}배)` });
         await adminClient.from("notifications").insert({
           user_id: bet.user_id,
           type: "prediction_win",
           title: "🎉 예측 성공!",
-          message: `축하합니다! 예측이 적중하여 티켓 ${reward}장이 지급되었습니다!`,
+          message: `축하합니다! 역배당 ${displayMultiplier}배 적용! 티켓 ${reward}장이 지급되었습니다! 🔥`,
           link: "/predictions",
         });
       }
 
-      // Also notify losers
-      const { data: loserBets } = await adminClient.from("prediction_bets").select("*").eq("event_id", event_id).neq("predicted_creator_id", winner_id);
-      for (const bet of (loserBets || [])) {
+      // Notify losers
+      const loserBets = (allBets || []).filter(b => b.predicted_creator_id !== winner_id);
+      for (const bet of loserBets) {
         await adminClient.from("notifications").insert({
           user_id: bet.user_id,
           type: "prediction_lose",
@@ -352,7 +361,7 @@ serve(async (req) => {
       // Update event status
       await adminClient.from("prediction_events").update({ status: "resolved", winner_id, resolved_at: new Date().toISOString() }).eq("id", event_id);
 
-      return new Response(JSON.stringify({ success: true, total_rewarded: totalRewarded, winners_count: (winnerBets || []).length }), { headers: corsHeaders });
+      return new Response(JSON.stringify({ success: true, total_rewarded: totalRewarded, winners_count: winnerBets.length, multiplier: displayMultiplier }), { headers: corsHeaders });
     }
 
     // ─── DELETE PREDICTION EVENT ─────────────────────────

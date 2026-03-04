@@ -27,6 +27,8 @@ const LivePredictionBattle = () => {
   const [event, setEvent] = useState<PredictionEvent | null>(null);
   const [aPercent, setAPercent] = useState(50);
   const [totalBets, setTotalBets] = useState(0);
+  const [aOdds, setAOdds] = useState(2);
+  const [bOdds, setBOdds] = useState(2);
   const [selectedCreator, setSelectedCreator] = useState<string | null>(null);
   const [betAmount, setBetAmount] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -62,6 +64,11 @@ const LivePredictionBattle = () => {
         const total = aCount + bCount;
         setTotalBets(total);
         setAPercent(total > 0 ? Math.round((aCount / total) * 100) : 50);
+        // Calculate dynamic odds
+        if (total > 0) {
+          setAOdds(aCount > 0 ? Math.min(10, Math.max(1.5, total / aCount)) : 10);
+          setBOdds(bCount > 0 ? Math.min(10, Math.max(1.5, total / bCount)) : 10);
+        }
 
         // Check if user already bet
         if (user) {
@@ -201,6 +208,16 @@ const LivePredictionBattle = () => {
             {event.creator_a?.name}
           </span>
           <span className="text-lg font-black" style={{ color: "hsl(var(--neon-purple))" }}>{aPercent}%</span>
+          <span
+            className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+            style={{
+              background: aOdds >= 3 ? "hsl(var(--destructive) / 0.15)" : "hsl(var(--neon-purple) / 0.1)",
+              color: aOdds >= 3 ? "hsl(var(--destructive))" : "hsl(var(--neon-purple))",
+              border: aOdds >= 3 ? "1px solid hsl(var(--destructive) / 0.3)" : "1px solid hsl(var(--neon-purple) / 0.2)",
+            }}
+          >
+            {aOdds >= 3 ? "🔥 " : ""}x{(Math.round(aOdds * 10) / 10).toFixed(1)}
+          </span>
         </button>
 
         {/* VS */}
@@ -230,6 +247,16 @@ const LivePredictionBattle = () => {
             {event.creator_b?.name}
           </span>
           <span className="text-lg font-black" style={{ color: "hsl(var(--neon-cyan))" }}>{bPercent}%</span>
+          <span
+            className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+            style={{
+              background: bOdds >= 3 ? "hsl(var(--destructive) / 0.15)" : "hsl(var(--neon-cyan) / 0.1)",
+              color: bOdds >= 3 ? "hsl(var(--destructive))" : "hsl(var(--neon-cyan))",
+              border: bOdds >= 3 ? "1px solid hsl(var(--destructive) / 0.3)" : "1px solid hsl(var(--neon-cyan) / 0.2)",
+            }}
+          >
+            {bOdds >= 3 ? "🔥 " : ""}x{(Math.round(bOdds * 10) / 10).toFixed(1)}
+          </span>
         </button>
       </div>
 
