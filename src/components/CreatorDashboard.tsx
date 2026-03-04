@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import FanActivityInsights from "@/components/FanActivityInsights";
 import {
   TrendingUp, TrendingDown, Users, BarChart3, Clock,
   MessageSquare, FileText, Sparkles, Crown, Activity,
@@ -230,17 +231,8 @@ const CreatorDashboard = ({ creatorId, creatorName }: CreatorDashboardProps) => 
         </div>
       )}
 
-      {/* AI Insights */}
-      <div>
-        <div className="flex items-center gap-1.5 mb-2">
-          <Sparkles className="w-3.5 h-3.5" style={{ color: "hsl(var(--neon-cyan))" }} />
-          <span className="text-xs font-bold">AI 인사이트</span>
-          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">Beta</span>
-        </div>
-        <div className="glass-sm p-4 rounded-xl border" style={{ borderColor: "hsl(var(--neon-cyan) / 0.2)" }}>
-          <p className="text-xs leading-relaxed">{getAiInsight()}</p>
-        </div>
-      </div>
+      {/* AI Fan Insights */}
+      <FanActivityInsights creatorId={creatorId} />
     </div>
   );
 };

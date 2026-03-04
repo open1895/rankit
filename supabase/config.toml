@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.creator-recommendations]
 verify_jwt = false
+
+[functions.fan-insights]
+verify_jwt = false
