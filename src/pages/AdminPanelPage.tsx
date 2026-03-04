@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff, UserX, Megaphone, Plus } from "lucide-react";
+import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff, UserX, Megaphone, Plus, Target, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,7 @@ const AdminPanelPage = () => {
   const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingRole, setCheckingRole] = useState(true);
-  const [tab, setTab] = useState<"nominations" | "creators" | "users" | "board">("nominations");
+  const [tab, setTab] = useState<"nominations" | "creators" | "users" | "board" | "predictions">("nominations");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -118,9 +118,15 @@ const AdminPanelPage = () => {
           >
             <Megaphone className="w-4 h-4 inline mr-1" />게시판
           </button>
+          <button
+            onClick={() => setTab("predictions")}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "predictions" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
+          >
+            <Target className="w-4 h-4 inline mr-1" />예측
+          </button>
         </div>
 
-        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : <BoardTab />}
+        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : <PredictionsTab />}
       </div>
       <Footer />
     </div>
@@ -671,6 +677,239 @@ const BoardTab = () => {
           <DialogHeader><DialogTitle className="text-base font-bold">게시글 삭제</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">
             <span className="font-bold text-foreground">"{deleteTarget?.title}"</span>을(를) 삭제하시겠습니까?
+          </p>
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDeleteTarget(null)} className="flex-1">취소</Button>
+            <Button variant="destructive" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending} className="flex-1">
+              {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}삭제
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+/* ─── Predictions Tab ─── */
+const PredictionsTab = () => {
+  const queryClient = useQueryClient();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [creatorAId, setCreatorAId] = useState("");
+  const [creatorBId, setCreatorBId] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [searchA, setSearchA] = useState("");
+  const [searchB, setSearchB] = useState("");
+  const [resolveTarget, setResolveTarget] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+
+  const { data: events, isLoading } = useQuery({
+    queryKey: ["admin-prediction-events"],
+    queryFn: async () => {
+      const { data } = await supabase.functions.invoke("admin", { body: { action: "list_prediction_events" } });
+      return data?.events || [];
+    },
+  });
+
+  const { data: creators } = useQuery({
+    queryKey: ["admin-creators-for-prediction"],
+    queryFn: async () => {
+      const { data } = await supabase.from("creators").select("id, name, avatar_url, rank").order("rank", { ascending: true });
+      return data || [];
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.functions.invoke("admin", {
+        body: { action: "create_prediction_event", title, description, creator_a_id: creatorAId, creator_b_id: creatorBId, bet_deadline: deadline },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("예측 대결이 생성되었습니다!");
+      setCreateOpen(false);
+      setTitle(""); setDescription(""); setCreatorAId(""); setCreatorBId(""); setDeadline(""); setSearchA(""); setSearchB("");
+      queryClient.invalidateQueries({ queryKey: ["admin-prediction-events"] });
+    },
+    onError: (e: any) => toast.error(`생성 실패: ${e.message}`),
+  });
+
+  const resolveMutation = useMutation({
+    mutationFn: async ({ event_id, winner_id }: { event_id: string; winner_id: string }) => {
+      const { data, error } = await supabase.functions.invoke("admin", {
+        body: { action: "resolve_prediction_event", event_id, winner_id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+    },
+    onSuccess: () => {
+      toast.success("결과가 확정되었습니다!");
+      setResolveTarget(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-prediction-events"] });
+    },
+    onError: (e: any) => toast.error(`확정 실패: ${e.message}`),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (event_id: string) => {
+      const { error } = await supabase.functions.invoke("admin", {
+        body: { action: "delete_prediction_event", event_id },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("삭제 완료");
+      setDeleteTarget(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-prediction-events"] });
+    },
+    onError: (e: any) => toast.error(`삭제 실패: ${e.message}`),
+  });
+
+  const filteredA = (creators || []).filter((c: any) => !searchA.trim() || c.name.toLowerCase().includes(searchA.toLowerCase()));
+  const filteredB = (creators || []).filter((c: any) => !searchB.trim() || c.name.toLowerCase().includes(searchB.toLowerCase()));
+
+  const getStatusBadge = (status: string) => {
+    if (status === "open") return <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px]">진행 중</Badge>;
+    if (status === "closed") return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px]">마감</Badge>;
+    return <Badge className="bg-muted text-muted-foreground text-[10px]">종료</Badge>;
+  };
+
+  if (isLoading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
+
+  return (
+    <>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Badge variant="outline" className="text-xs">{(events || []).length}건</Badge>
+          <Button size="sm" onClick={() => setCreateOpen(true)} className="h-8 text-xs">
+            <Plus className="w-3.5 h-3.5 mr-1" />새 대결
+          </Button>
+        </div>
+
+        {(events || []).map((event: any) => (
+          <div key={event.id} className="glass rounded-xl border border-glass-border p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              {getStatusBadge(event.status)}
+              <span className="text-sm font-bold text-foreground flex-1 truncate">{event.title}</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>{event.creator_a?.name || "?"}</span>
+              <span className="font-bold text-foreground/50">VS</span>
+              <span>{event.creator_b?.name || "?"}</span>
+            </div>
+            <div className="text-[10px] text-muted-foreground">
+              마감: {new Date(event.bet_deadline).toLocaleString("ko-KR")} · 풀: {event.total_pool}표
+            </div>
+            <div className="flex gap-1">
+              {event.status !== "resolved" && (
+                <button onClick={() => setResolveTarget(event)} className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+                  <Trophy className="w-4 h-4" />
+                </button>
+              )}
+              <button onClick={() => setDeleteTarget(event)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+
+        {(events || []).length === 0 && (
+          <div className="text-center py-16 text-muted-foreground text-sm">아직 예측 대결이 없습니다.</div>
+        )}
+      </div>
+
+      {/* Create Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader><DialogTitle className="text-base font-bold">새 예측 대결 생성</DialogTitle></DialogHeader>
+          <div className="space-y-3 pt-1">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">제목</label>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} placeholder="예: 이번 주 구독자 대결!" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">설명 (선택)</label>
+              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="대결 설명..." />
+            </div>
+
+            {/* Creator A */}
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">크리에이터 A</label>
+              <Input value={searchA} onChange={(e) => { setSearchA(e.target.value); setCreatorAId(""); }} placeholder="이름 검색..." className="text-sm" />
+              {searchA && !creatorAId && (
+                <div className="max-h-32 overflow-y-auto glass-sm rounded-lg p-1 space-y-0.5">
+                  {filteredA.slice(0, 10).map((c: any) => (
+                    <button key={c.id} onClick={() => { setCreatorAId(c.id); setSearchA(c.name); }}
+                      className="w-full flex items-center gap-2 p-1.5 rounded-lg hover:bg-muted/50 text-left">
+                      <img src={c.avatar_url?.startsWith("http") || c.avatar_url?.startsWith("/") ? c.avatar_url : "/placeholder.svg"} alt="" className="w-6 h-6 rounded-full object-cover bg-muted" />
+                      <span className="text-xs font-medium truncate">{c.name}</span>
+                      <span className="text-[10px] text-muted-foreground ml-auto">#{c.rank}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {creatorAId && <Badge variant="secondary" className="text-xs">{searchA} ✓</Badge>}
+            </div>
+
+            {/* Creator B */}
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">크리에이터 B</label>
+              <Input value={searchB} onChange={(e) => { setSearchB(e.target.value); setCreatorBId(""); }} placeholder="이름 검색..." className="text-sm" />
+              {searchB && !creatorBId && (
+                <div className="max-h-32 overflow-y-auto glass-sm rounded-lg p-1 space-y-0.5">
+                  {filteredB.slice(0, 10).map((c: any) => (
+                    <button key={c.id} onClick={() => { setCreatorBId(c.id); setSearchB(c.name); }}
+                      className="w-full flex items-center gap-2 p-1.5 rounded-lg hover:bg-muted/50 text-left">
+                      <img src={c.avatar_url?.startsWith("http") || c.avatar_url?.startsWith("/") ? c.avatar_url : "/placeholder.svg"} alt="" className="w-6 h-6 rounded-full object-cover bg-muted" />
+                      <span className="text-xs font-medium truncate">{c.name}</span>
+                      <span className="text-[10px] text-muted-foreground ml-auto">#{c.rank}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {creatorBId && <Badge variant="secondary" className="text-xs">{searchB} ✓</Badge>}
+            </div>
+
+            {/* Deadline */}
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">베팅 마감일</label>
+              <Input type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+            </div>
+
+            <Button onClick={() => createMutation.mutate()}
+              disabled={createMutation.isPending || !title.trim() || !creatorAId || !creatorBId || !deadline} className="w-full">
+              {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}생성
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resolve Dialog */}
+      <Dialog open={!!resolveTarget} onOpenChange={(v) => !v && setResolveTarget(null)}>
+        <DialogContent className="max-w-[90vw] sm:max-w-sm rounded-2xl">
+          <DialogHeader><DialogTitle className="text-base font-bold">승자 확정</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">"{resolveTarget?.title}" 대결의 승자를 선택하세요.</p>
+          <div className="flex gap-2 pt-2">
+            <Button onClick={() => resolveTarget && resolveMutation.mutate({ event_id: resolveTarget.id, winner_id: resolveTarget.creator_a_id })}
+              disabled={resolveMutation.isPending} variant="outline" className="flex-1 text-xs">
+              {resolveTarget?.creator_a?.name || "A"}
+            </Button>
+            <Button onClick={() => resolveTarget && resolveMutation.mutate({ event_id: resolveTarget.id, winner_id: resolveTarget.creator_b_id })}
+              disabled={resolveMutation.isPending} variant="outline" className="flex-1 text-xs">
+              {resolveTarget?.creator_b?.name || "B"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirm */}
+      <Dialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
+        <DialogContent className="max-w-[90vw] sm:max-w-sm rounded-2xl">
+          <DialogHeader><DialogTitle className="text-base font-bold">예측 대결 삭제</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            <span className="font-bold text-foreground">"{deleteTarget?.title}"</span>을(를) 삭제하시겠습니까? 관련 베팅도 모두 삭제됩니다.
           </p>
           <div className="flex gap-2 pt-2">
             <Button variant="outline" onClick={() => setDeleteTarget(null)} className="flex-1">취소</Button>
