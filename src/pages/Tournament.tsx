@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Footer from "@/components/Footer";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-
 import SEOHead from "@/components/SEOHead";
-import { Crown, Swords, Trophy, ArrowLeft, Zap, Share2 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Crown, Swords, Trophy, ArrowLeft, Zap, Share2, Clock, ChevronRight, Medal, Star } from "lucide-react";
 import { toast } from "sonner";
 import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
 import { shareToKakao, initKakao, isKakaoReady } from "@/lib/kakao";
@@ -35,21 +35,317 @@ interface Tournament {
   description: string;
   is_active: boolean;
   round: number;
+  ended_at: string | null;
 }
 
-const Tournament = () => {
+const ROUND_LABELS: Record<number, string> = {
+  16: "16강",
+  8: "8강",
+  4: "4강 (준결승)",
+  2: "결승",
+};
+
+const getRoundLabel = (round: number) => ROUND_LABELS[round] || `${round}강`;
+
+// ─── Match Countdown ───
+const MatchCountdown = () => {
+  // Tournament matches typically last until the round ends - show a generic countdown
+  return null; // Countdown handled at tournament level
+};
+
+// ─── Match Card ───
+const MatchCard = ({
+  match,
+  creators,
+  voted,
+  onVote,
+  onShare,
+}: {
+  match: Match;
+  creators: Map<string, MatchCreator>;
+  voted: boolean;
+  onVote: (matchId: string, creatorId: string) => void;
+  onShare: (match: Match) => void;
+}) => {
+  const a = creators.get(match.creator_a_id);
+  const b = creators.get(match.creator_b_id);
+  const totalVotes = match.votes_a + match.votes_b;
+  const pctA = totalVotes > 0 ? Math.round((match.votes_a / totalVotes) * 100) : 50;
+  const pctB = 100 - pctA;
+  const isCompleted = match.is_completed;
+  const canVote = !voted && !isCompleted;
+
+  return (
+    <div className={`glass p-4 rounded-2xl space-y-3 transition-all ${isCompleted ? "opacity-80" : "glass-hover"}`}>
+      {/* Match Header */}
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-medium text-muted-foreground px-2 py-0.5 rounded-full glass-sm">
+          {getRoundLabel(match.round)} - 매치 {match.match_order + 1}
+        </span>
+        {isCompleted && match.winner_id && (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-yellow-500 px-2 py-0.5 rounded-full bg-yellow-400/10">
+            <Trophy className="w-3 h-3" /> 완료
+          </span>
+        )}
+      </div>
+
+      {/* Creators */}
+      <div className="flex items-center gap-3">
+        {/* Creator A */}
+        <button
+          onClick={() => canVote && onVote(match.id, match.creator_a_id)}
+          disabled={!canVote}
+          className={`flex-1 p-3 rounded-xl text-center space-y-2 transition-all border ${
+            canVote ? "hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 cursor-pointer glass-sm" : "glass-sm"
+          } ${match.winner_id === match.creator_a_id ? "border-primary/50 shadow-lg shadow-primary/20" : "border-transparent"}`}
+        >
+          <div className="relative mx-auto w-14 h-14">
+            {a?.avatar_url ? (
+              <img src={a.avatar_url} alt={a?.name} className="w-14 h-14 rounded-full object-cover ring-2 ring-primary/20" />
+            ) : (
+              <div className="w-14 h-14 rounded-full gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground">
+                {a?.name?.slice(0, 2) || "?"}
+              </div>
+            )}
+            {match.winner_id === match.creator_a_id && (
+              <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center">
+                <Crown className="w-3 h-3 text-yellow-900" />
+              </div>
+            )}
+          </div>
+          <div className="text-xs font-bold truncate">{a?.name || "???"}</div>
+          <div className="text-[10px] text-muted-foreground">{a?.category}</div>
+          <div className="text-xl font-black gradient-text">{match.votes_a.toLocaleString()}</div>
+          {totalVotes > 0 && (
+            <div className="text-[11px] font-bold text-primary">{pctA}%</div>
+          )}
+        </button>
+
+        {/* VS */}
+        <div className="shrink-0 flex flex-col items-center gap-1">
+          <div className="w-12 h-12 rounded-full glass flex items-center justify-center border border-primary/20">
+            <Swords className="w-5 h-5 text-primary" />
+          </div>
+          <span className="text-[10px] font-bold text-muted-foreground">VS</span>
+        </div>
+
+        {/* Creator B */}
+        <button
+          onClick={() => canVote && onVote(match.id, match.creator_b_id)}
+          disabled={!canVote}
+          className={`flex-1 p-3 rounded-xl text-center space-y-2 transition-all border ${
+            canVote ? "hover:border-secondary/50 hover:shadow-lg hover:shadow-secondary/10 cursor-pointer glass-sm" : "glass-sm"
+          } ${match.winner_id === match.creator_b_id ? "border-secondary/50 shadow-lg shadow-secondary/20" : "border-transparent"}`}
+        >
+          <div className="relative mx-auto w-14 h-14">
+            {b?.avatar_url ? (
+              <img src={b.avatar_url} alt={b?.name} className="w-14 h-14 rounded-full object-cover ring-2 ring-secondary/20" />
+            ) : (
+              <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center text-sm font-bold text-secondary-foreground">
+                {b?.name?.slice(0, 2) || "?"}
+              </div>
+            )}
+            {match.winner_id === match.creator_b_id && (
+              <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center">
+                <Crown className="w-3 h-3 text-yellow-900" />
+              </div>
+            )}
+          </div>
+          <div className="text-xs font-bold truncate">{b?.name || "???"}</div>
+          <div className="text-[10px] text-muted-foreground">{b?.category}</div>
+          <div className="text-xl font-black text-secondary">{match.votes_b.toLocaleString()}</div>
+          {totalVotes > 0 && (
+            <div className="text-[11px] font-bold text-secondary">{pctB}%</div>
+          )}
+        </button>
+      </div>
+
+      {/* Animated Vote Bar */}
+      {totalVotes > 0 && (
+        <div className="flex h-3 rounded-full overflow-hidden bg-muted/50">
+          <div
+            className="bg-gradient-to-r from-primary to-primary/70 transition-all duration-700 ease-out relative"
+            style={{ width: `${pctA}%` }}
+          >
+            {pctA > 15 && <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-primary-foreground">{pctA}%</span>}
+          </div>
+          <div
+            className="bg-gradient-to-r from-secondary/70 to-secondary transition-all duration-700 ease-out relative"
+            style={{ width: `${pctB}%` }}
+          >
+            {pctB > 15 && <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-secondary-foreground">{pctB}%</span>}
+          </div>
+        </div>
+      )}
+
+      {/* Status */}
+      <div className="flex items-center justify-between">
+        {voted && !isCompleted && (
+          <span className="text-[10px] text-muted-foreground">✅ 투표 완료</span>
+        )}
+        {!voted && !isCompleted && (
+          <span className="text-[10px] text-primary animate-pulse font-medium">👆 크리에이터를 선택하세요</span>
+        )}
+        {isCompleted && match.winner_id && (
+          <span className="text-[10px] font-semibold text-yellow-500 flex items-center gap-1">
+            <Trophy className="w-3 h-3" /> {creators.get(match.winner_id)?.name} 승리!
+          </span>
+        )}
+        <button
+          onClick={() => onShare(match)}
+          className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors"
+        >
+          <Share2 className="w-3 h-3" /> 공유
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ─── Bracket View (visual bracket) ───
+const BracketView = ({
+  matches,
+  creators,
+}: {
+  matches: Match[];
+  creators: Map<string, MatchCreator>;
+}) => {
+  const rounds = useMemo(() => {
+    const groups: Record<number, Match[]> = {};
+    matches.forEach((m) => {
+      (groups[m.round] = groups[m.round] || []).push(m);
+    });
+    return Object.entries(groups)
+      .sort(([a], [b]) => Number(b) - Number(a))
+      .map(([round, ms]) => ({ round: Number(round), matches: ms.sort((a, b) => a.match_order - b.match_order) }));
+  }, [matches]);
+
+  if (rounds.length === 0) return null;
+
+  return (
+    <div className="glass p-4 rounded-2xl space-y-4">
+      <div className="flex items-center gap-2">
+        <Medal className="w-4 h-4 text-yellow-400" />
+        <h3 className="text-sm font-bold">대진표</h3>
+      </div>
+
+      <div className="overflow-x-auto -mx-2 px-2">
+        <div className="flex gap-6 min-w-max pb-2">
+          {rounds.map(({ round, matches: roundMatches }) => (
+            <div key={round} className="flex flex-col gap-3 min-w-[140px]">
+              <div className="text-center">
+                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
+                  round === 2 ? "bg-yellow-400/20 text-yellow-500" : "glass-sm text-muted-foreground"
+                }`}>
+                  {getRoundLabel(round)}
+                </span>
+              </div>
+              {roundMatches.map((m) => {
+                const a = creators.get(m.creator_a_id);
+                const b = creators.get(m.creator_b_id);
+                return (
+                  <div key={m.id} className="glass-sm rounded-xl p-2 space-y-1 border border-transparent hover:border-primary/20 transition-colors">
+                    <div className={`flex items-center gap-1.5 text-[11px] p-1 rounded ${m.winner_id === m.creator_a_id ? "bg-primary/10 font-bold" : ""}`}>
+                      {a?.avatar_url ? (
+                        <img src={a.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[8px]">{a?.name?.slice(0, 1)}</div>
+                      )}
+                      <span className="truncate flex-1">{a?.name || "TBD"}</span>
+                      <span className="font-mono text-[10px] text-muted-foreground">{m.votes_a}</span>
+                    </div>
+                    <div className={`flex items-center gap-1.5 text-[11px] p-1 rounded ${m.winner_id === m.creator_b_id ? "bg-secondary/10 font-bold" : ""}`}>
+                      {b?.avatar_url ? (
+                        <img src={b.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[8px]">{b?.name?.slice(0, 1)}</div>
+                      )}
+                      <span className="truncate flex-1">{b?.name || "TBD"}</span>
+                      <span className="font-mono text-[10px] text-muted-foreground">{m.votes_b}</span>
+                    </div>
+                    {m.is_completed && m.winner_id && (
+                      <div className="text-center">
+                        <span className="text-[8px] font-bold text-yellow-500">🏆 {creators.get(m.winner_id)?.name}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+
+          {/* Champion column */}
+          <div className="flex flex-col items-center justify-center min-w-[100px]">
+            <div className="text-center space-y-2">
+              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-yellow-400/20 text-yellow-500">
+                🏆 챔피언
+              </span>
+              {(() => {
+                const finalMatch = matches.find(m => m.round === 2 && m.is_completed && m.winner_id);
+                if (!finalMatch) return <div className="text-[10px] text-muted-foreground mt-2">미정</div>;
+                const champion = creators.get(finalMatch.winner_id!);
+                return (
+                  <div className="mt-3 space-y-2">
+                    {champion?.avatar_url ? (
+                      <img src={champion.avatar_url} alt="" className="w-12 h-12 rounded-full mx-auto object-cover ring-2 ring-yellow-400" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full mx-auto bg-yellow-400 flex items-center justify-center text-sm font-bold">{champion?.name?.slice(0, 2)}</div>
+                    )}
+                    <div className="text-xs font-bold">{champion?.name}</div>
+                    <Star className="w-4 h-4 text-yellow-400 mx-auto" />
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Round Tab Selector ───
+const RoundTabs = ({
+  rounds,
+  activeRound,
+  onSelect,
+}: {
+  rounds: number[];
+  activeRound: number;
+  onSelect: (r: number) => void;
+}) => (
+  <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-1">
+    {rounds.map((r) => (
+      <button
+        key={r}
+        onClick={() => onSelect(r)}
+        className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+          activeRound === r
+            ? "gradient-primary text-primary-foreground shadow-lg shadow-primary/20"
+            : "glass-sm text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        {getRoundLabel(r)}
+      </button>
+    ))}
+  </div>
+);
+
+// ─── Main Component ───
+const TournamentPage = () => {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [creators, setCreators] = useState<Map<string, MatchCreator>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [activeRound, setActiveRound] = useState<number>(0);
   const [votedMatches, setVotedMatches] = useState<Set<string>>(() => {
     const saved = localStorage.getItem("tournament_voted");
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
+  const [viewMode, setViewMode] = useState<"matches" | "bracket">("matches");
 
   useEffect(() => {
     const fetch = async () => {
-      // Get active tournament
       const { data: t } = await supabase
         .from("tournaments")
         .select("*")
@@ -57,23 +353,21 @@ const Tournament = () => {
         .limit(1)
         .maybeSingle();
 
-      if (!t) {
-        setLoading(false);
-        return;
-      }
-
+      if (!t) { setLoading(false); return; }
       setTournament(t);
 
-      // Get matches for current round
       const { data: matchData } = await supabase
         .from("tournament_matches")
         .select("*")
         .eq("tournament_id", t.id)
+        .order("round", { ascending: false })
         .order("match_order", { ascending: true });
 
       setMatches(matchData || []);
 
-      // Get all unique creator IDs
+      // Set active round to the current tournament round
+      setActiveRound(t.round);
+
       const creatorIds = new Set<string>();
       (matchData || []).forEach((m) => {
         creatorIds.add(m.creator_a_id);
@@ -85,7 +379,6 @@ const Tournament = () => {
           .from("creators")
           .select("id, name, avatar_url, category")
           .in("id", Array.from(creatorIds));
-
         const map = new Map<string, MatchCreator>();
         (creatorsData || []).forEach((c) => map.set(c.id, c));
         setCreators(map);
@@ -96,37 +389,37 @@ const Tournament = () => {
 
     fetch();
     initKakao();
+
+    // Realtime match updates
+    const channel = supabase
+      .channel("tournament-live")
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "tournament_matches" }, (payload) => {
+        const updated = payload.new as Match;
+        setMatches((prev) => prev.map((m) => (m.id === updated.id ? { ...m, ...updated } : m)));
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const { user } = useAuth();
-  const navigateAuth = useNavigate();
+  const navigate = useNavigate();
 
   const handleVote = async (matchId: string, creatorId: string) => {
-    if (!user) {
-      toast.error("투표하려면 로그인이 필요합니다.");
-      navigateAuth("/auth");
-      return;
-    }
-    if (votedMatches.has(matchId)) {
-      toast.error("이미 이 매치에 투표하셨습니다.");
-      return;
-    }
+    if (!user) { toast.error("투표하려면 로그인이 필요합니다."); navigate("/auth"); return; }
+    if (votedMatches.has(matchId)) { toast.error("이미 이 매치에 투표하셨습니다."); return; }
 
     const { data, error } = await supabase.functions.invoke("tournament-vote", {
       body: { match_id: matchId, voted_creator_id: creatorId },
     });
 
-    if (error || data?.error) {
-      toast.error(data?.error || "투표에 실패했습니다.");
-      return;
-    }
+    if (error || data?.error) { toast.error(data?.error || "투표에 실패했습니다."); return; }
 
     toast.success("토너먼트 투표 완료! ⚔️");
     const newVoted = new Set(votedMatches).add(matchId);
     setVotedMatches(newVoted);
     localStorage.setItem("tournament_voted", JSON.stringify(Array.from(newVoted)));
 
-    // Update local match state
     setMatches((prev) =>
       prev.map((m) => {
         if (m.id !== matchId) return m;
@@ -139,19 +432,12 @@ const Tournament = () => {
     );
   };
 
-  // Group matches by round
-  const roundGroups = matches.reduce<Record<number, Match[]>>((acc, m) => {
-    (acc[m.round] = acc[m.round] || []).push(m);
-    return acc;
-  }, {});
-
   const handleShareMatch = async (match: Match) => {
     const a = creators.get(match.creator_a_id);
     const b = creators.get(match.creator_b_id);
     const shareUrl = `${getPublishedOrigin()}/tournament`;
     const shareText = `🔥 누가 이길까?\n${a?.name || "???"} VS ${b?.name || "???"}\nRankit에서 투표하고 결정하세요! ⚔️`;
 
-    // Try Kakao first — if SDK is ready it opens Kakao dialog and we're done
     if (isKakaoReady()) {
       shareToKakao({
         title: `${a?.name} VS ${b?.name} - Rankit 대결`,
@@ -163,35 +449,65 @@ const Tournament = () => {
       return;
     }
 
-    // Fallback: native share or clipboard
     if (navigator.share) {
-      try {
-        await navigator.share({ title: "Rankit 크리에이터 대결", text: shareText, url: shareUrl });
-      } catch {
-        // user cancelled
-      }
+      try { await navigator.share({ title: "Rankit 크리에이터 대결", text: shareText, url: shareUrl }); } catch {}
     } else {
       const ok = await copyToClipboard(shareText + "\n" + shareUrl);
       if (ok) toast.success("대결 공유 텍스트가 복사되었습니다!");
     }
   };
 
+  const rounds = useMemo(() => {
+    const roundSet = new Set(matches.map((m) => m.round));
+    return Array.from(roundSet).sort((a, b) => b - a);
+  }, [matches]);
+
+  const currentRoundMatches = useMemo(() =>
+    matches.filter((m) => m.round === activeRound),
+    [matches, activeRound]
+  );
+
+  const totalVotesThisRound = currentRoundMatches.reduce((s, m) => s + m.votes_a + m.votes_b, 0);
+  const completedThisRound = currentRoundMatches.filter((m) => m.is_completed).length;
+
+  // Check for tournament champion
+  const champion = useMemo(() => {
+    const finalMatch = matches.find(m => m.round === 2 && m.is_completed && m.winner_id);
+    return finalMatch ? creators.get(finalMatch.winner_id!) : null;
+  }, [matches, creators]);
+
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
-      <SEOHead title="크리에이터 대결" description="크리에이터 1:1 토너먼트! 좋아하는 크리에이터에게 투표하고 최강자를 가려보세요." path="/tournament" />
+      <SEOHead title="크리에이터 토너먼트 | Rankit" description="크리에이터 1:1 토너먼트! 좋아하는 크리에이터에게 투표하고 최강자를 가려보세요." path="/tournament" />
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
         <div className="container max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Link to="/" className="text-muted-foreground hover:text-foreground">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <Swords className="w-5 h-5 text-neon-purple" />
-            <span className="text-lg font-bold gradient-text">팬 대결</span>
+            <Swords className="w-5 h-5 text-primary" />
+            <span className="text-lg font-bold gradient-text">크리에이터 토너먼트</span>
           </div>
+          {tournament && (
+            <div className="flex gap-1">
+              <button
+                onClick={() => setViewMode("matches")}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${viewMode === "matches" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
+              >
+                매치
+              </button>
+              <button
+                onClick={() => setViewMode("bracket")}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${viewMode === "bracket" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
+              >
+                대진표
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
-      <main className="container max-w-lg mx-auto px-4 py-6 space-y-6">
+      <main className="container max-w-lg mx-auto px-4 py-6 space-y-5">
         {loading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
@@ -206,114 +522,93 @@ const Tournament = () => {
           </div>
         ) : (
           <>
-            <div className="glass p-6 text-center space-y-3 animate-glow-pulse">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neon-purple/15 text-neon-purple text-xs font-semibold animate-pulse-neon">
-                <Zap className="w-3.5 h-3.5" /> LIVE
+            {/* Tournament Header */}
+            <div className="glass p-6 text-center space-y-3 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
+              <div className="relative z-10 space-y-3">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/15 text-primary text-xs font-semibold animate-pulse">
+                  <Zap className="w-3.5 h-3.5" /> LIVE TOURNAMENT
+                </div>
+                <h2 className="text-xl font-black gradient-text">{tournament.title}</h2>
+                <p className="text-sm text-muted-foreground">{tournament.description}</p>
+
+                {/* Tournament Stats */}
+                <div className="flex items-center justify-center gap-4 pt-2">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-primary">{getRoundLabel(tournament.round)}</div>
+                    <div className="text-[10px] text-muted-foreground">현재 라운드</div>
+                  </div>
+                  <div className="w-px h-8 bg-border" />
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-secondary">{totalVotesThisRound.toLocaleString()}</div>
+                    <div className="text-[10px] text-muted-foreground">총 투표</div>
+                  </div>
+                  <div className="w-px h-8 bg-border" />
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-foreground">{completedThisRound}/{currentRoundMatches.length}</div>
+                    <div className="text-[10px] text-muted-foreground">매치 완료</div>
+                  </div>
+                </div>
               </div>
-              <h2 className="text-xl font-bold gradient-text">{tournament.title}</h2>
-              <p className="text-sm text-muted-foreground">{tournament.description}</p>
             </div>
 
-            {Object.entries(roundGroups)
-              .sort(([a], [b]) => Number(b) - Number(a))
-              .map(([round, roundMatches]) => (
-                <div key={round} className="space-y-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground">
-                    {Number(round) === 2 ? "결승" : Number(round) === 4 ? "4강" : `${round}강`}
-                  </h3>
-                  {roundMatches.map((match) => {
-                    const a = creators.get(match.creator_a_id);
-                    const b = creators.get(match.creator_b_id);
-                    const totalVotes = match.votes_a + match.votes_b;
-                    const pctA = totalVotes > 0 ? Math.round((match.votes_a / totalVotes) * 100) : 50;
-                    const pctB = 100 - pctA;
-                    const voted = votedMatches.has(match.id);
-
-                    return (
-                      <div key={match.id} className="glass glass-hover p-4 space-y-3">
-                        <div className="flex items-center gap-3">
-                          {/* Creator A */}
-                          <button
-                            onClick={() => !voted && !match.is_completed && handleVote(match.id, match.creator_a_id)}
-                            disabled={voted || match.is_completed}
-                            className={`flex-1 glass-sm p-3 text-center space-y-2 transition-all ${
-                              !voted && !match.is_completed ? "hover:border-neon-purple/50 cursor-pointer" : ""
-                            } ${match.winner_id === match.creator_a_id ? "border-neon-purple/50 neon-glow-purple" : ""}`}
-                          >
-                            {a?.avatar_url ? (
-                              <img src={a.avatar_url} alt={a?.name} className="w-12 h-12 rounded-full mx-auto object-cover" />
-                            ) : (
-                              <div className="w-12 h-12 rounded-full mx-auto gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground">
-                                {a?.name?.slice(0, 2) || "?"}
-                              </div>
-                            )}
-                            <div className="text-xs font-semibold truncate">{a?.name || "???"}</div>
-                            <div className="text-lg font-bold text-neon-purple">{match.votes_a}</div>
-                          </button>
-
-                          <div className="shrink-0">
-                            <div className="w-10 h-10 rounded-full glass-sm flex items-center justify-center">
-                              <span className="text-xs font-bold text-muted-foreground">VS</span>
-                            </div>
-                          </div>
-
-                          {/* Creator B */}
-                          <button
-                            onClick={() => !voted && !match.is_completed && handleVote(match.id, match.creator_b_id)}
-                            disabled={voted || match.is_completed}
-                            className={`flex-1 glass-sm p-3 text-center space-y-2 transition-all ${
-                              !voted && !match.is_completed ? "hover:border-neon-cyan/50 cursor-pointer" : ""
-                            } ${match.winner_id === match.creator_b_id ? "border-neon-cyan/50 neon-glow-cyan" : ""}`}
-                          >
-                            {b?.avatar_url ? (
-                              <img src={b.avatar_url} alt={b?.name} className="w-12 h-12 rounded-full mx-auto object-cover" />
-                            ) : (
-                              <div className="w-12 h-12 rounded-full mx-auto gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground">
-                                {b?.name?.slice(0, 2) || "?"}
-                              </div>
-                            )}
-                            <div className="text-xs font-semibold truncate">{b?.name || "???"}</div>
-                            <div className="text-lg font-bold text-neon-cyan">{match.votes_b}</div>
-                          </button>
-                        </div>
-
-                        {/* Vote bar */}
-                        {totalVotes > 0 && (
-                          <div className="flex h-2 rounded-full overflow-hidden bg-muted">
-                            <div
-                              className="bg-neon-purple transition-all duration-500"
-                              style={{ width: `${pctA}%` }}
-                            />
-                            <div
-                              className="bg-neon-cyan transition-all duration-500"
-                              style={{ width: `${pctB}%` }}
-                            />
-                          </div>
-                        )}
-
-                        {voted && (
-                          <div className="text-center text-[10px] text-muted-foreground">✅ 투표 완료</div>
-                        )}
-                        {match.is_completed && match.winner_id && (
-                          <div className="text-center text-xs font-semibold text-neon-purple flex items-center justify-center gap-1">
-                            <Trophy className="w-3 h-3" />
-                            {creators.get(match.winner_id)?.name} 승리!
-                          </div>
-                        )}
-
-                        {/* Battle Share Button */}
-                        <button
-                          onClick={() => handleShareMatch(match)}
-                          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium glass-sm hover:border-[hsl(var(--neon-purple)/0.5)] transition-all"
-                        >
-                          <Share2 className="w-3.5 h-3.5 text-[hsl(var(--neon-purple))]" />
-                          <span className="text-muted-foreground">이 대결 공유하기</span>
-                        </button>
-                      </div>
-                    );
-                  })}
+            {/* Champion Banner */}
+            {champion && (
+              <div className="glass p-5 rounded-2xl text-center space-y-3 border border-yellow-400/30 bg-yellow-400/5">
+                <div className="text-xs font-bold text-yellow-500 flex items-center justify-center gap-1">
+                  <Trophy className="w-4 h-4" /> TOURNAMENT CHAMPION
                 </div>
-              ))}
+                {champion.avatar_url ? (
+                  <img src={champion.avatar_url} alt="" className="w-16 h-16 rounded-full mx-auto object-cover ring-3 ring-yellow-400 shadow-xl shadow-yellow-400/20" />
+                ) : (
+                  <div className="w-16 h-16 rounded-full mx-auto bg-yellow-400 flex items-center justify-center text-lg font-bold">{champion.name?.slice(0, 2)}</div>
+                )}
+                <div className="text-base font-black">{champion.name}</div>
+                <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-yellow-400/20 text-yellow-600 text-[11px] font-bold">
+                  <Crown className="w-3 h-3" /> Tournament Champion
+                </div>
+              </div>
+            )}
+
+            {viewMode === "bracket" ? (
+              <BracketView matches={matches} creators={creators} />
+            ) : (
+              <>
+                {/* Round Tabs */}
+                {rounds.length > 1 && (
+                  <RoundTabs rounds={rounds} activeRound={activeRound} onSelect={setActiveRound} />
+                )}
+
+                {/* Round Progress */}
+                <div className="glass-sm p-3 rounded-xl space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-medium text-muted-foreground">{getRoundLabel(activeRound)} 진행률</span>
+                    <span className="font-bold text-primary">{completedThisRound}/{currentRoundMatches.length}</span>
+                  </div>
+                  <Progress value={currentRoundMatches.length > 0 ? (completedThisRound / currentRoundMatches.length) * 100 : 0} className="h-2" />
+                </div>
+
+                {/* Match List */}
+                <div className="space-y-4">
+                  {currentRoundMatches.map((match) => (
+                    <MatchCard
+                      key={match.id}
+                      match={match}
+                      creators={creators}
+                      voted={votedMatches.has(match.id)}
+                      onVote={handleVote}
+                      onShare={handleShareMatch}
+                    />
+                  ))}
+                </div>
+
+                {currentRoundMatches.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    이 라운드에는 아직 매치가 없습니다.
+                  </div>
+                )}
+              </>
+            )}
           </>
         )}
       </main>
@@ -322,4 +617,4 @@ const Tournament = () => {
   );
 };
 
-export default Tournament;
+export default TournamentPage;
