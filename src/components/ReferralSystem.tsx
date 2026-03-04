@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Share2, Copy, Gift, Check } from "lucide-react";
+import { Share2, Copy, Gift, Check, Users, Coins, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
+import { shareToKakao, initKakao } from "@/lib/kakao";
 
 const ReferralSystem = () => {
   const [myCode, setMyCode] = useState<string | null>(null);
@@ -12,12 +13,12 @@ const ReferralSystem = () => {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    initKakao();
     const savedCode = localStorage.getItem("referral_code");
     if (savedCode) {
       setMyCode(savedCode);
       fetchBonus(savedCode);
     }
-    // Check if user came from a referral
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
     if (ref) {
@@ -61,9 +62,10 @@ const ReferralSystem = () => {
     toast.success("초대 코드가 생성되었습니다! 🎉");
   };
 
+  const inviteLink = `${getPublishedOrigin()}?ref=${myCode}`;
+
   const copyLink = async () => {
-    const link = `${getPublishedOrigin()}?ref=${myCode}`;
-    const ok = await copyToClipboard(link);
+    const ok = await copyToClipboard(inviteLink);
     setCopied(true);
     if (ok) {
       toast.success("초대 링크가 복사되었습니다!");
@@ -74,13 +76,12 @@ const ReferralSystem = () => {
   };
 
   const shareLink = async () => {
-    const link = `${getPublishedOrigin()}?ref=${myCode}`;
     if (navigator.share) {
       try {
         await navigator.share({
           title: "Rank It - 크리에이터 투표",
           text: "친구가 투표하면 나도 추가 투표권을 받아요! 🎉",
-          url: link,
+          url: inviteLink,
         });
       } catch {}
     } else {
@@ -88,42 +89,81 @@ const ReferralSystem = () => {
     }
   };
 
+  const shareKakao = () => {
+    shareToKakao({
+      title: "Rankit에 초대합니다! 🎉",
+      description: "가입하면 5 RP 보너스! 함께 크리에이터를 응원해요!",
+      webUrl: inviteLink,
+      mobileWebUrl: inviteLink,
+      buttonTitle: "초대 수락하기",
+    });
+  };
+
   return (
     <div className="glass p-4 space-y-3">
       <div className="flex items-center gap-2">
-        <Gift className="w-4 h-4 text-neon-purple" />
-        <h3 className="text-sm font-semibold">🎁 친구 초대하고 투표권 받기</h3>
+        <Gift className="w-4 h-4 text-[hsl(var(--neon-purple))]" />
+        <h3 className="text-sm font-semibold">🎁 친구 초대하고 보상 받기</h3>
+      </div>
+
+      {/* Reward info banner */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="glass-sm p-2.5 rounded-xl text-center space-y-1">
+          <div className="flex items-center justify-center gap-1">
+            <Users className="w-3.5 h-3.5 text-[hsl(var(--neon-purple))]" />
+            <span className="text-[10px] text-muted-foreground">초대자 보상</span>
+          </div>
+          <div className="text-sm font-bold text-[hsl(var(--neon-purple))]">+10 RP</div>
+        </div>
+        <div className="glass-sm p-2.5 rounded-xl text-center space-y-1">
+          <div className="flex items-center justify-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 text-[hsl(var(--neon-cyan))]" />
+            <span className="text-[10px] text-muted-foreground">신규 유저 보상</span>
+          </div>
+          <div className="text-sm font-bold text-[hsl(var(--neon-cyan))]">+5 RP</div>
+        </div>
       </div>
 
       {myCode ? (
         <div className="space-y-3">
           <div className="glass-sm p-3 text-center space-y-1">
             <div className="text-[10px] text-muted-foreground">내 초대 코드</div>
-            <div className="text-lg font-bold gradient-text tracking-widest">{myCode}</div>
+            <div className="text-lg font-bold bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-cyan))] bg-clip-text text-transparent tracking-widest">{myCode}</div>
             {bonusVotes > 0 && (
-              <div className="text-xs text-neon-cyan">
-                🎉 {bonusVotes}장의 보너스 투표권 획득!
+              <div className="flex items-center justify-center gap-1 text-xs text-[hsl(var(--neon-cyan))]">
+                <Coins className="w-3 h-3" />
+                {bonusVotes}장의 보너스 투표권 획득!
               </div>
             )}
           </div>
-          <div className="flex gap-2">
+
+          {/* Share buttons grid */}
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={copyLink}
-              className="flex-1 glass-sm p-2.5 flex items-center justify-center gap-1.5 text-xs font-medium text-neon-cyan hover:border-neon-cyan/50 transition-all rounded-xl"
+              className="glass-sm p-2.5 flex flex-col items-center justify-center gap-1 text-xs font-medium hover:border-[hsl(var(--neon-cyan)/0.5)] transition-all rounded-xl"
             >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              {copied ? "복사됨!" : "링크 복사"}
+              {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5 text-[hsl(var(--neon-cyan))]" />}
+              <span className="text-[10px]">{copied ? "복사됨!" : "링크 복사"}</span>
+            </button>
+            <button
+              onClick={shareKakao}
+              className="glass-sm p-2.5 flex flex-col items-center justify-center gap-1 text-xs font-medium hover:border-yellow-500/50 transition-all rounded-xl"
+            >
+              <span className="text-sm">💬</span>
+              <span className="text-[10px]">카카오톡</span>
             </button>
             <button
               onClick={shareLink}
-              className="flex-1 glass-sm p-2.5 flex items-center justify-center gap-1.5 text-xs font-medium text-neon-purple hover:border-neon-purple/50 transition-all rounded-xl"
+              className="glass-sm p-2.5 flex flex-col items-center justify-center gap-1 text-xs font-medium hover:border-[hsl(var(--neon-purple)/0.5)] transition-all rounded-xl"
             >
-              <Share2 className="w-3.5 h-3.5" />
-              공유하기
+              <Share2 className="w-3.5 h-3.5 text-[hsl(var(--neon-purple))]" />
+              <span className="text-[10px]">공유하기</span>
             </button>
           </div>
+
           <p className="text-[10px] text-muted-foreground text-center">
-            친구가 초대 링크로 투표하면 투표권 3장을 받아요!
+            친구가 초대 링크로 가입하면 서로 보상을 받아요!
           </p>
         </div>
       ) : (
@@ -134,7 +174,7 @@ const ReferralSystem = () => {
             onChange={(e) => setNickname(e.target.value)}
             placeholder="닉네임 입력 (2글자 이상)"
             maxLength={20}
-            className="w-full px-3 py-2 rounded-xl glass-sm bg-card/30 border border-glass-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-neon-purple/50 transition-colors"
+            className="w-full px-3 py-2 rounded-xl glass-sm bg-card/30 border border-[hsl(var(--glass-border))] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[hsl(var(--neon-purple)/0.5)] transition-colors"
           />
           <button
             onClick={generateCode}

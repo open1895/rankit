@@ -5,8 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 import SEOHead from "@/components/SEOHead";
-import { Crown, Swords, Trophy, ArrowLeft, Zap } from "lucide-react";
+import { Crown, Swords, Trophy, ArrowLeft, Zap, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
+import { shareToKakao, initKakao } from "@/lib/kakao";
 
 interface MatchCreator {
   id: string;
@@ -93,6 +95,7 @@ const Tournament = () => {
     };
 
     fetch();
+    initKakao();
   }, []);
 
   const { user } = useAuth();
@@ -141,6 +144,29 @@ const Tournament = () => {
     (acc[m.round] = acc[m.round] || []).push(m);
     return acc;
   }, {});
+
+  const handleShareMatch = (match: Match) => {
+    const a = creators.get(match.creator_a_id);
+    const b = creators.get(match.creator_b_id);
+    const shareUrl = `${getPublishedOrigin()}/tournament`;
+    const shareText = `🔥 누가 이길까?\n${a?.name || "???"} VS ${b?.name || "???"}\nRankit에서 투표하고 결정하세요! ⚔️`;
+
+    shareToKakao({
+      title: `${a?.name} VS ${b?.name} - Rankit 대결`,
+      description: "누가 이길까? 지금 투표하러 가기!",
+      webUrl: shareUrl,
+      mobileWebUrl: shareUrl,
+      buttonTitle: "투표하러 가기",
+    });
+
+    if (navigator.share) {
+      navigator.share({ title: "Rankit 크리에이터 대결", text: shareText, url: shareUrl }).catch(() => {});
+    } else {
+      copyToClipboard(shareText + "\n" + shareUrl).then(ok => {
+        if (ok) toast.success("대결 공유 텍스트가 복사되었습니다!");
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
@@ -266,6 +292,15 @@ const Tournament = () => {
                             {creators.get(match.winner_id)?.name} 승리!
                           </div>
                         )}
+
+                        {/* Battle Share Button */}
+                        <button
+                          onClick={() => handleShareMatch(match)}
+                          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium glass-sm hover:border-[hsl(var(--neon-purple)/0.5)] transition-all"
+                        >
+                          <Share2 className="w-3.5 h-3.5 text-[hsl(var(--neon-purple))]" />
+                          <span className="text-muted-foreground">이 대결 공유하기</span>
+                        </button>
                       </div>
                     );
                   })}

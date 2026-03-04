@@ -813,10 +813,10 @@ const CreatorProfile = () => {
 
       {/* Modals */}
       {showShare && id && creator && (
-        <ShareCard creatorId={id} creatorName={creator.name} rank={creator.rank} votesCount={creator.votes_count} avatarUrl={creator.avatar_url} category={creator.category} onClose={() => { setShowShare(false); setAutoShareCard(false); }} autoGenerate={autoShareCard} onShareBonus={() => toast.success("공유 보너스 투표권 +1! 🎁")} />
+        <ShareCard creatorId={id} creatorName={creator.name} rank={creator.rank} votesCount={creator.votes_count} avatarUrl={creator.avatar_url} category={creator.category} rankitScore={creator.rankit_score} onClose={() => { setShowShare(false); setAutoShareCard(false); }} autoGenerate={autoShareCard} onShareBonus={() => toast.success("공유 보너스 투표권 +1! 🎁")} />
       )}
       {showFanCert && creator && (
-        <FanCertCard creatorName={creator.name} creatorAvatarUrl={creator.avatar_url} rank={creator.rank} totalCreators={totalCreators} onClose={() => setShowFanCert(false)} />
+        <FanCertCard creatorName={creator.name} creatorAvatarUrl={creator.avatar_url} rank={creator.rank} totalCreators={totalCreators} username={user?.email?.split("@")[0]} totalVotes={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.votes || 0} totalPosts={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.posts || 0} totalComments={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.comments || 0} onClose={() => setShowFanCert(false)} />
       )}
       <CelebrationEffect show={showCelebration} message={celebrationMsg} onComplete={() => setShowCelebration(false)} />
     </div>
