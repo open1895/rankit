@@ -6,6 +6,7 @@ import { ArrowLeft, Crown, Medal, Trophy, Star } from "lucide-react";
 
 import SEOHead from "@/components/SEOHead";
 import FanLevelBadge from "@/components/FanLevelBadge";
+import FanAchievementBadges from "@/components/FanAchievementBadges";
 import { calculateFanPoints, getFanLevel } from "@/lib/fanLevel";
 
 interface FanEntry {
@@ -160,6 +161,7 @@ const FanLeaderboard = () => {
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm font-semibold truncate">{fan.nickname}</span>
                     <FanLevelBadge activity={{ votes: fan.votes, posts: fan.posts, comments: fan.comments }} />
+                    <FanAchievementBadges activity={{ votes: fan.votes, posts: fan.posts, comments: fan.comments }} />
                   </div>
                   <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground flex-wrap">
                     <span>투표 {fan.votes}회<span className="text-neon-purple/60 ml-0.5">(+{fan.votes * 3})</span></span>
