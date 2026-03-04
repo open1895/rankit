@@ -9,6 +9,7 @@ import { Creator } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import ShareCard from "@/components/ShareCard";
 import FanCertCard from "@/components/FanCertCard";
+import ClaimCreatorModal from "@/components/ClaimCreatorModal";
 import CelebrationEffect from "@/components/CelebrationEffect";
 import FanBadge from "@/components/FanBadge";
 import FanLevelBadge from "@/components/FanLevelBadge";
