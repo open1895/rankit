@@ -22,6 +22,7 @@ import VoteTrendChart from "@/components/VoteTrendChart";
 import VoteHeatmapChart from "@/components/VoteHeatmapChart";
 import CreatorRewards from "@/components/CreatorRewards";
 import CreatorOfficialFeed from "@/components/CreatorOfficialFeed";
+import AICreatorInsights from "@/components/AICreatorInsights";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -644,6 +645,9 @@ const CreatorProfile = () => {
           {/* ─── TAB: ANALYTICS ─── */}
           {activeTab === "analytics" && (
             <>
+              {/* AI Insights */}
+              <AICreatorInsights creatorId={id!} />
+
               {/* Rank Chart */}
               <div className="glass p-4 space-y-3">
                 <div className="flex items-center gap-2"><BarChart3 className="w-4 h-4 text-primary" /><h3 className="text-sm font-semibold">순위 변동</h3></div>
