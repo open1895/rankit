@@ -36,7 +36,7 @@ import {
 import { toast } from "sonner";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  CartesianGrid, Area, AreaChart, PieChart, Pie, Cell,
+  CartesianGrid, Area, AreaChart,
 } from "recharts";
 
 // ─── Types ───────────────────────────────────────────────────
