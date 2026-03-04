@@ -27,6 +27,7 @@ import AICreatorInsights from "@/components/AICreatorInsights";
 import { isCreatorRising } from "@/components/RisingInfluenceCreators";
 import CreatorRecommendations from "@/components/CreatorRecommendations";
 import PowerBoostSection from "@/components/PowerBoostCard";
+import TournamentChampionBadge from "@/components/TournamentChampionBadge";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
@@ -465,6 +466,7 @@ const CreatorProfile = () => {
                         🔥 Rising Creator
                       </span>
                     )}
+                    <TournamentChampionBadge creatorId={creator.id} />
                   </div>
                   <SnsLinks />
                 </>

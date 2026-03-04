@@ -1150,6 +1150,51 @@ export type Database = {
         }
         Relationships: []
       }
+      tournament_champions: {
+        Row: {
+          created_at: string
+          creator_id: string
+          crowned_at: string
+          id: string
+          is_featured: boolean
+          tournament_id: string
+          tournament_title: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          crowned_at?: string
+          id?: string
+          is_featured?: boolean
+          tournament_id: string
+          tournament_title?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          crowned_at?: string
+          id?: string
+          is_featured?: boolean
+          tournament_id?: string
+          tournament_title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_champions_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_champions_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: true
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tournament_matches: {
         Row: {
           created_at: string

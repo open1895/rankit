@@ -167,7 +167,25 @@ Deno.serve(async (req) => {
             .update({ round: nextRound })
             .eq("id", match.tournament_id);
         } else {
-          // Tournament is over - mark as ended
+          // Tournament is over - the final match winner is the champion
+          const finalWinnerId = newVotesA > newVotesB ? match.creator_a_id : match.creator_b_id;
+
+          // Get tournament title
+          const { data: tournamentData } = await supabase
+            .from("tournaments")
+            .select("title")
+            .eq("id", match.tournament_id)
+            .single();
+
+          // Insert champion record
+          await supabase.from("tournament_champions").insert({
+            tournament_id: match.tournament_id,
+            creator_id: finalWinnerId,
+            tournament_title: tournamentData?.title || "",
+            is_featured: true,
+          });
+
+          // Mark tournament as ended
           await supabase
             .from("tournaments")
             .update({ is_active: false, ended_at: new Date().toISOString() })
