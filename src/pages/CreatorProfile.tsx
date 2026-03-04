@@ -33,7 +33,7 @@ import {
   ArrowLeft, Crown, Heart, Trophy, TrendingUp, TrendingDown,
   ExternalLink, CheckCircle2, BarChart3, Share2, MessageCircle,
   MessageSquare, Medal, Star, Edit3, Save, X, Camera, Code2,
-  FileDown, Copy, Check, Users, Activity, ChartArea,
+  FileDown, Copy, Check, Users, Activity, ChartArea, Shield,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -820,6 +820,17 @@ const CreatorProfile = () => {
         <FanCertCard creatorName={creator.name} creatorAvatarUrl={creator.avatar_url} creatorId={creator.id} rank={creator.rank} totalCreators={totalCreators} username={user?.email?.split("@")[0]} totalVotes={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.votes || 0} totalPosts={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.posts || 0} totalComments={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.comments || 0} onClose={() => setShowFanCert(false)} />
       )}
       <CelebrationEffect show={showCelebration} message={celebrationMsg} onComplete={() => setShowCelebration(false)} />
+      {showClaimModal && creator && (
+        <ClaimCreatorModal
+          creatorId={creator.id}
+          creatorName={creator.name}
+          onClose={() => setShowClaimModal(false)}
+          onClaimed={() => {
+            setCreator(prev => prev ? { ...prev, user_id: user?.id, is_verified: true } : prev);
+            toast.success("크리에이터 프로필이 인증되었습니다! ✅");
+          }}
+        />
+      )}
     </div>
   );
 };
