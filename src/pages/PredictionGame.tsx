@@ -5,7 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Target, Clock, Trophy, Zap, Users, TrendingUp, Check, Lock } from "lucide-react";
+import { ArrowLeft, Target, Clock, Trophy, Zap, Users, TrendingUp, Check, Lock, Award } from "lucide-react";
+import LivePredictionBattle from "@/components/LivePredictionBattle";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -170,21 +171,24 @@ const PredictionGame = () => {
           </div>
         </div>
 
-        {/* Intro */}
-        <div className="glass rounded-2xl p-4 space-y-2 border border-neon-cyan/10">
+        {/* Hero Battle Card */}
+        <LivePredictionBattle />
+
+        {/* Prediction Leaderboard Link */}
+        <Link
+          to="/prediction-leaderboard"
+          className="flex items-center justify-between p-3 rounded-xl border transition-all hover:scale-[1.01]"
+          style={{
+            background: "hsl(var(--neon-purple) / 0.08)",
+            borderColor: "hsl(var(--neon-purple) / 0.2)",
+          }}
+        >
           <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-neon-cyan" />
-            <span className="text-sm font-bold">이번 주 대결, 누가 이길까요?</span>
+            <Award className="w-4 h-4" style={{ color: "hsl(var(--neon-purple))" }} />
+            <span className="text-xs font-bold">이번 달 예측왕 TOP 10 보기</span>
           </div>
-          <p className="text-xs text-muted-foreground">
-            투표권을 걸고 결과를 맞혀보세요! 맞히면 배당 보상을 받습니다. 🎯
-          </p>
-          <div className="flex gap-3 text-[10px] text-muted-foreground">
-            <span className="flex items-center gap-1"><Target className="w-3 h-3" /> 최대 10표 베팅</span>
-            <span className="flex items-center gap-1"><Trophy className="w-3 h-3" /> 적중 시 2배 보상</span>
-            <span className="flex items-center gap-1"><Users className="w-3 h-3" /> 참여자 수 공개</span>
-          </div>
-        </div>
+          <span className="text-xs text-muted-foreground">→</span>
+        </Link>
 
         {loading ? (
           <div className="flex justify-center py-12">
