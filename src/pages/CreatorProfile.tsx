@@ -130,6 +130,7 @@ const CreatorProfile = () => {
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [hasVotedToday, setHasVotedToday] = useState(false);
   const [isRising, setIsRising] = useState(false);
+  const [showClaimModal, setShowClaimModal] = useState(false);
 
   // ─── Data Fetching ──────────────────────────────────────
   useEffect(() => {
