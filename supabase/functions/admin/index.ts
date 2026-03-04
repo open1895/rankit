@@ -368,9 +368,123 @@ serve(async (req) => {
     if (action === "delete_prediction_event") {
       const { event_id } = body;
       if (!event_id) return new Response(JSON.stringify({ error: "event_id required" }), { status: 400, headers: corsHeaders });
-      // Delete bets first, then event
       await adminClient.from("prediction_bets").delete().eq("event_id", event_id);
       const { error } = await adminClient.from("prediction_events").delete().eq("id", event_id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── LIST TOURNAMENTS ────────────────────────────────
+    if (action === "list_tournaments") {
+      const { data, error } = await adminClient
+        .from("tournaments")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+
+      // Get match counts per tournament
+      const tournamentIds = (data || []).map((t: any) => t.id);
+      const { data: matches } = await adminClient
+        .from("tournament_matches")
+        .select("tournament_id, is_completed")
+        .in("tournament_id", tournamentIds.length > 0 ? tournamentIds : ["__none__"]);
+
+      const matchStats = new Map<string, { total: number; completed: number }>();
+      for (const m of (matches || [])) {
+        const s = matchStats.get(m.tournament_id) || { total: 0, completed: 0 };
+        s.total++;
+        if (m.is_completed) s.completed++;
+        matchStats.set(m.tournament_id, s);
+      }
+
+      const enriched = (data || []).map((t: any) => ({
+        ...t,
+        match_total: matchStats.get(t.id)?.total || 0,
+        match_completed: matchStats.get(t.id)?.completed || 0,
+      }));
+
+      return new Response(JSON.stringify({ tournaments: enriched }), { headers: corsHeaders });
+    }
+
+    // ─── CREATE TOURNAMENT (auto-assign top 16) ──────────
+    if (action === "create_tournament") {
+      const { title: tTitle, description: tDesc } = body;
+      if (!tTitle) return new Response(JSON.stringify({ error: "title required" }), { status: 400, headers: corsHeaders });
+
+      // Check no active tournament
+      const { data: activeTourneys } = await adminClient
+        .from("tournaments")
+        .select("id")
+        .eq("is_active", true);
+      if (activeTourneys && activeTourneys.length > 0) {
+        return new Response(JSON.stringify({ error: "이미 진행 중인 토너먼트가 있습니다. 먼저 종료해주세요." }), { status: 400, headers: corsHeaders });
+      }
+
+      // Get top 16 creators by rank
+      const { data: topCreators, error: cErr } = await adminClient
+        .from("creators")
+        .select("id, name")
+        .order("rank", { ascending: true })
+        .limit(16);
+      if (cErr) throw cErr;
+      if (!topCreators || topCreators.length < 16) {
+        return new Response(JSON.stringify({ error: `크리에이터가 16명 이상 필요합니다. (현재 ${topCreators?.length || 0}명)` }), { status: 400, headers: corsHeaders });
+      }
+
+      // Create tournament
+      const { data: tournament, error: tErr } = await adminClient
+        .from("tournaments")
+        .insert({ title: tTitle, description: tDesc || "", is_active: true, round: 16 })
+        .select("id")
+        .single();
+      if (tErr) throw tErr;
+
+      // Create round of 16 matches (8 matches)
+      const matchInserts = [];
+      for (let i = 0; i < 16; i += 2) {
+        matchInserts.push({
+          tournament_id: tournament.id,
+          round: 16,
+          match_order: Math.floor(i / 2),
+          creator_a_id: topCreators[i].id,
+          creator_b_id: topCreators[i + 1].id,
+        });
+      }
+      const { error: mErr } = await adminClient.from("tournament_matches").insert(matchInserts);
+      if (mErr) throw mErr;
+
+      return new Response(JSON.stringify({
+        success: true,
+        tournament_id: tournament.id,
+        creators: topCreators.map((c: any) => c.name),
+      }), { headers: corsHeaders });
+    }
+
+    // ─── DELETE TOURNAMENT ────────────────────────────────
+    if (action === "delete_tournament") {
+      const { tournament_id } = body;
+      if (!tournament_id) return new Response(JSON.stringify({ error: "tournament_id required" }), { status: 400, headers: corsHeaders });
+
+      // Delete votes -> matches -> tournament
+      const { data: matchIds } = await adminClient
+        .from("tournament_matches")
+        .select("id")
+        .eq("tournament_id", tournament_id);
+      if (matchIds && matchIds.length > 0) {
+        const ids = matchIds.map((m: any) => m.id);
+        await adminClient.from("tournament_votes").delete().in("match_id", ids);
+        await adminClient.from("tournament_matches").delete().eq("tournament_id", tournament_id);
+      }
+      const { error } = await adminClient.from("tournaments").delete().eq("id", tournament_id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── END TOURNAMENT ──────────────────────────────────
+    if (action === "end_tournament") {
+      const { tournament_id } = body;
+      if (!tournament_id) return new Response(JSON.stringify({ error: "tournament_id required" }), { status: 400, headers: corsHeaders });
+      const { error } = await adminClient.from("tournaments").update({ is_active: false, ended_at: new Date().toISOString() }).eq("id", tournament_id);
       if (error) throw error;
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }

@@ -18,7 +18,7 @@ const AdminPanelPage = () => {
   const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingRole, setCheckingRole] = useState(true);
-  const [tab, setTab] = useState<"nominations" | "creators" | "users" | "board" | "predictions">("nominations");
+  const [tab, setTab] = useState<"nominations" | "creators" | "users" | "board" | "predictions" | "tournaments">("nominations");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -124,9 +124,15 @@ const AdminPanelPage = () => {
           >
             <Target className="w-4 h-4 inline mr-1" />예측
           </button>
+          <button
+            onClick={() => setTab("tournaments")}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "tournaments" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
+          >
+            <Trophy className="w-4 h-4 inline mr-1" />토너먼트
+          </button>
         </div>
 
-        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : <PredictionsTab />}
+        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : tab === "predictions" ? <PredictionsTab /> : <TournamentsTab />}
       </div>
       <Footer />
     </div>
@@ -920,6 +926,158 @@ const PredictionsTab = () => {
           <DialogHeader><DialogTitle className="text-base font-bold">예측 대결 삭제</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">
             <span className="font-bold text-foreground">"{deleteTarget?.title}"</span>을(를) 삭제하시겠습니까? 관련 베팅도 모두 삭제됩니다.
+          </p>
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" onClick={() => setDeleteTarget(null)} className="flex-1">취소</Button>
+            <Button variant="destructive" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending} className="flex-1">
+              {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}삭제
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+/* ─── Tournaments Tab ─── */
+const TournamentsTab = () => {
+  const queryClient = useQueryClient();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+
+  const { data: tournaments, isLoading } = useQuery({
+    queryKey: ["admin-tournaments"],
+    queryFn: async () => {
+      const { data } = await supabase.functions.invoke("admin", { body: { action: "list_tournaments" } });
+      return data?.tournaments || [];
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("admin", {
+        body: { action: "create_tournament", title, description },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(`토너먼트 생성 완료! ${data?.creators?.length || 16}명 자동 배정됨`);
+      setCreateOpen(false);
+      setTitle("");
+      setDescription("");
+      queryClient.invalidateQueries({ queryKey: ["admin-tournaments"] });
+    },
+    onError: (e: any) => toast.error(`생성 실패: ${e.message}`),
+  });
+
+  const endMutation = useMutation({
+    mutationFn: async (tournament_id: string) => {
+      const { error } = await supabase.functions.invoke("admin", {
+        body: { action: "end_tournament", tournament_id },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("토너먼트가 종료되었습니다.");
+      queryClient.invalidateQueries({ queryKey: ["admin-tournaments"] });
+    },
+    onError: (e: any) => toast.error(`종료 실패: ${e.message}`),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (tournament_id: string) => {
+      const { error } = await supabase.functions.invoke("admin", {
+        body: { action: "delete_tournament", tournament_id },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("삭제 완료");
+      setDeleteTarget(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-tournaments"] });
+    },
+    onError: (e: any) => toast.error(`삭제 실패: ${e.message}`),
+  });
+
+  if (isLoading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
+
+  return (
+    <>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Badge variant="outline" className="text-xs">{(tournaments || []).length}건</Badge>
+          <Button size="sm" onClick={() => setCreateOpen(true)} className="h-8 text-xs">
+            <Plus className="w-3.5 h-3.5 mr-1" />새 토너먼트
+          </Button>
+        </div>
+
+        {(tournaments || []).map((t: any) => (
+          <div key={t.id} className="glass rounded-xl border border-glass-border p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <Badge className={`text-[10px] ${t.is_active ? "bg-primary/20 text-primary border-primary/30" : "bg-muted text-muted-foreground"}`}>
+                {t.is_active ? "진행 중" : "종료"}
+              </Badge>
+              <span className="text-sm font-bold text-foreground flex-1 truncate">{t.title}</span>
+            </div>
+            {t.description && <p className="text-xs text-muted-foreground line-clamp-1">{t.description}</p>}
+            <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+              <span>라운드: {t.round === 16 ? "16강" : t.round === 8 ? "8강" : t.round === 4 ? "4강" : t.round === 2 ? "결승" : `${t.round}`}</span>
+              <span>매치: {t.match_completed || 0}/{t.match_total || 0}</span>
+              <span>{new Date(t.created_at).toLocaleDateString("ko-KR")}</span>
+            </div>
+            <div className="flex gap-1">
+              {t.is_active && (
+                <Button size="sm" variant="outline" onClick={() => endMutation.mutate(t.id)} disabled={endMutation.isPending} className="h-7 text-[11px]">
+                  {endMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}종료
+                </Button>
+              )}
+              <button onClick={() => setDeleteTarget(t)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+
+        {(tournaments || []).length === 0 && (
+          <div className="text-center py-16 text-muted-foreground text-sm">아직 토너먼트가 없습니다.</div>
+        )}
+      </div>
+
+      {/* Create Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl">
+          <DialogHeader><DialogTitle className="text-base font-bold">새 토너먼트 생성</DialogTitle></DialogHeader>
+          <div className="space-y-3 pt-1">
+            <div className="glass-sm rounded-xl p-3 space-y-1">
+              <p className="text-xs font-bold text-primary">🏆 자동 배정 시스템</p>
+              <p className="text-[10px] text-muted-foreground">랭킹 상위 16명의 크리에이터가 자동으로 토너먼트에 배정됩니다. 1위 vs 16위, 2위 vs 15위 ... 순서로 매치가 구성됩니다.</p>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">제목</label>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} placeholder="예: 시즌 1 크리에이터 토너먼트" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">설명 (선택)</label>
+              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="토너먼트 설명..." />
+            </div>
+            <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending || !title.trim()} className="w-full">
+              {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Trophy className="w-4 h-4 mr-1" />}
+              생성 (상위 16명 자동 배정)
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirm */}
+      <Dialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
+        <DialogContent className="max-w-[90vw] sm:max-w-sm rounded-2xl">
+          <DialogHeader><DialogTitle className="text-base font-bold">토너먼트 삭제</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            <span className="font-bold text-foreground">"{deleteTarget?.title}"</span>을(를) 삭제하시겠습니까? 관련 매치와 투표도 모두 삭제됩니다.
           </p>
           <div className="flex gap-2 pt-2">
             <Button variant="outline" onClick={() => setDeleteTarget(null)} className="flex-1">취소</Button>
