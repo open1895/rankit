@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Footer from "@/components/Footer";
 import FanLevelProgress from "@/components/FanLevelProgress";
+import { getEarnedBadges, getAllBadges } from "@/lib/fanBadges";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,6 +36,7 @@ import {
   ShieldCheck,
   Ticket,
   Zap,
+  Star,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -643,7 +645,43 @@ const MyPage = () => {
             <FanLevelProgress activity={{ votes: votes.length, posts: 0, comments: 0 }} />
           </div>
 
-          {/* Ticket Dashboard */}
+          {/* Fan Badges */}
+          {(() => {
+            const activity = { votes: votes.length, posts: 0, comments: 0 };
+            const earned = getEarnedBadges(activity);
+            const all = getAllBadges();
+            return (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 h-4 text-neon-purple" />
+                  <span className="text-xs font-bold">팬 뱃지</span>
+                  <span className="text-[10px] text-muted-foreground">{earned.length}/{all.length}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {all.map((badge) => {
+                    const isEarned = earned.some((e) => e.key === badge.key);
+                    return (
+                      <div
+                        key={badge.key}
+                        className={`glass-sm p-3 rounded-xl flex items-center gap-2 transition-all ${
+                          isEarned ? "border border-primary/30" : "opacity-40 grayscale"
+                        }`}
+                      >
+                        <span className="text-lg">{badge.emoji}</span>
+                        <div className="min-w-0">
+                          <div className="text-[11px] font-bold truncate">{badge.label}</div>
+                          <div className="text-[9px] text-muted-foreground">
+                            {isEarned ? "✅ 획득!" : "🔒 미획득"}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Ticket className="w-4 h-4 text-neon-purple" />
