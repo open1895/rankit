@@ -575,18 +575,18 @@ const Index = () => {
             }}
           >
             <div className="flex items-center gap-3">
-              <span className="text-2xl">🔥</span>
+              <span className="text-2xl animate-pulse">🔥</span>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-black leading-tight" style={{ color: "hsl(var(--neon-purple))" }}>
-                  현재 1·2위 박빙! 승자 예측하고 티켓 2배 받기
+                <p className="text-xs font-black leading-tight" style={{ color: "hsl(var(--destructive))" }}>
+                  지금 참여 안 하면 손해! 티켓 200% 페이백 🔥
                 </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">예측 게임에서 베팅하고 보상을 받으세요</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">1·2위 초박빙 — 예측 적중 시 최대 10배 보상</p>
               </div>
               <span
-                className="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-black text-primary-foreground"
+                className="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-black text-primary-foreground animate-pulse"
                 style={{
-                  background: "linear-gradient(135deg, hsl(var(--neon-purple)), hsl(var(--primary)))",
-                  boxShadow: "0 0 12px hsl(var(--neon-purple) / 0.4)",
+                  background: "linear-gradient(135deg, hsl(var(--destructive)), hsl(var(--neon-purple)))",
+                  boxShadow: "0 0 16px hsl(var(--destructive) / 0.5)",
                 }}
               >
                 참여
