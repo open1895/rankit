@@ -124,9 +124,15 @@ const AdminPanelPage = () => {
           >
             <Target className="w-4 h-4 inline mr-1" />예측
           </button>
+          <button
+            onClick={() => setTab("tournaments")}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "tournaments" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
+          >
+            <Trophy className="w-4 h-4 inline mr-1" />토너먼트
+          </button>
         </div>
 
-        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : <PredictionsTab />}
+        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : tab === "predictions" ? <PredictionsTab /> : <TournamentsTab />}
       </div>
       <Footer />
     </div>
