@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { TicketProvider } from "@/hooks/useTickets";
 import PageTransition from "@/components/PageTransition";
 import MobileTabBar from "@/components/MobileTabBar";
+import DesktopNavBar from "@/components/DesktopNavBar";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
@@ -43,6 +44,8 @@ const App = () => (
           <BrowserRouter>
             <PredictionWinPopup />
             <div className="flex flex-col min-h-screen">
+              <DesktopNavBar />
+              <div className="md:pt-14">
               <PageTransition>
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -71,6 +74,7 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </PageTransition>
+              </div>
               <MobileTabBar />
             </div>
           </BrowserRouter>
