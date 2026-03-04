@@ -34,6 +34,7 @@ import RisingInfluenceCreators from "@/components/RisingInfluenceCreators";
 import ActiveBoostCampaigns from "@/components/ActiveBoostCampaigns";
 import HomeTournamentSection from "@/components/HomeTournamentSection";
 import HomePredictionSection from "@/components/HomePredictionSection";
+import FeaturedChampion from "@/components/FeaturedChampion";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
 import { toast } from "sonner";
@@ -539,6 +540,11 @@ const Index = () => {
         </div>
 
         <div className="section-divider" />
+
+        {/* Featured Tournament Champion */}
+        <ScrollReveal>
+          <FeaturedChampion />
+        </ScrollReveal>
 
         {/* Creator Tournament */}
         <ScrollReveal>
