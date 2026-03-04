@@ -9,6 +9,7 @@ import { Creator } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import ShareCard from "@/components/ShareCard";
 import FanCertCard from "@/components/FanCertCard";
+import ClaimCreatorModal from "@/components/ClaimCreatorModal";
 import CelebrationEffect from "@/components/CelebrationEffect";
 import FanBadge from "@/components/FanBadge";
 import FanLevelBadge from "@/components/FanLevelBadge";
@@ -32,7 +33,7 @@ import {
   ArrowLeft, Crown, Heart, Trophy, TrendingUp, TrendingDown,
   ExternalLink, CheckCircle2, BarChart3, Share2, MessageCircle,
   MessageSquare, Medal, Star, Edit3, Save, X, Camera, Code2,
-  FileDown, Copy, Check, Users, Activity, ChartArea,
+  FileDown, Copy, Check, Users, Activity, ChartArea, Shield,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -129,6 +130,7 @@ const CreatorProfile = () => {
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [hasVotedToday, setHasVotedToday] = useState(false);
   const [isRising, setIsRising] = useState(false);
+  const [showClaimModal, setShowClaimModal] = useState(false);
 
   // ─── Data Fetching ──────────────────────────────────────
   useEffect(() => {
@@ -514,6 +516,17 @@ const CreatorProfile = () => {
               <Edit3 className="w-3 h-3 mr-1" /> 프로필 수정
             </Button>
           )}
+
+          {/* Claim Profile Button - show for logged in users when creator has no owner */}
+          {!isEditing && user && !creator.user_id && (
+            <Button
+              onClick={() => setShowClaimModal(true)}
+              variant="outline" size="sm"
+              className="w-full glass-sm border-[hsl(var(--neon-cyan)/0.3)] text-[hsl(var(--neon-cyan))] text-xs rounded-xl hover:border-[hsl(var(--neon-cyan)/0.6)]"
+            >
+              <Shield className="w-3 h-3 mr-1" /> 이 크리에이터 프로필 인증하기
+            </Button>
+          )}
         </div>
 
         {/* ═══════════════════════════════════════════════════ */}
@@ -807,6 +820,17 @@ const CreatorProfile = () => {
         <FanCertCard creatorName={creator.name} creatorAvatarUrl={creator.avatar_url} creatorId={creator.id} rank={creator.rank} totalCreators={totalCreators} username={user?.email?.split("@")[0]} totalVotes={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.votes || 0} totalPosts={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.posts || 0} totalComments={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.comments || 0} onClose={() => setShowFanCert(false)} />
       )}
       <CelebrationEffect show={showCelebration} message={celebrationMsg} onComplete={() => setShowCelebration(false)} />
+      {showClaimModal && creator && (
+        <ClaimCreatorModal
+          creatorId={creator.id}
+          creatorName={creator.name}
+          onClose={() => setShowClaimModal(false)}
+          onClaimed={() => {
+            setCreator(prev => prev ? { ...prev, user_id: user?.id, is_verified: true } : prev);
+            toast.success("크리에이터 프로필이 인증되었습니다! ✅");
+          }}
+        />
+      )}
     </div>
   );
 };
