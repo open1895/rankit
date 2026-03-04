@@ -237,9 +237,6 @@ Deno.serve(async (req) => {
 
     // === ADD TICKETS (share reward etc.) ===
     if (action === "add" && amount && amount > 0 && amount <= 5) {
-      const type = req.json ? (await req.json().catch(() => ({}))).type || "reward" : "reward";
-      const description = req.json ? (await req.json().catch(() => ({}))).description || "보상" : "보상";
-      
       await supabase.rpc("add_tickets", {
         p_user_id: userId,
         p_amount: amount,
