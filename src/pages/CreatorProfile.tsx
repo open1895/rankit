@@ -23,6 +23,7 @@ import VoteHeatmapChart from "@/components/VoteHeatmapChart";
 import CreatorRewards from "@/components/CreatorRewards";
 import CreatorOfficialFeed from "@/components/CreatorOfficialFeed";
 import AICreatorInsights from "@/components/AICreatorInsights";
+import { isCreatorRising } from "@/components/RisingInfluenceCreators";
 import CreatorRecommendations from "@/components/CreatorRecommendations";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -127,6 +128,7 @@ const CreatorProfile = () => {
   const [feedTab, setFeedTab] = useState<"cheer" | "official">("cheer");
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [hasVotedToday, setHasVotedToday] = useState(false);
+  const [isRising, setIsRising] = useState(false);
 
   // ─── Data Fetching ──────────────────────────────────────
   useEffect(() => {
