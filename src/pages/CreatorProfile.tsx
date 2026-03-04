@@ -445,9 +445,16 @@ const CreatorProfile = () => {
                     {creator.is_verified && <CheckCircle2 className="w-4 h-4 text-secondary inline ml-1 -translate-y-px" />}
                     {winTitle && <span className="inline-flex items-center gap-1 ml-1.5"><Crown className="w-4 h-4 text-yellow-400 inline" /><span className="text-[10px] font-bold text-yellow-400">{winTitle}</span></span>}
                   </h1>
-                  {creator.category && (
-                    <span className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">{creator.category}</span>
-                  )}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {creator.category && (
+                      <span className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">{creator.category}</span>
+                    )}
+                    {isRising && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-500 animate-pulse">
+                        🔥 Rising Creator
+                      </span>
+                    )}
+                  </div>
                   <SnsLinks />
                 </>
               )}
