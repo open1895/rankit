@@ -15,6 +15,7 @@ import BoardMarquee from "@/components/BoardMarquee";
 import ReferralSystem from "@/components/ReferralSystem";
 import StreakTracker from "@/components/StreakTracker";
 import WeeklyMissions from "@/components/WeeklyMissions";
+import DailyMissions from "@/components/DailyMissions";
 import NotificationBell from "@/components/NotificationBell";
 import WeeklyHighlights from "@/components/WeeklyHighlights";
 import TrendingSection from "@/components/TrendingSection";
@@ -528,7 +529,7 @@ const Index = () => {
         {/* Engagement */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ScrollReveal><StreakTracker /></ScrollReveal>
-          <ScrollReveal delay={50}><WeeklyMissions /></ScrollReveal>
+          <ScrollReveal delay={50}><DailyMissions /></ScrollReveal>
         </div>
 
         <div className="section-divider" />
