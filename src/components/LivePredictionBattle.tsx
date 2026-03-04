@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
-import { Zap, Ticket, Minus, Plus } from "lucide-react";
+import { Zap, Ticket, Minus, Plus, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
@@ -34,6 +34,8 @@ const LivePredictionBattle = () => {
   const [submitting, setSubmitting] = useState(false);
   const [alreadyBet, setAlreadyBet] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showAbsorb, setShowAbsorb] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchActiveEvent = async () => {
@@ -119,10 +121,15 @@ const LivePredictionBattle = () => {
       return;
     }
 
-    toast.success("예측 완료! 결과를 기대하세요 🎯");
-    setAlreadyBet(true);
-    setSelectedCreator(null);
-    refreshTickets();
+    // Trigger absorption animation
+    setShowAbsorb(true);
+    setTimeout(() => {
+      setShowAbsorb(false);
+      toast.success("예측 완료! 결과를 기대하세요 🎯");
+      setAlreadyBet(true);
+      setSelectedCreator(null);
+      refreshTickets();
+    }, 900);
   };
 
   if (loading || !event) return null;
@@ -164,6 +171,7 @@ const LivePredictionBattle = () => {
 
   return (
     <div
+      ref={cardRef}
       className="rounded-2xl p-4 sm:p-5 space-y-4 border overflow-hidden relative"
       style={{
         background: "linear-gradient(135deg, hsl(var(--neon-purple) / 0.15), hsl(var(--card) / 0.9), hsl(var(--neon-cyan) / 0.1))",
@@ -171,6 +179,32 @@ const LivePredictionBattle = () => {
         boxShadow: "0 0 30px hsl(var(--neon-purple) / 0.15), inset 0 1px 0 hsl(var(--neon-purple) / 0.1)",
       }}
     >
+      {/* Ticket absorption animation overlay */}
+      {showAbsorb && (
+        <div className="absolute inset-0 z-30 pointer-events-none flex items-center justify-center">
+          {Array.from({ length: betAmount }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute"
+              style={{
+                animation: `ticket-absorb 0.8s ease-in forwards`,
+                animationDelay: `${i * 80}ms`,
+                bottom: `${10 + Math.random() * 20}%`,
+                left: `${30 + Math.random() * 40}%`,
+              }}
+            >
+              <Ticket className="w-6 h-6" style={{ color: "hsl(var(--neon-purple))", filter: "drop-shadow(0 0 8px hsl(var(--neon-purple) / 0.8))" }} />
+            </div>
+          ))}
+          <div
+            className="absolute w-20 h-20 rounded-full"
+            style={{
+              background: "radial-gradient(circle, hsl(var(--neon-purple) / 0.4), transparent 70%)",
+              animation: "absorb-glow 0.8s ease-out forwards",
+            }}
+          />
+        </div>
+      )}
       {/* LIVE badge */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -185,9 +219,15 @@ const LivePredictionBattle = () => {
             LIVE 예측 배틀
           </span>
         </div>
-        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Zap className="w-3 h-3" style={{ color: "hsl(var(--neon-cyan))" }} />
-          <span>{totalBets}표 참여</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: "hsl(var(--neon-cyan) / 0.1)", border: "1px solid hsl(var(--neon-cyan) / 0.2)" }}>
+            <BarChart3 className="w-3 h-3" style={{ color: "hsl(var(--neon-cyan))" }} />
+            <span className="text-[10px] font-bold" style={{ color: "hsl(var(--neon-cyan))" }}>현재 베팅 현황</span>
+          </div>
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <Zap className="w-3 h-3" style={{ color: "hsl(var(--neon-cyan))" }} />
+            <span>{totalBets}표 참여</span>
+          </div>
         </div>
       </div>
 
@@ -330,6 +370,20 @@ const LivePredictionBattle = () => {
           크리에이터를 선택하고 베팅하세요! 💰
         </p>
       )}
+
+      {/* Keyframes for ticket absorption */}
+      <style>{`
+        @keyframes ticket-absorb {
+          0% { opacity: 1; transform: scale(1) translateY(0); }
+          50% { opacity: 0.8; transform: scale(0.7) translateY(-30px); }
+          100% { opacity: 0; transform: scale(0.1) translateY(-60px); }
+        }
+        @keyframes absorb-glow {
+          0% { opacity: 0; transform: scale(0.5); }
+          50% { opacity: 1; transform: scale(1.2); }
+          100% { opacity: 0; transform: scale(2); }
+        }
+      `}</style>
     </div>
   );
 };
