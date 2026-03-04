@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import AICommentSummary from "@/components/AICommentSummary";
 import { MessageCircle, Heart } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -138,7 +139,8 @@ const FanComments = () => {
   const items = [...comments, ...comments];
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-3">
+      <AICommentSummary />
       <div className="flex items-center gap-2 px-1">
         <div className="w-5 h-5 rounded-md bg-neon-cyan/20 flex items-center justify-center">
           <MessageCircle className="w-3 h-3 text-neon-cyan" />

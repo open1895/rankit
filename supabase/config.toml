@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.fan-insights]
 verify_jwt = false
+
+[functions.comment-summary]
+verify_jwt = false
