@@ -267,6 +267,84 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
 
+    // ─── LIST PREDICTION EVENTS ──────────────────────────
+    if (action === "list_prediction_events") {
+      const { data, error } = await adminClient
+        .from("prediction_events")
+        .select(`
+          *,
+          creator_a:creators!prediction_events_creator_a_id_fkey(name, avatar_url),
+          creator_b:creators!prediction_events_creator_b_id_fkey(name, avatar_url)
+        `)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return new Response(JSON.stringify({ events: data }), { headers: corsHeaders });
+    }
+
+    // ─── CREATE PREDICTION EVENT ─────────────────────────
+    if (action === "create_prediction_event") {
+      const { title, description, creator_a_id, creator_b_id, bet_deadline } = body;
+      if (!title || !creator_a_id || !creator_b_id || !bet_deadline) {
+        return new Response(JSON.stringify({ error: "title, creator_a_id, creator_b_id, bet_deadline required" }), { status: 400, headers: corsHeaders });
+      }
+      if (creator_a_id === creator_b_id) {
+        return new Response(JSON.stringify({ error: "두 크리에이터가 같을 수 없습니다." }), { status: 400, headers: corsHeaders });
+      }
+      const { error } = await adminClient.from("prediction_events").insert({
+        title,
+        description: description || "",
+        creator_a_id,
+        creator_b_id,
+        bet_deadline,
+        status: "open",
+      });
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── RESOLVE PREDICTION EVENT ────────────────────────
+    if (action === "resolve_prediction_event") {
+      const { event_id, winner_id } = body;
+      if (!event_id || !winner_id) return new Response(JSON.stringify({ error: "event_id and winner_id required" }), { status: 400, headers: corsHeaders });
+
+      // Get the event
+      const { data: event, error: evErr } = await adminClient.from("prediction_events").select("*").eq("id", event_id).single();
+      if (evErr || !event) return new Response(JSON.stringify({ error: "Event not found" }), { status: 404, headers: corsHeaders });
+      if (event.status === "resolved") return new Response(JSON.stringify({ error: "Already resolved" }), { status: 400, headers: corsHeaders });
+
+      // Mark winners in bets
+      await adminClient.from("prediction_bets").update({ is_winner: true }).eq("event_id", event_id).eq("predicted_creator_id", winner_id);
+      await adminClient.from("prediction_bets").update({ is_winner: false }).eq("event_id", event_id).neq("predicted_creator_id", winner_id);
+
+      // Calculate rewards for winners
+      const { data: winnerBets } = await adminClient.from("prediction_bets").select("*").eq("event_id", event_id).eq("predicted_creator_id", winner_id);
+      const totalPool = event.total_pool || 0;
+      const totalWinnerAmount = (winnerBets || []).reduce((s: number, b: any) => s + b.amount, 0);
+
+      for (const bet of (winnerBets || [])) {
+        const reward = totalWinnerAmount > 0 ? Math.round((bet.amount / totalWinnerAmount) * totalPool) : bet.amount * 2;
+        await adminClient.from("prediction_bets").update({ reward_amount: reward }).eq("id", bet.id);
+        // Return tickets to winner
+        await adminClient.rpc("add_tickets", { p_user_id: bet.user_id, p_amount: reward, p_type: "prediction_win", p_description: `예측 적중 보상` });
+      }
+
+      // Update event status
+      await adminClient.from("prediction_events").update({ status: "resolved", winner_id, resolved_at: new Date().toISOString() }).eq("id", event_id);
+
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── DELETE PREDICTION EVENT ─────────────────────────
+    if (action === "delete_prediction_event") {
+      const { event_id } = body;
+      if (!event_id) return new Response(JSON.stringify({ error: "event_id required" }), { status: 400, headers: corsHeaders });
+      // Delete bets first, then event
+      await adminClient.from("prediction_bets").delete().eq("event_id", event_id);
+      const { error } = await adminClient.from("prediction_events").delete().eq("id", event_id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
     return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: corsHeaders });
 
   } catch (err: any) {
