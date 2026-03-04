@@ -27,6 +27,7 @@ import HomepageHero from "@/components/HomepageHero";
 import HomepageSections from "@/components/HomepageSections";
 import RankingFormula from "@/components/RankingFormula";
 import LivePredictionBattle from "@/components/LivePredictionBattle";
+import CreatorRecommendations from "@/components/CreatorRecommendations";
 import PredictionUrgencyBanner from "@/components/PredictionUrgencyBanner";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
@@ -644,6 +645,18 @@ const Index = () => {
             </>
           )}
         </div>
+
+        {/* AI Recommendations */}
+        {!searchQuery.trim() && (
+          <ScrollReveal>
+            <CreatorRecommendations
+              mode={user ? "user" : "popular"}
+              userId={user?.id}
+              title={user ? "🎯 맞춤 추천 크리에이터" : "🔥 인기 추천 크리에이터"}
+              subtitle="AI 추천"
+            />
+          </ScrollReveal>
+        )}
 
         <div className="section-divider" />
 
