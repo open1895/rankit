@@ -24,7 +24,6 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import HeroSection from "@/components/HeroSection";
 import RankingFormula from "@/components/RankingFormula";
-import LivePredictionBattle from "@/components/LivePredictionBattle";
 import PredictionUrgencyBanner from "@/components/PredictionUrgencyBanner";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
@@ -564,11 +563,36 @@ const Index = () => {
           {creators.length >= 2 && <HeroSection creators={creators} />}
         </ScrollReveal>
 
-        {/* LIVE Prediction Battle */}
+        {/* Prediction Game CTA Banner */}
         <ScrollReveal delay={50}>
-          <div id="prediction-battle">
-            <LivePredictionBattle />
-          </div>
+          <Link
+            to="/predictions"
+            className="block rounded-2xl p-3.5 border transition-all hover:scale-[1.01] active:scale-[0.99]"
+            style={{
+              background: "linear-gradient(135deg, hsl(var(--neon-purple) / 0.18), hsl(var(--card) / 0.95), hsl(var(--neon-cyan) / 0.12))",
+              borderColor: "hsl(var(--neon-purple) / 0.35)",
+              boxShadow: "0 0 24px hsl(var(--neon-purple) / 0.15), 0 4px 12px hsl(var(--neon-purple) / 0.1)",
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🔥</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-black leading-tight" style={{ color: "hsl(var(--neon-purple))" }}>
+                  현재 1·2위 박빙! 승자 예측하고 티켓 2배 받기
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">예측 게임에서 베팅하고 보상을 받으세요</p>
+              </div>
+              <span
+                className="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-black text-primary-foreground"
+                style={{
+                  background: "linear-gradient(135deg, hsl(var(--neon-purple)), hsl(var(--primary)))",
+                  boxShadow: "0 0 12px hsl(var(--neon-purple) / 0.4)",
+                }}
+              >
+                참여
+              </span>
+            </div>
+          </Link>
         </ScrollReveal>
 
         {/* Countdown */}
