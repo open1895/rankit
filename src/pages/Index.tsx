@@ -29,6 +29,7 @@ import RankingFormula from "@/components/RankingFormula";
 import LivePredictionBattle from "@/components/LivePredictionBattle";
 import CreatorRecommendations from "@/components/CreatorRecommendations";
 import PredictionUrgencyBanner from "@/components/PredictionUrgencyBanner";
+import TopInfluentialCreators from "@/components/TopInfluentialCreators";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
 import { toast } from "sonner";
@@ -655,6 +656,15 @@ const Index = () => {
               title={user ? "🎯 맞춤 추천 크리에이터" : "🔥 인기 추천 크리에이터"}
               subtitle="AI 추천"
             />
+          </ScrollReveal>
+        )}
+
+        <div className="section-divider" />
+
+        {/* Top Influential Creators */}
+        {!searchQuery.trim() && (
+          <ScrollReveal>
+            <TopInfluentialCreators />
           </ScrollReveal>
         )}
 
