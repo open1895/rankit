@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import Footer from "@/components/Footer";
 import FanLevelProgress from "@/components/FanLevelProgress";
 import { getEarnedBadges, getAllBadges } from "@/lib/fanBadges";
+import CreatorDashboard from "@/components/CreatorDashboard";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -795,6 +796,11 @@ const MyPage = () => {
             {deletingAccount ? "탈퇴 처리 중..." : "회원 탈퇴"}
           </button>
         </div>
+
+        {/* Creator Dashboard */}
+        {myCreator && (
+          <CreatorDashboard creatorId={myCreator.id} creatorName={myCreator.name} />
+        )}
 
         {/* Creator Profile Edit Section */}
         {myCreator && (
