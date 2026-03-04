@@ -36,7 +36,7 @@ import {
 import { toast } from "sonner";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  CartesianGrid, Area, AreaChart, PieChart, Pie, Cell,
+  CartesianGrid, Area, AreaChart,
 } from "recharts";
 
 // ─── Types ───────────────────────────────────────────────────
@@ -329,18 +329,6 @@ const CreatorProfile = () => {
 
   const topPercent = totalCreators > 0 ? Math.round((creator.rank / totalCreators) * 100) : 0;
   const activityScore = activityData.postComments + activityData.posts * 2 + activityData.postLikes;
-  const subsNorm = maxValues.maxSubs > 0 ? (creator.subscriber_count / maxValues.maxSubs) * 100 : 0;
-  const votesNorm = maxValues.maxVotes > 0 ? (creator.votes_count / maxValues.maxVotes) * 100 : 0;
-  const activityNorm = Math.min(100, activityScore * 5);
-  const influenceTotal = subsNorm * 0.4 + votesNorm * 0.4 + activityNorm * 0.2;
-  const subsContrib = influenceTotal > 0 ? (subsNorm * 0.4 / influenceTotal) * 100 : 33;
-  const votesContrib = influenceTotal > 0 ? (votesNorm * 0.4 / influenceTotal) * 100 : 33;
-  const activityContrib = influenceTotal > 0 ? (activityNorm * 0.2 / influenceTotal) * 100 : 34;
-  const pieData = [
-    { name: "구독자", value: Math.round(subsContrib), color: "hsl(270 91% 65%)" },
-    { name: "투표", value: Math.round(votesContrib), color: "hsl(187 94% 42%)" },
-    { name: "커뮤니티", value: Math.round(activityContrib), color: "hsl(142 71% 45%)" },
-  ];
 
   const wins = hallOfFameWins[creator.id] || 0;
   const winTitle = getWinTitle(wins);
@@ -555,41 +543,13 @@ const CreatorProfile = () => {
                   <div className="text-[10px] text-muted-foreground">상위 퍼센트</div>
                 </div>
                 <div className="glass-sm p-3 text-center space-y-0.5">
-                  <div className="text-xl font-bold text-primary">{Math.round(influenceTotal)}</div>
-                  <div className="text-[10px] text-muted-foreground">영향력 지수</div>
+                  <div className="text-sm font-bold text-green-500">{activityScore}</div>
+                  <div className="text-[10px] text-muted-foreground">활동 점수</div>
                 </div>
               </div>
 
-              {/* Influence Breakdown */}
-              <div className="glass p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-primary" />
-                  <h3 className="text-sm font-semibold">📊 영향력 지수 구성</h3>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="relative w-28 h-28 shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={30} outerRadius={48} paddingAngle={3} dataKey="value" strokeWidth={0}>
-                          {pieData.map((entry, index) => (<Cell key={index} fill={entry.color} />))}
-                        </Pie>
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-lg font-bold gradient-text">{Math.round(influenceTotal)}</div>
-                    </div>
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    {pieData.map((item, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                        <span className="text-[11px] text-muted-foreground flex-1">{item.name}</span>
-                        <span className="text-xs font-bold" style={{ color: item.color }}>{item.value}%</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              {/* AI Influence Score - prominently displayed */}
+              <AICreatorInsights creatorId={id!} />
 
               {/* Detail Stats */}
               <div className="grid grid-cols-3 gap-2">
