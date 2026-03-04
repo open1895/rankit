@@ -25,6 +25,7 @@ import SEOHead from "@/components/SEOHead";
 import HeroSection from "@/components/HeroSection";
 import RankingFormula from "@/components/RankingFormula";
 import LivePredictionBattle from "@/components/LivePredictionBattle";
+import PredictionUrgencyBanner from "@/components/PredictionUrgencyBanner";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
 import { toast } from "sonner";
@@ -565,7 +566,9 @@ const Index = () => {
 
         {/* LIVE Prediction Battle */}
         <ScrollReveal delay={50}>
-          <LivePredictionBattle />
+          <div id="prediction-battle">
+            <LivePredictionBattle />
+          </div>
         </ScrollReveal>
 
         {/* Countdown */}
@@ -850,6 +853,7 @@ const Index = () => {
 
       {/* New User Welcome Modal */}
       <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
+      <PredictionUrgencyBanner />
     </div>
   );
 };
