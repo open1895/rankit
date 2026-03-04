@@ -12,7 +12,6 @@ import LiveFeed from "@/components/LiveFeed";
 import FanComments from "@/components/FanComments";
 import FanMarquee from "@/components/FanMarquee";
 import BoardMarquee from "@/components/BoardMarquee";
-
 import ReferralSystem from "@/components/ReferralSystem";
 import StreakTracker from "@/components/StreakTracker";
 import WeeklyMissions from "@/components/WeeklyMissions";
@@ -23,7 +22,10 @@ import ScrollReveal from "@/components/ScrollReveal";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import HeroSection from "@/components/HeroSection";
+import HomepageHero from "@/components/HomepageHero";
+import HomepageSections from "@/components/HomepageSections";
 import RankingFormula from "@/components/RankingFormula";
+import LivePredictionBattle from "@/components/LivePredictionBattle";
 import PredictionUrgencyBanner from "@/components/PredictionUrgencyBanner";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
@@ -93,18 +95,16 @@ const NominationSection = ({ externalOpen, onOpenChange }: { externalOpen?: bool
 
   return (
     <>
-      <div className="container max-w-lg mx-auto px-4 py-6">
-        <div className="glass rounded-2xl p-5 text-center space-y-3 border border-neon-purple/20">
-          <Megaphone className="w-6 h-6 text-neon-purple mx-auto" />
-          <p className="text-sm font-bold">찾으시는 크리에이터가 없나요?</p>
-          <p className="text-xs text-muted-foreground">후보로 추천해주세요!</p>
-          <Button
-            onClick={() => setOpen(true)}
-            className="gradient-primary text-primary-foreground font-bold text-sm px-6"
-          >
-            🙋 크리에이터 추천하기
-          </Button>
-        </div>
+      <div className="glass rounded-2xl p-5 text-center space-y-3 border border-neon-purple/20">
+        <Megaphone className="w-6 h-6 text-neon-purple mx-auto" />
+        <p className="text-sm font-bold">찾으시는 크리에이터가 없나요?</p>
+        <p className="text-xs text-muted-foreground">후보로 추천해주세요!</p>
+        <Button
+          onClick={() => setOpen(true)}
+          className="gradient-primary text-primary-foreground font-bold text-sm px-6"
+        >
+          🙋 크리에이터 추천하기
+        </Button>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -187,9 +187,7 @@ const Index = () => {
     }
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
-      result = result.filter(
-        (c) => c.name.toLowerCase().includes(q)
-      );
+      result = result.filter((c) => c.name.toLowerCase().includes(q));
     }
     return result;
   }, [creators, selectedCategory, searchQuery]);
@@ -272,7 +270,6 @@ const Index = () => {
       return false;
     }
 
-    // Calculate remaining votes from current state
     const currentRemaining = Math.max(0, 1 - todayVoted.size + extraVotes);
     if (currentRemaining <= 0) {
       toast.error("투표권이 부족합니다! 광고를 시청하고 추가 투표권을 받으세요.");
@@ -334,31 +331,29 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24 overflow-x-hidden">
       <SEOHead
-        title="홈"
-        description="팬의 투표로 결정되는 크리에이터 영향력 순위! 게임, 먹방, 뷰티, 음악 등 다양한 카테고리에서 당신의 한 표가 순위를 바꿉니다."
+        title="Rankit – Creator Influence Ranking Platform"
+        description="팬의 투표로 결정되는 크리에이터 영향력 순위! 투표하고, 예측하고, 좋아하는 크리에이터를 응원하세요."
         path="/"
       />
-      {/* Header */}
-      <header className="sticky top-0 z-40 w-full overflow-x-hidden glass border-b border-glass-border/50">
-        <div className="w-full py-2.5 flex items-center justify-between gap-1 px-2 sm:px-0">
-          <RankitLogo size="md" className="flex-shrink-0 ml-1 sm:ml-4" />
-          {/* Right: Unified Icon Capsule Bar */}
+
+      {/* Mobile Header */}
+      <header className="sticky top-0 z-40 w-full overflow-x-hidden glass border-b border-glass-border/50 md:hidden">
+        <div className="w-full py-2.5 flex items-center justify-between gap-1 px-2">
+          <RankitLogo size="md" className="flex-shrink-0 ml-1" />
           <nav
-            className="flex items-center gap-0 rounded-full border border-border/40 flex-shrink-0 ml-auto mr-1 sm:mr-4 max-w-fit overflow-visible pl-1 pr-1.5 py-1 sm:pl-1 sm:pr-2"
+            className="flex items-center gap-0 rounded-full border border-border/40 flex-shrink-0 ml-auto mr-1 max-w-fit overflow-visible pl-1 pr-1.5 py-1"
             style={{ background: "hsl(var(--card) / 0.65)" }}
           >
             <button
               onClick={() => setSearchOpen(true)}
-              className="p-1.5 sm:p-2 hover:bg-muted/50 transition rounded-full flex items-center justify-center"
+              className="p-1.5 hover:bg-muted/50 transition rounded-full flex items-center justify-center"
             >
               <Search className="w-[18px] h-[18px] text-muted-foreground" />
             </button>
-
-            <div className="w-px h-5 bg-border/40 mx-0 sm:mx-0.5" />
-
+            <div className="w-px h-5 bg-border/40" />
             <Link
               to={user ? "/recharge" : "#"}
-              className="flex items-center gap-1 px-1.5 sm:px-2 py-1.5 rounded-full text-xs font-bold hover:scale-105 transition-transform"
+              className="flex items-center gap-1 px-1.5 py-1.5 rounded-full text-xs font-bold hover:scale-105 transition-transform"
               style={{
                 background: "hsl(var(--neon-purple) / 0.12)",
                 color: "hsl(var(--primary))",
@@ -366,30 +361,18 @@ const Index = () => {
             >
               <Ticket className="w-3.5 h-3.5" />
               <span className="font-bold leading-none">{user ? tickets : remainingVotes}</span>
-              <span className="opacity-70 hidden sm:inline">{user ? "🎫" : "표"}</span>
-              {user && <Zap className="w-3 h-3 ml-0.5 opacity-70 hidden sm:inline" />}
             </Link>
-
-            <div className="w-px h-5 bg-border/40 mx-0 sm:mx-0.5" />
-
+            <div className="w-px h-5 bg-border/40" />
             {user ? (
-              <Link
-                to="/mypage"
-                className="p-1.5 sm:p-2 hover:bg-muted/50 transition rounded-full flex items-center justify-center"
-              >
+              <Link to="/mypage" className="p-1.5 hover:bg-muted/50 transition rounded-full flex items-center justify-center">
                 <User className="w-[18px] h-[18px] text-muted-foreground" />
               </Link>
             ) : (
-              <Link
-                to="/auth"
-                className="p-1.5 sm:p-2 hover:bg-muted/50 transition rounded-full flex items-center justify-center"
-              >
+              <Link to="/auth" className="p-1.5 hover:bg-muted/50 transition rounded-full flex items-center justify-center">
                 <LogIn className="w-[18px] h-[18px] text-muted-foreground" />
               </Link>
             )}
-
-            <div className="w-px h-5 bg-border/40 mx-0 sm:mx-0.5" />
-
+            <div className="w-px h-5 bg-border/40" />
             <NotificationBell />
           </nav>
         </div>
@@ -426,7 +409,6 @@ const Index = () => {
             </button>
           </div>
 
-          {/* Category Tabs in popup */}
           <div className="container max-w-lg mx-auto px-4 pb-2">
             <div className="overflow-x-auto scrollbar-hide">
               <div className="flex gap-2 pb-1 w-max">
@@ -453,7 +435,6 @@ const Index = () => {
             )}
           </div>
 
-          {/* Search Results */}
           <div className="flex-1 overflow-y-auto container max-w-lg mx-auto px-4 pb-6 space-y-3">
             {filteredCreators.length === 0 ? (
               <div className="text-center py-12 glass rounded-2xl space-y-3">
@@ -469,17 +450,13 @@ const Index = () => {
                 </button>
               </div>
             ) : (
-              visibleCreators.map((creator, i) => (
+              visibleCreators.map((creator) => (
                 <div
                   key={creator.id}
                   onClick={() => { setSearchOpen(false); navigate(`/creator/${creator.id}`); }}
                   className="cursor-pointer"
                 >
-                  <RankingCard
-                    creator={creator}
-                    creators={filteredCreators}
-                    onVote={async () => false}
-                  />
+                  <RankingCard creator={creator} creators={filteredCreators} onVote={async () => false} />
                 </div>
               ))
             )}
@@ -492,8 +469,6 @@ const Index = () => {
                 더 보기 ({filteredCreators.length - visibleCount}명 남음)
               </button>
             )}
-
-            {/* 검색 결과 확인 버튼 */}
             {searchQuery.trim() && filteredCreators.length > 0 && (
               <button
                 onClick={() => {
@@ -512,250 +487,113 @@ const Index = () => {
         </div>
       )}
 
-      {/* 이번 주 혜택 배너 */}
-      <div className="border-b border-glass-border/40 bg-gradient-to-r from-primary/10 via-background to-primary/5">
-        <div className="container max-w-lg mx-auto px-4 py-2.5">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-black tracking-widest uppercase text-neon-purple">🎁 이번 주 혜택</span>
-            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${days === 0 ? "bg-destructive/20 text-destructive animate-pulse" : "bg-orange-500/20 text-orange-400"}`}>
-              {days === 0 ? "오늘 마감 🔥" : `D-${days} ⏰`}
-            </span>
-          </div>
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-0.5">
-            {[
-              { icon: "🏆", label: "1위 팬 100명 추첨 리워드" },
-              { icon: "👑", label: "활동왕 뱃지 지급" },
-              { icon: "⭐", label: "시즌 MVP 공개" },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="shrink-0 flex items-center gap-1.5 glass-sm px-3 py-1.5 rounded-full border border-primary/20"
-              >
-                <span className="text-sm">{item.icon}</span>
-                <span className="text-[11px] font-semibold text-foreground whitespace-nowrap">{item.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* ===== NEW HOMEPAGE STRUCTURE ===== */}
 
-      {/* 투표 CTA 배너 */}
-      <div className="flex flex-col items-center justify-center py-4 px-4 text-center gap-1.5"
-        style={{
-          background: "linear-gradient(135deg, hsl(var(--neon-purple) / 0.45), hsl(var(--neon-cyan) / 0.35))",
-          boxShadow: "0 0 24px hsl(var(--neon-purple) / 0.25), 0 0 8px hsl(var(--neon-cyan) / 0.15)"
-        }}
-      >
-        <p className="text-sm font-black gradient-text leading-tight">
-          지금 내가 좋아하는 크리에이터에게 투표하기
-        </p>
-        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-neon-cyan">
-          👉 1초 만에 참여
-        </span>
-      </div>
+      {/* 1. Hero Section */}
+      <HomepageHero />
 
-      {/* 실시간 팬들의 한마디 - Sliding Marquee */}
-      <FanMarquee />
+      {/* 2. Section Cards (Trending, Rising, Battles, Predictions, Top Fans, Hall of Fame) */}
+      <HomepageSections />
 
-      <main className="container max-w-lg mx-auto px-4 py-6 space-y-5">
-        {/* NEW: Live Hero Section with VS Battle */}
+      {/* 3. Live VS Battle + Trending */}
+      <div className="container max-w-5xl mx-auto px-4 space-y-6">
+        {/* Live Rank Battle */}
         <ScrollReveal>
           {creators.length >= 2 && <HeroSection creators={creators} />}
         </ScrollReveal>
 
-        {/* Prediction Game CTA Banner */}
+        {/* Prediction Battle */}
         <ScrollReveal delay={50}>
-          <Link
-            to="/predictions"
-            className="block rounded-2xl p-3.5 border transition-all hover:scale-[1.01] active:scale-[0.99]"
-            style={{
-              background: "linear-gradient(135deg, hsl(var(--neon-purple) / 0.18), hsl(var(--card) / 0.95), hsl(var(--neon-cyan) / 0.12))",
-              borderColor: "hsl(var(--neon-purple) / 0.35)",
-              boxShadow: "0 0 24px hsl(var(--neon-purple) / 0.15), 0 4px 12px hsl(var(--neon-purple) / 0.1)",
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl animate-pulse">🔥</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-black leading-tight" style={{ color: "hsl(var(--destructive))" }}>
-                  지금 참여 안 하면 손해! 티켓 200% 페이백 🔥
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">1·2위 초박빙 — 예측 적중 시 최대 10배 보상</p>
-              </div>
-              <span
-                className="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-black text-primary-foreground animate-pulse"
-                style={{
-                  background: "linear-gradient(135deg, hsl(var(--destructive)), hsl(var(--neon-purple)))",
-                  boxShadow: "0 0 16px hsl(var(--destructive) / 0.5)",
-                }}
-              >
-                참여
-              </span>
-            </div>
-          </Link>
+          <LivePredictionBattle />
         </ScrollReveal>
 
         {/* Countdown */}
-        <ScrollReveal delay={100}>
+        <ScrollReveal delay={80}>
           <CountdownTimer />
         </ScrollReveal>
+      </div>
 
-        {/* Slogan */}
-        <ScrollReveal delay={120}>
-          <section className="text-center space-y-1 py-1">
-            <h2 className="text-lg sm:text-xl font-bold leading-tight">
-              혼자 하면 팬이지만,{" "}
-              <span className="gradient-text neon-text-purple">모이면 역사</span>가 됩니다.
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              지금, 당신이 다음 <span className="text-neon-cyan font-semibold">스타</span>를 만드세요. ✨
-            </p>
-          </section>
+      {/* 4. Real-time Trending Data */}
+      <div className="container max-w-5xl mx-auto px-4 py-6">
+        <ScrollReveal>
+          <TrendingSection />
         </ScrollReveal>
+      </div>
 
-        {/* Action Buttons */}
-        <ScrollReveal delay={150}>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={handleChargeVotes}
-              disabled={isCharging}
-              className="glass-sm glass-hover p-3 flex items-center justify-center gap-2 text-sm font-medium text-neon-cyan active:scale-[0.98]"
-            >
-              {isCharging ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin" />
-                  <span className="text-xs">시청 중...</span>
-                </div>
-              ) : (
-                <>
-                  <span>🎬</span>
-                  <span className="text-xs">투표권 +3</span>
-                </>
-              )}
-            </button>
-            <Link
-              to="/onboarding"
-              className="glass-sm glass-hover p-3 flex items-center justify-center gap-2 text-sm font-medium text-neon-purple"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span className="text-xs">크리에이터 등록</span>
-            </Link>
-          </div>
-        </ScrollReveal>
+      {/* Fan Marquee */}
+      <FanMarquee />
 
-        <ScrollReveal delay={200}>
-          <Link
-            to="/support"
-            className="block w-full glass-sm glass-hover p-3 text-center text-sm font-medium text-neon-cyan"
-          >
-            <span className="inline-flex items-center gap-2">
-              <Trophy className="w-4 h-4" />
-              보상 안내 보기
-            </span>
-          </Link>
-        </ScrollReveal>
-
-        {/* Engagement Section */}
-        <div className="section-divider" />
-
-        <ScrollReveal><StreakTracker /></ScrollReveal>
-        <ScrollReveal delay={100}><WeeklyMissions /></ScrollReveal>
+      {/* 5. Full Rankings */}
+      <main className="container max-w-5xl mx-auto px-4 py-6 space-y-5">
+        {/* Engagement */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ScrollReveal><StreakTracker /></ScrollReveal>
+          <ScrollReveal delay={50}><WeeklyMissions /></ScrollReveal>
+        </div>
 
         <div className="section-divider" />
 
         {/* Weekly Highlights */}
         <ScrollReveal><WeeklyHighlights /></ScrollReveal>
 
-        {/* Real-time Trending Section */}
-        <ScrollReveal delay={100}><TrendingSection /></ScrollReveal>
-
-        <ScrollReveal>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { to: "/hall-of-fame", icon: Crown, label: "명예의 전당", color: "text-yellow-400" },
-              { to: "/predictions", icon: Sparkles, label: "예측 게임", color: "text-neon-cyan" },
-              { to: "/seasons", icon: Calendar, label: "아카이브", color: "text-neon-purple" },
-              { to: "/compare", icon: GitCompareArrows, label: "비교", color: "text-neon-cyan" },
-              { to: "/fans", icon: Star, label: "팬 랭킹", color: "text-neon-purple" },
-              { to: "/tournament", icon: Swords, label: "대결", color: "text-neon-cyan" },
-            ].map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`glass-sm glass-hover p-3 text-center ${item.color}`}
-              >
-                <span className="flex flex-col items-center gap-1.5">
-                  <item.icon className="w-5 h-5" />
-                  <span className="text-[10px] font-medium">{item.label}</span>
-                </span>
-              </Link>
-            ))}
-          </div>
-        </ScrollReveal>
-
         <div className="section-divider" />
 
-        {/* Nomination CTA */}
-        <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
-
-        {/* Search & Filter Section */}
+        {/* Rankings Header */}
         <ScrollReveal>
-        <section className="space-y-3">
-          <div className="flex items-center gap-2 mb-1">
-            <TrendingUp className="w-4 h-4 text-neon-purple" />
-            <h3 className="text-sm font-bold gradient-text">크리에이터 랭킹</h3>
-          </div>
+          <section className="space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className="w-4 h-4 text-neon-purple" />
+              <h2 className="text-base sm:text-lg font-bold gradient-text">크리에이터 랭킹</h2>
+            </div>
 
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="크리에이터 검색..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50 transition-all"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          {/* Category Tabs */}
-          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-            <div className="flex gap-2 pb-1 w-max">
-              {CATEGORY_TABS.map((tab) => (
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="크리에이터 검색..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50 transition-all"
+              />
+              {searchQuery && (
                 <button
-                  key={tab.value}
-                  onClick={() => setSelectedCategory(tab.value)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 ${
-                    selectedCategory === tab.value
-                      ? "gradient-primary text-primary-foreground shadow-lg shadow-primary/20"
-                      : "glass-sm text-muted-foreground hover:text-foreground"
-                  }`}
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {tab.label}
+                  ✕
                 </button>
-              ))}
+              )}
             </div>
-          </div>
 
-          {/* Result count */}
-          {!loading && (
-            <div className="text-xs text-muted-foreground">
-              {searchQuery ? `"${searchQuery}" 검색 결과: ` : ""}
-              {filteredCreators.length}명의 크리에이터
+            {/* Category Tabs */}
+            <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+              <div className="flex gap-2 pb-1 w-max">
+                {CATEGORY_TABS.map((tab) => (
+                  <button
+                    key={tab.value}
+                    onClick={() => setSelectedCategory(tab.value)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 ${
+                      selectedCategory === tab.value
+                        ? "gradient-primary text-primary-foreground shadow-lg shadow-primary/20"
+                        : "glass-sm text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          )}
-        </section>
+
+            {!loading && (
+              <div className="text-xs text-muted-foreground">
+                {searchQuery ? `"${searchQuery}" 검색 결과: ` : ""}
+                {filteredCreators.length}명의 크리에이터
+              </div>
+            )}
+          </section>
         </ScrollReveal>
 
-
-        {/* Rankings */}
+        {/* Rankings List */}
         <div id="ranking-section" className="space-y-3">
           {loading ? (
             <div className="space-y-3">
@@ -806,28 +644,25 @@ const Index = () => {
           )}
         </div>
 
-        {/* Rankit 게시판 - 응원 톡 바로 위 */}
+        <div className="section-divider" />
+
+        {/* Community sections */}
         {!searchQuery.trim() && (
-          <ScrollReveal>
-            <BoardMarquee />
-          </ScrollReveal>
+          <>
+            <ScrollReveal><BoardMarquee /></ScrollReveal>
+            <ScrollReveal><FanComments /></ScrollReveal>
+          </>
         )}
 
-        {/* 실시간 응원 톡 */}
-        {!searchQuery.trim() && (
-          <ScrollReveal>
-            <FanComments />
-          </ScrollReveal>
-        )}
+        {/* Nomination */}
+        <ScrollReveal>
+          <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
+        </ScrollReveal>
       </main>
 
-      {/* Referral System */}
-      <div className="container max-w-lg mx-auto px-4 py-6">
+      {/* Referral & Formula */}
+      <div className="container max-w-5xl mx-auto px-4 py-6 space-y-6">
         <ReferralSystem />
-      </div>
-
-      {/* Ranking Formula transparency */}
-      <div className="container max-w-lg mx-auto px-4 py-6">
         <RankingFormula />
       </div>
 
@@ -836,7 +671,7 @@ const Index = () => {
 
       <Footer />
 
-      {/* New User Welcome Modal */}
+      {/* Modals */}
       <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
       <PredictionUrgencyBanner />
     </div>
