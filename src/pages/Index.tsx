@@ -539,6 +539,11 @@ const Index = () => {
 
         <div className="section-divider" />
 
+        {/* Creator Tournament */}
+        <ScrollReveal>
+          <HomeTournamentSection />
+        </ScrollReveal>
+
         {/* Weekly Highlights */}
         <ScrollReveal><WeeklyHighlights /></ScrollReveal>
 
