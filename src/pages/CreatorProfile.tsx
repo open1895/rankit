@@ -11,6 +11,7 @@ import ShareCard from "@/components/ShareCard";
 import FanCertCard from "@/components/FanCertCard";
 import CelebrationEffect from "@/components/CelebrationEffect";
 import FanBadge from "@/components/FanBadge";
+import FanLevelBadge from "@/components/FanLevelBadge";
 import CreatorChat from "@/components/CreatorChat";
 import RankitVerifiedBadge from "@/components/RankitVerifiedBadge";
 import { generateWeeklyPDF } from "@/lib/pdfReport";
@@ -723,6 +724,7 @@ const CreatorProfile = () => {
                             <div className="flex items-center gap-1.5">
                               <span className={`text-xs font-bold truncate ${idx === 0 ? "text-yellow-400" : "text-foreground"}`}>{fan.nickname}</span>
                               {idx === 0 && <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 shrink-0" />}
+                              <FanLevelBadge activity={{ votes: fan.votes, posts: fan.posts, comments: fan.comments }} />
                               <FanBadge voteCount={fan.votes} postCount={fan.posts} />
                             </div>
                             <div className="flex items-center gap-2 mt-0.5">
