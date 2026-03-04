@@ -31,6 +31,7 @@ import CreatorRecommendations from "@/components/CreatorRecommendations";
 import PredictionUrgencyBanner from "@/components/PredictionUrgencyBanner";
 import TopInfluentialCreators from "@/components/TopInfluentialCreators";
 import RisingInfluenceCreators from "@/components/RisingInfluenceCreators";
+import ActiveBoostCampaigns from "@/components/ActiveBoostCampaigns";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
 import { toast } from "sonner";
@@ -673,6 +674,13 @@ const Index = () => {
         {!searchQuery.trim() && (
           <ScrollReveal>
             <RisingInfluenceCreators />
+          </ScrollReveal>
+        )}
+
+        {/* Active Power Boost Campaigns */}
+        {!searchQuery.trim() && (
+          <ScrollReveal>
+            <ActiveBoostCampaigns />
           </ScrollReveal>
         )}
 
