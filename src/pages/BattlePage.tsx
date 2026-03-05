@@ -82,11 +82,20 @@ const BattlePage = () => {
 
   const handleVote = async (battleId: string, creatorId: string) => {
     if (!user) { toast.error("투표하려면 로그인이 필요합니다."); navigate("/auth"); return; }
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session?.access_token) { toast.error("세션이 만료되었습니다. 다시 로그인해주세요."); navigate("/auth"); return; }
     setVotingId(battleId);
     const { data, error } = await supabase.functions.invoke("battle-vote", { body: { battle_id: battleId, creator_id: creatorId } });
     setVotingId(null);
     if (error) {
-      try { const e = error.context instanceof Response ? await error.context.json() : null; toast.error(e?.message || "투표에 실패했습니다."); } catch { toast.error("투표에 실패했습니다."); }
+      try {
+        const e = error.context instanceof Response ? await error.context.json() : null;
+        const msg = e?.message || "투표에 실패했습니다.";
+        toast.error(msg);
+        if (msg.includes("인증") || msg.includes("로그인")) navigate("/auth");
+      } catch {
+        toast.error("투표에 실패했습니다.");
+      }
       return;
     }
     if (data?.error) { toast.error(data.message); return; }

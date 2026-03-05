@@ -97,6 +97,13 @@ const CreatorBattleSection = () => {
       return;
     }
 
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session?.access_token) {
+      toast.error("세션이 만료되었습니다. 다시 로그인해주세요.");
+      navigate("/auth");
+      return;
+    }
+
     setVotingId(battleId);
     const { data, error } = await supabase.functions.invoke("battle-vote", {
       body: { battle_id: battleId, creator_id: creatorId },
@@ -108,7 +115,9 @@ const CreatorBattleSection = () => {
       try {
         if (error.context instanceof Response) {
           const errData = await error.context.json();
-          toast.error(errData?.message || "투표에 실패했습니다.");
+          const msg = errData?.message || "투표에 실패했습니다.";
+          toast.error(msg);
+          if (msg.includes("인증") || msg.includes("로그인")) navigate("/auth");
         } else {
           toast.error("투표에 실패했습니다.");
         }
