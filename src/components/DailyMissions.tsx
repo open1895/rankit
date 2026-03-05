@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Target, Check, Gift, Vote, MessageCircle, FileText, Share2, Loader2, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { getPublishedUrl, copyToClipboard } from "@/lib/clipboard";
 
 interface DailyMission {
   key: string;
@@ -101,6 +102,30 @@ const DailyMissions = () => {
     setMissions((prev) =>
       prev.map((m) => (m.key === "daily_share" ? { ...m, eligible: true } : m))
     );
+  };
+
+  const handleShareMission = async () => {
+    const shareUrl = getPublishedUrl();
+    const shareText = "🏆 Rankit에서 내가 좋아하는 크리에이터를 응원하고 있어요! 함께 투표해요!";
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Rankit - 크리에이터 랭킹", text: shareText, url: shareUrl });
+        trackShare();
+        toast.success("공유 완료! 🎉 보상을 받으세요!");
+        return;
+      } catch {
+        // user cancelled or failed, fall through to clipboard
+      }
+    }
+
+    const ok = await copyToClipboard(`${shareText}\n${shareUrl}`);
+    if (ok) {
+      trackShare();
+      toast.success("링크가 복사되었어요! 📋 보상을 받으세요!");
+    } else {
+      toast.error("공유에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   // Expose trackShare globally so ShareCard can call it
@@ -261,11 +286,17 @@ const DailyMissions = () => {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => navigate(MISSION_LINKS[mission.key] || "/")}
+                  onClick={() => {
+                    if (mission.key === "daily_share") {
+                      handleShareMission();
+                    } else {
+                      navigate(MISSION_LINKS[mission.key] || "/");
+                    }
+                  }}
                   className="shrink-0 h-8 px-3 text-[10px] border-primary/30 rounded-lg"
                   style={{ color: "hsl(var(--neon-purple))" }}
                 >
-                  도전
+                  {mission.key === "daily_share" ? "공유" : "도전"}
                 </Button>
               )}
             </div>
