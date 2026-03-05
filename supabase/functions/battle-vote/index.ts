@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
 
     if (existingVote) {
       return new Response(JSON.stringify({ error: true, message: "이미 이 배틀에 투표했습니다." }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
