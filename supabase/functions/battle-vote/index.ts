@@ -26,7 +26,8 @@ Deno.serve(async (req) => {
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { authorization: authHeader } },
     });
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await userClient.auth.getUser(token);
     if (authError || !user) {
       return new Response(JSON.stringify({ error: true, message: "인증에 실패했습니다." }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
