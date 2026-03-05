@@ -29,19 +29,11 @@ Deno.serve(async (req) => {
 
     const token = authHeader.replace(/^Bearer\s+/i, "").trim();
 
-    let userId: string | undefined;
-    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-    if (!claimsError && claimsData?.claims?.sub) {
-      userId = claimsData.claims.sub;
-    } else {
-      const { data: userData, error: userError } = await userClient.auth.getUser(token);
-      if (!userError && userData?.user?.id) {
-        userId = userData.user.id;
-      }
-    }
+    const { data: userData, error: authError } = await userClient.auth.getUser(token);
+    const userId = userData?.user?.id;
 
-    if (!userId) {
-      console.error("battle-vote auth failed", { claimsError: claimsError?.message });
+    if (authError || !userId) {
+      console.error("battle-vote auth failed", { authError: authError?.message });
       return new Response(JSON.stringify({ error: true, message: "인증에 실패했습니다." }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
