@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import RPChargeModal from "@/components/RPChargeModal";
 import Footer from "@/components/Footer";
 import FanLevelProgress from "@/components/FanLevelProgress";
 import { getEarnedBadges, getAllBadges } from "@/lib/fanBadges";
@@ -123,6 +124,7 @@ const MyPage = () => {
   const [showSettlementForm, setShowSettlementForm] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [showRPCharge, setShowRPCharge] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -724,7 +726,7 @@ const MyPage = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Coins className="w-4 h-4 text-yellow-400" />
-                <span className="text-xs font-bold">내 포인트 (RP)</span>
+                <span className="text-xs font-bold">내 RP</span>
               </div>
               <button
                 onClick={() => navigate("/shop")}
@@ -734,19 +736,40 @@ const MyPage = () => {
                 포인트 샵
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="glass-sm p-3 text-center space-y-1">
-                <div className="text-xl font-bold neon-text-cyan" style={{ color: "hsl(var(--neon-cyan))" }}>
-                  {pointBalance.toLocaleString()}
-                </div>
-                <div className="text-[11px] text-muted-foreground">보유 RP</div>
+            <div className="glass-sm p-4 text-center space-y-2 relative overflow-hidden">
+              <div className="text-3xl font-black gradient-text neon-text-purple">
+                {pointBalance.toLocaleString()} <span className="text-base font-bold text-muted-foreground">RP</span>
               </div>
-              <div className="glass-sm p-3 text-center space-y-1">
-                <div className="text-xl font-bold gradient-text">
-                  {totalEarned.toLocaleString()}
-                </div>
-                <div className="text-[11px] text-muted-foreground">총 획득 RP</div>
+              <div className="text-[10px] text-muted-foreground">
+                🔥 투표 5RP · 🎯 예측 10RP · ⚔️ 배틀 부스트 20RP
               </div>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="glass-sm p-2 text-center">
+                  <div className="text-sm font-bold" style={{ color: "hsl(var(--neon-cyan))" }}>{totalEarned.toLocaleString()}</div>
+                  <div className="text-[9px] text-muted-foreground">총 획득</div>
+                </div>
+                <div className="glass-sm p-2 text-center">
+                  <div className="text-sm font-bold" style={{ color: "hsl(var(--neon-purple))" }}>{(totalEarned - pointBalance).toLocaleString()}</div>
+                  <div className="text-[9px] text-muted-foreground">총 사용</div>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                onClick={() => setShowRPCharge(true)}
+                className="min-h-[44px] bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground font-bold rounded-xl shadow-[0_0_16px_rgba(168,85,247,0.3)] gap-1.5"
+              >
+                <Zap className="w-4 h-4" />
+                ⚡ RP 충전
+              </Button>
+              <Button
+                onClick={() => navigate("/shop")}
+                variant="outline"
+                className="min-h-[44px] border-border/50 font-bold rounded-xl gap-1.5"
+              >
+                <Coins className="w-4 h-4" />
+                RP 사용 내역
+              </Button>
             </div>
             {/* Ad reward button */}
             <button
@@ -758,7 +781,7 @@ const MyPage = () => {
                 <Play className="w-4 h-4 text-primary-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-bold">광고 시청하고 +50 RP</div>
+                <div className="text-xs font-bold">광고 시청하고 +50 RP 얻기</div>
                 <div className="text-[10px] text-muted-foreground">하루 최대 5회</div>
               </div>
               {watchingAd && (
@@ -766,6 +789,8 @@ const MyPage = () => {
               )}
             </button>
           </div>
+
+          <RPChargeModal open={showRPCharge} onOpenChange={setShowRPCharge} />
 
           {/* AI Recommendations for user */}
           <CreatorRecommendations
