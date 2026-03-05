@@ -33,6 +33,7 @@ import PredictionLeaderboard from "./pages/PredictionLeaderboard";
 import RisingCreatorsPage from "./pages/RisingCreatorsPage";
 import BattlePage from "./pages/BattlePage";
 import PredictionWinPopup from "@/components/PredictionWinPopup";
+import FloatingRPButton from "@/components/FloatingRPButton";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -79,6 +80,7 @@ const App = () => (
                 </Routes>
               </PageTransition>
               </div>
+              <FloatingRPButton />
               <MobileTabBar />
             </div>
           </BrowserRouter>
