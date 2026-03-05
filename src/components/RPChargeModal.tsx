@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Zap, Crown, Star, Sparkles, Gift } from "lucide-react";
@@ -25,6 +26,7 @@ interface RPChargeModalProps {
 
 const RPChargeModal = ({ open, onOpenChange }: RPChargeModalProps) => {
   const [selected, setSelected] = useState<number>(1000);
+  const navigate = useNavigate();
 
   const handleCharge = () => {
     // Future: integrate with payment
@@ -95,7 +97,7 @@ const RPChargeModal = ({ open, onOpenChange }: RPChargeModalProps) => {
             className="w-full h-11 text-sm font-semibold border-primary/30 hover:bg-primary/5"
             onClick={() => {
               onOpenChange(false);
-              window.location.href = "/recharge";
+              navigate("/recharge");
             }}
           >
             <Gift className="w-4 h-4 mr-1 text-primary" />
