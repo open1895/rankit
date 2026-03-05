@@ -15,8 +15,8 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
+    const authHeader = req.headers.get("authorization") ?? req.headers.get("Authorization");
+    if (!authHeader || !/^Bearer\s+/i.test(authHeader)) {
       return new Response(JSON.stringify({ error: true, message: "로그인이 필요합니다." }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -26,9 +26,22 @@ Deno.serve(async (req) => {
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { authorization: authHeader } },
     });
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await userClient.auth.getUser(token);
-    if (authError || !user) {
+
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+
+    let userId: string | undefined;
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (!claimsError && claimsData?.claims?.sub) {
+      userId = claimsData.claims.sub;
+    } else {
+      const { data: userData, error: userError } = await userClient.auth.getUser(token);
+      if (!userError && userData?.user?.id) {
+        userId = userData.user.id;
+      }
+    }
+
+    if (!userId) {
+      console.error("battle-vote auth failed", { claimsError: claimsError?.message });
       return new Response(JSON.stringify({ error: true, message: "인증에 실패했습니다." }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -71,7 +84,7 @@ Deno.serve(async (req) => {
       .from("battle_votes")
       .select("id")
       .eq("battle_id", battle_id)
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .maybeSingle();
 
     if (existingVote) {
@@ -82,7 +95,7 @@ Deno.serve(async (req) => {
 
     // Deduct 1 ticket
     const { data: ticketOk } = await supabase.rpc("deduct_tickets", {
-      p_user_id: user.id,
+      p_user_id: userId,
       p_amount: 1,
     });
 
@@ -95,7 +108,7 @@ Deno.serve(async (req) => {
     // Insert vote
     await supabase.from("battle_votes").insert({
       battle_id,
-      user_id: user.id,
+      user_id: userId,
       voted_creator_id: creator_id,
     });
 
