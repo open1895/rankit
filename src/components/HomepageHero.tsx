@@ -38,9 +38,11 @@ const HomepageHero = () => {
         <h1 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight tracking-tight">
           <span className="gradient-text">Rankit</span>
           <br />
-          <span className="text-foreground">팬 활동 데이터로 크리에이터</span>
+          <span className="text-foreground">팬 활동 데이터로</span>
+          <br className="sm:hidden" />
+          <span className="text-foreground"> 크리에이터 영향력을</span>
           <br />
-          <span className="text-foreground">영향력을 분석하는 플랫폼</span>
+          <span className="text-foreground">분석하는 플랫폼</span>
         </h1>
 
         {/* Subtitle */}
