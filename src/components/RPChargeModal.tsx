@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Zap, Crown, Star, Sparkles } from "lucide-react";
+import { Zap, Crown, Star, Sparkles, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface RPChargeOption {
@@ -89,6 +89,17 @@ const RPChargeModal = ({ open, onOpenChange }: RPChargeModalProps) => {
           <Button onClick={handleCharge} className="w-full h-12 text-base font-bold bg-gradient-to-r from-primary to-secondary hover:opacity-90">
             <Zap className="w-4 h-4 mr-1" />
             충전하기
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full h-11 text-sm font-semibold border-primary/30 hover:bg-primary/5"
+            onClick={() => {
+              onOpenChange(false);
+              window.location.href = "/recharge";
+            }}
+          >
+            <Gift className="w-4 h-4 mr-1 text-primary" />
+            🎁 무료충전소 가기
           </Button>
           <p className="text-[10px] text-center text-muted-foreground">
             팬 파워를 충전하고 크리에이터를 응원하세요.
