@@ -110,33 +110,59 @@ const PredictionGame = () => {
       return;
     }
 
-    const { data, error } = await supabase.functions.invoke("prediction", {
-      body: {
-        action: "place_bet",
+    try {
+      const { data, error } = await supabase.functions.invoke("prediction", {
+        body: {
+          action: "place_bet",
+          event_id: eventId,
+          predicted_creator_id: creatorId,
+          amount: selectedAmount,
+        },
+      });
+
+      if (error) {
+        // Edge function errors: parse the message from the context
+        let msg = "베팅에 실패했습니다.";
+        try {
+          const parsed = typeof error === "object" && error.message ? JSON.parse(error.message) : null;
+          if (parsed?.error) msg = parsed.error;
+        } catch {
+          if (error.message) msg = error.message;
+        }
+        toast.error(msg);
+        // If duplicate bet error, update local state so button disables
+        if (msg.includes("이미")) {
+          const bet: UserBet = { event_id: eventId, predicted_creator_id: creatorId, amount: selectedAmount, is_winner: null, reward_amount: 0 };
+          setUserBets((prev) => new Map(prev).set(eventId, bet));
+        }
+        return;
+      }
+
+      if (data?.error) {
+        toast.error(data.error);
+        if (String(data.error).includes("이미")) {
+          const bet: UserBet = { event_id: eventId, predicted_creator_id: creatorId, amount: selectedAmount, is_winner: null, reward_amount: 0 };
+          setUserBets((prev) => new Map(prev).set(eventId, bet));
+        }
+        return;
+      }
+
+      toast.success("예측 완료! 결과를 기대하세요 🎯");
+      setBettingEventId(null);
+      setSelectedAmount(1);
+
+      // Refresh data
+      const bet: UserBet = {
         event_id: eventId,
         predicted_creator_id: creatorId,
         amount: selectedAmount,
-      },
-    });
-
-    if (error || data?.error) {
-      toast.error(data?.error || error?.message || "베팅에 실패했습니다.");
-      return;
+        is_winner: null,
+        reward_amount: 0,
+      };
+      setUserBets((prev) => new Map(prev).set(eventId, bet));
+    } catch (err) {
+      toast.error("베팅 처리 중 오류가 발생했습니다.");
     }
-
-    toast.success("예측 완료! 결과를 기대하세요 🎯");
-    setBettingEventId(null);
-    setSelectedAmount(1);
-
-    // Refresh data
-    const bet: UserBet = {
-      event_id: eventId,
-      predicted_creator_id: creatorId,
-      amount: selectedAmount,
-      is_winner: null,
-      reward_amount: 0,
-    };
-    setUserBets((prev) => new Map(prev).set(eventId, bet));
   };
 
   const openEvents = events.filter((e) => e.status === "open");
