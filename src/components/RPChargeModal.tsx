@@ -97,7 +97,7 @@ const RPChargeModal = ({ open, onOpenChange }: RPChargeModalProps) => {
             className="w-full h-11 text-sm font-semibold border-primary/30 hover:bg-primary/5"
             onClick={() => {
               onOpenChange(false);
-              window.location.href = "/recharge";
+              navigate("/recharge");
             }}
           >
             <Gift className="w-4 h-4 mr-1 text-primary" />
