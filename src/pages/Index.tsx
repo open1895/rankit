@@ -34,6 +34,7 @@ import RisingInfluenceCreators from "@/components/RisingInfluenceCreators";
 import ActiveBoostCampaigns from "@/components/ActiveBoostCampaigns";
 import HomeTournamentSection from "@/components/HomeTournamentSection";
 import HomePredictionSection from "@/components/HomePredictionSection";
+import TrendingNowSection from "@/components/TrendingNowSection";
 import FeaturedChampion from "@/components/FeaturedChampion";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
@@ -500,8 +501,11 @@ const Index = () => {
       {/* 1. Hero Section */}
       <HomepageHero />
 
-      {/* 2. Section Cards (Trending, Rising, Battles, Predictions, Top Fans, Hall of Fame) */}
+      {/* 2. Section Cards */}
       <HomepageSections />
+
+      {/* 2.5. Trending Now - 급상승 크리에이터 */}
+      <TrendingNowSection />
 
       {/* 3. Live VS Battle + Trending */}
       <div className="container max-w-5xl mx-auto px-4 space-y-6">
