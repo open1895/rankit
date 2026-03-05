@@ -38,3 +38,9 @@ verify_jwt = false
 
 [functions.comment-summary]
 verify_jwt = false
+
+[functions.battle-vote]
+verify_jwt = false
+
+[functions.generate-battles]
+verify_jwt = false
