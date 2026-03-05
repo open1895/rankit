@@ -26,6 +26,7 @@ interface RPChargeModalProps {
 
 const RPChargeModal = ({ open, onOpenChange }: RPChargeModalProps) => {
   const [selected, setSelected] = useState<number>(1000);
+  const navigate = useNavigate();
 
   const handleCharge = () => {
     // Future: integrate with payment
