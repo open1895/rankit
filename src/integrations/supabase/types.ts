@@ -14,6 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
+      battle_votes: {
+        Row: {
+          battle_id: string
+          created_at: string
+          id: string
+          user_id: string
+          voted_creator_id: string
+        }
+        Insert: {
+          battle_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+          voted_creator_id: string
+        }
+        Update: {
+          battle_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+          voted_creator_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battle_votes_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "battles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battle_votes_voted_creator_id_fkey"
+            columns: ["voted_creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      battles: {
+        Row: {
+          created_at: string
+          creator_a_id: string
+          creator_b_id: string
+          ends_at: string
+          featured: boolean
+          id: string
+          status: string
+          votes_a: number
+          votes_b: number
+        }
+        Insert: {
+          created_at?: string
+          creator_a_id: string
+          creator_b_id: string
+          ends_at?: string
+          featured?: boolean
+          id?: string
+          status?: string
+          votes_a?: number
+          votes_b?: number
+        }
+        Update: {
+          created_at?: string
+          creator_a_id?: string
+          creator_b_id?: string
+          ends_at?: string
+          featured?: boolean
+          id?: string
+          status?: string
+          votes_a?: number
+          votes_b?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battles_creator_a_id_fkey"
+            columns: ["creator_a_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battles_creator_b_id_fkey"
+            columns: ["creator_b_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       board_post_comments: {
         Row: {
           created_at: string
