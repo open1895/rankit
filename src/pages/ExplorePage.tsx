@@ -1,8 +1,9 @@
 import { lazy, Suspense } from "react";
+import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import ScrollReveal from "@/components/ScrollReveal";
 import Footer from "@/components/Footer";
-import { Trophy, Sparkles, Calendar, Star, Crown, Swords, Flame } from "lucide-react";
+import { Trophy, Sparkles, Calendar, Star, Crown, Swords, Flame, GitCompareArrows, ArrowRight } from "lucide-react";
 
 const HomeTournamentSection = lazy(() => import("@/components/HomeTournamentSection"));
 const HomePredictionSection = lazy(() => import("@/components/HomePredictionSection"));
@@ -41,6 +42,27 @@ const ExplorePage = () => {
       </header>
 
       <div className="container max-w-5xl mx-auto px-4 space-y-6 py-4">
+        {/* Compare Creators Link */}
+        <ScrollReveal>
+          <Link
+            to="/compare"
+            className="glass glass-hover rounded-2xl p-5 flex items-center gap-4 group transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={{ borderColor: "hsl(var(--neon-cyan) / 0.2)" }}
+          >
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, hsl(var(--neon-cyan)), hsl(var(--primary)))" }}
+            >
+              <GitCompareArrows className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-foreground">⚖️ 크리에이터 비교</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">두 크리에이터의 영향력을 비교 분석해보세요</p>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </ScrollReveal>
+
         {/* Streak Tracker */}
         <Suspense fallback={<SectionFallback />}>
           <ScrollReveal>
