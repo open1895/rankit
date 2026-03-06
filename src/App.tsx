@@ -86,6 +86,7 @@ const App = () => (
                   <Route path="/prediction-leaderboard" element={<PredictionLeaderboard />} />
                   <Route path="/rising" element={<RisingCreatorsPage />} />
                   <Route path="/battle" element={<BattlePage />} />
+                  <Route path="/explore" element={<ExplorePage />} />
                   <Route path="/widget/creator/:id" element={<WidgetPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
