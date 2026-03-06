@@ -9,34 +9,16 @@ import RankingCard from "@/components/RankingCard";
 import RankitLogo from "@/components/RankitLogo";
 import CountdownTimer from "@/components/CountdownTimer";
 import LiveFeed from "@/components/LiveFeed";
-import FanComments from "@/components/FanComments";
-import FanMarquee from "@/components/FanMarquee";
-import BoardMarquee from "@/components/BoardMarquee";
-import ReferralSystem from "@/components/ReferralSystem";
-import StreakTracker from "@/components/StreakTracker";
-import WeeklyMissions from "@/components/WeeklyMissions";
-import DailyMissions from "@/components/DailyMissions";
 import NotificationBell from "@/components/NotificationBell";
-import WeeklyHighlights from "@/components/WeeklyHighlights";
-import TrendingSection from "@/components/TrendingSection";
 import ScrollReveal from "@/components/ScrollReveal";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import HeroSection from "@/components/HeroSection";
 import HomepageHero from "@/components/HomepageHero";
 import HomepageSections from "@/components/HomepageSections";
-import RankingFormula from "@/components/RankingFormula";
-import LivePredictionBattle from "@/components/LivePredictionBattle";
 import CreatorRecommendations from "@/components/CreatorRecommendations";
-import PredictionUrgencyBanner from "@/components/PredictionUrgencyBanner";
-import TopInfluentialCreators from "@/components/TopInfluentialCreators";
-import RisingInfluenceCreators from "@/components/RisingInfluenceCreators";
-import ActiveBoostCampaigns from "@/components/ActiveBoostCampaigns";
-import HomeTournamentSection from "@/components/HomeTournamentSection";
-import HomePredictionSection from "@/components/HomePredictionSection";
 import TrendingNowSection from "@/components/TrendingNowSection";
 import CreatorBattleSection from "@/components/CreatorBattleSection";
-import FeaturedChampion from "@/components/FeaturedChampion";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
 import { toast } from "sonner";
@@ -513,63 +495,18 @@ const Index = () => {
         <CreatorBattleSection />
       </ScrollReveal>
 
-      {/* 3. Live VS Battle + Trending */}
+      {/* 3. Live VS Battle + Countdown */}
       <div className="container max-w-5xl mx-auto px-4 space-y-6">
-        {/* Live Rank Battle */}
         <ScrollReveal>
           {creators.length >= 2 && <HeroSection creators={creators} />}
         </ScrollReveal>
-
-        {/* Prediction Battle */}
-        <ScrollReveal delay={50}>
-          <LivePredictionBattle />
-        </ScrollReveal>
-
-        {/* Countdown */}
         <ScrollReveal delay={80}>
           <CountdownTimer />
         </ScrollReveal>
       </div>
 
-      {/* 4. Real-time Trending Data */}
-      <div className="container max-w-5xl mx-auto px-4 py-6">
-        <ScrollReveal>
-          <TrendingSection />
-        </ScrollReveal>
-      </div>
-
-      {/* Fan Marquee */}
-      <FanMarquee />
-
-      {/* 5. Full Rankings */}
+      {/* 4. Full Rankings */}
       <main className="container max-w-5xl mx-auto px-4 py-6 space-y-5">
-        {/* Engagement */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ScrollReveal><StreakTracker /></ScrollReveal>
-          <ScrollReveal delay={50}><DailyMissions /></ScrollReveal>
-        </div>
-
-        <div className="section-divider" />
-
-        {/* Featured Tournament Champion */}
-        <ScrollReveal>
-          <FeaturedChampion />
-        </ScrollReveal>
-
-        {/* Creator Tournament */}
-        <ScrollReveal>
-          <HomeTournamentSection />
-        </ScrollReveal>
-
-        {/* Prediction Game */}
-        <ScrollReveal>
-          <HomePredictionSection />
-        </ScrollReveal>
-
-        {/* Weekly Highlights */}
-        <ScrollReveal><WeeklyHighlights /></ScrollReveal>
-
-        <div className="section-divider" />
 
         {/* Rankings Header */}
         <ScrollReveal>
@@ -689,50 +626,11 @@ const Index = () => {
           </ScrollReveal>
         )}
 
-        <div className="section-divider" />
-
-        {/* Top Influential Creators */}
-        {!searchQuery.trim() && (
-          <ScrollReveal>
-            <TopInfluentialCreators />
-          </ScrollReveal>
-        )}
-
-        {/* Rising Influence Creators */}
-        {!searchQuery.trim() && (
-          <ScrollReveal>
-            <RisingInfluenceCreators />
-          </ScrollReveal>
-        )}
-
-        {/* Active Power Boost Campaigns */}
-        {!searchQuery.trim() && (
-          <ScrollReveal>
-            <ActiveBoostCampaigns />
-          </ScrollReveal>
-        )}
-
-        <div className="section-divider" />
-
-        {/* Community sections */}
-        {!searchQuery.trim() && (
-          <>
-            <ScrollReveal><BoardMarquee /></ScrollReveal>
-            <ScrollReveal><FanComments /></ScrollReveal>
-          </>
-        )}
-
         {/* Nomination */}
         <ScrollReveal>
           <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
         </ScrollReveal>
       </main>
-
-      {/* Referral & Formula */}
-      <div className="container max-w-5xl mx-auto px-4 py-6 space-y-6">
-        <ReferralSystem />
-        <RankingFormula />
-      </div>
 
       {/* Live Feed */}
       <LiveFeed />
@@ -741,7 +639,7 @@ const Index = () => {
 
       {/* Modals */}
       <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
-      <PredictionUrgencyBanner />
+      
     </div>
   );
 };
