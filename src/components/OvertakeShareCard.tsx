@@ -60,8 +60,8 @@ const OvertakeShareCard = ({
   const progress = totalForBar > 0 ? (creator.votes_count / totalForBar) * 100 : 50;
 
   const shareTextSNS = isFirst
-    ? `👑 ${creator.name}님이 현재 1위를 수성 중! 지금 투표하고 함께 지켜주세요! 🔥 #RankIt #${creator.name} ${siteUrl}`
-    : `🚨 역전까지 단 ${gap}표! ${creator.name}을 1위로 만들기 위해 지원군이 필요합니다! 지금 투표하고 저와 함께 역전의 주인공이 되어주세요! 🔥 #RankIt #${creator.name} ${siteUrl}`;
+    ? `👑 ${creator.name}님이 현재 1위를 수성 중! 지금 투표하고 함께 지켜주세요! 🔥\n\n🔗 투표하기: ${siteUrl}\n\n#RankIt #${creator.name}`
+    : `🚨 역전까지 단 ${gap}표! ${creator.name}을 1위로 만들기 위해 지원군이 필요합니다! 🔥\n\n🔗 투표하기: ${siteUrl}\n\n#RankIt #${creator.name}`;
 
   const captureCard = useCallback(async (): Promise<Blob | null> => {
     if (!cardRef.current) return null;
@@ -399,8 +399,12 @@ const OvertakeShareCard = ({
                 Rank<span style={{ fontWeight: 300 }}>it</span>
               </span>
               <span className="text-[8px]" style={{ color: "hsl(215 20% 55% / 0.5)" }}>·</span>
-              <span className="text-[8px]" style={{ color: "hsl(215 20% 55% / 0.5)" }}>fan-powered ranking</span>
+              <span className="text-[10px] font-bold" style={{ color: "hsl(187 94% 42%)", letterSpacing: "0.05em" }}>rankit.today</span>
             </div>
+            {/* Clickable URL CTA */}
+            <p className="text-center text-[11px] font-semibold mt-1" style={{ color: "hsl(187 94% 42% / 0.8)" }}>
+              👆 투표하러 가기 → <span style={{ textDecoration: "underline", color: "hsl(187 94% 42%)" }}>rankit.today</span>
+            </p>
           </div>
         </div>
         {/* ============ END CAPTURABLE CARD ============ */}
