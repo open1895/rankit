@@ -1,11 +1,11 @@
-import { Home, Trophy, TrendingUp, GitCompare, User } from "lucide-react";
+import { Home, Trophy, TrendingUp, Compass, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const tabs = [
   { to: "/", icon: Home, label: "홈" },
   { to: "/ranking", icon: Trophy, label: "랭킹" },
   { to: "/prediction", icon: TrendingUp, label: "예측" },
-  { to: "/compare", icon: GitCompare, label: "비교" },
+  { to: "/explore", icon: Compass, label: "더보기" },
   { to: "/my", icon: User, label: "내 정보" },
 ];
 
