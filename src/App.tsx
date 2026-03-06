@@ -37,6 +37,7 @@ const RechargePage = lazy(() => import("./pages/RechargePage"));
 const PredictionLeaderboard = lazy(() => import("./pages/PredictionLeaderboard"));
 const RisingCreatorsPage = lazy(() => import("./pages/RisingCreatorsPage"));
 const BattlePage = lazy(() => import("./pages/BattlePage"));
+const ExplorePage = lazy(() => import("./pages/ExplorePage"));
 
 const queryClient = new QueryClient();
 
