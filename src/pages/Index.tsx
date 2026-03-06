@@ -513,63 +513,18 @@ const Index = () => {
         <CreatorBattleSection />
       </ScrollReveal>
 
-      {/* 3. Live VS Battle + Trending */}
+      {/* 3. Live VS Battle + Countdown */}
       <div className="container max-w-5xl mx-auto px-4 space-y-6">
-        {/* Live Rank Battle */}
         <ScrollReveal>
           {creators.length >= 2 && <HeroSection creators={creators} />}
         </ScrollReveal>
-
-        {/* Prediction Battle */}
-        <ScrollReveal delay={50}>
-          <LivePredictionBattle />
-        </ScrollReveal>
-
-        {/* Countdown */}
         <ScrollReveal delay={80}>
           <CountdownTimer />
         </ScrollReveal>
       </div>
 
-      {/* 4. Real-time Trending Data */}
-      <div className="container max-w-5xl mx-auto px-4 py-6">
-        <ScrollReveal>
-          <TrendingSection />
-        </ScrollReveal>
-      </div>
-
-      {/* Fan Marquee */}
-      <FanMarquee />
-
-      {/* 5. Full Rankings */}
+      {/* 4. Full Rankings */}
       <main className="container max-w-5xl mx-auto px-4 py-6 space-y-5">
-        {/* Engagement */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ScrollReveal><StreakTracker /></ScrollReveal>
-          <ScrollReveal delay={50}><DailyMissions /></ScrollReveal>
-        </div>
-
-        <div className="section-divider" />
-
-        {/* Featured Tournament Champion */}
-        <ScrollReveal>
-          <FeaturedChampion />
-        </ScrollReveal>
-
-        {/* Creator Tournament */}
-        <ScrollReveal>
-          <HomeTournamentSection />
-        </ScrollReveal>
-
-        {/* Prediction Game */}
-        <ScrollReveal>
-          <HomePredictionSection />
-        </ScrollReveal>
-
-        {/* Weekly Highlights */}
-        <ScrollReveal><WeeklyHighlights /></ScrollReveal>
-
-        <div className="section-divider" />
 
         {/* Rankings Header */}
         <ScrollReveal>
@@ -689,50 +644,11 @@ const Index = () => {
           </ScrollReveal>
         )}
 
-        <div className="section-divider" />
-
-        {/* Top Influential Creators */}
-        {!searchQuery.trim() && (
-          <ScrollReveal>
-            <TopInfluentialCreators />
-          </ScrollReveal>
-        )}
-
-        {/* Rising Influence Creators */}
-        {!searchQuery.trim() && (
-          <ScrollReveal>
-            <RisingInfluenceCreators />
-          </ScrollReveal>
-        )}
-
-        {/* Active Power Boost Campaigns */}
-        {!searchQuery.trim() && (
-          <ScrollReveal>
-            <ActiveBoostCampaigns />
-          </ScrollReveal>
-        )}
-
-        <div className="section-divider" />
-
-        {/* Community sections */}
-        {!searchQuery.trim() && (
-          <>
-            <ScrollReveal><BoardMarquee /></ScrollReveal>
-            <ScrollReveal><FanComments /></ScrollReveal>
-          </>
-        )}
-
         {/* Nomination */}
         <ScrollReveal>
           <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
         </ScrollReveal>
       </main>
-
-      {/* Referral & Formula */}
-      <div className="container max-w-5xl mx-auto px-4 py-6 space-y-6">
-        <ReferralSystem />
-        <RankingFormula />
-      </div>
 
       {/* Live Feed */}
       <LiveFeed />

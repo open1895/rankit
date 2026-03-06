@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,32 +10,41 @@ import { TicketProvider } from "@/hooks/useTickets";
 import PageTransition from "@/components/PageTransition";
 import MobileTabBar from "@/components/MobileTabBar";
 import DesktopNavBar from "@/components/DesktopNavBar";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Onboarding from "./pages/Onboarding";
-import CreatorProfile from "./pages/CreatorProfile";
-import CreatorBoard from "./pages/CreatorBoard";
-import MyPage from "./pages/MyPage";
-import Support from "./pages/Support";
-import SeasonArchive from "./pages/SeasonArchive";
-import CompareCreators from "./pages/CompareCreators";
-import FanLeaderboard from "./pages/FanLeaderboard";
-import Tournament from "./pages/Tournament";
-import PointShop from "./pages/PointShop";
-import NotFound from "./pages/NotFound";
-import AdminPage from "./pages/AdminPage";
-import AdminPanelPage from "./pages/AdminPanelPage";
-import WidgetPage from "./pages/WidgetPage";
-import HallOfFame from "./pages/HallOfFame";
-import PredictionGame from "./pages/PredictionGame";
-import CommunityPage from "./pages/CommunityPage";
-import RechargePage from "./pages/RechargePage";
-import PredictionLeaderboard from "./pages/PredictionLeaderboard";
-import RisingCreatorsPage from "./pages/RisingCreatorsPage";
-import BattlePage from "./pages/BattlePage";
 import PredictionWinPopup from "@/components/PredictionWinPopup";
 import FloatingRPButton from "@/components/FloatingRPButton";
+
+// Lazy-loaded pages
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const CreatorProfile = lazy(() => import("./pages/CreatorProfile"));
+const CreatorBoard = lazy(() => import("./pages/CreatorBoard"));
+const MyPage = lazy(() => import("./pages/MyPage"));
+const Support = lazy(() => import("./pages/Support"));
+const SeasonArchive = lazy(() => import("./pages/SeasonArchive"));
+const CompareCreators = lazy(() => import("./pages/CompareCreators"));
+const FanLeaderboard = lazy(() => import("./pages/FanLeaderboard"));
+const Tournament = lazy(() => import("./pages/Tournament"));
+const PointShop = lazy(() => import("./pages/PointShop"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const AdminPage = lazy(() => import("./pages/AdminPage"));
+const AdminPanelPage = lazy(() => import("./pages/AdminPanelPage"));
+const WidgetPage = lazy(() => import("./pages/WidgetPage"));
+const HallOfFame = lazy(() => import("./pages/HallOfFame"));
+const PredictionGame = lazy(() => import("./pages/PredictionGame"));
+const CommunityPage = lazy(() => import("./pages/CommunityPage"));
+const RechargePage = lazy(() => import("./pages/RechargePage"));
+const PredictionLeaderboard = lazy(() => import("./pages/PredictionLeaderboard"));
+const RisingCreatorsPage = lazy(() => import("./pages/RisingCreatorsPage"));
+const BattlePage = lazy(() => import("./pages/BattlePage"));
+
 const queryClient = new QueryClient();
+
+const PageFallback = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 const App = () => (
   <HelmetProvider>
@@ -50,6 +60,7 @@ const App = () => (
               <DesktopNavBar />
               <div className="md:pt-14">
               <PageTransition>
+                <Suspense fallback={<PageFallback />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
@@ -75,9 +86,9 @@ const App = () => (
                   <Route path="/rising" element={<RisingCreatorsPage />} />
                   <Route path="/battle" element={<BattlePage />} />
                   <Route path="/widget/creator/:id" element={<WidgetPage />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </Suspense>
               </PageTransition>
               </div>
               <FloatingRPButton />
