@@ -379,7 +379,7 @@ const CreatorProfile = () => {
   // ═══════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
-      <SEOHead title={`${creator.name} - 크리에이터 프로필`} description={`${creator.name}의 랭킹, 투표 현황, 팬 활동을 확인하세요. 현재 ${creator.rank}위, ${creator.votes_count}표 획득!`} path={`/creator/${creator.id}`} ogImage={creator.avatar_url || undefined} />
+      <SEOHead title={`${creator.name} - 크리에이터 프로필`} description={`${creator.name}의 랭킹, 투표 현황, 팬 활동을 확인하세요. 현재 ${creator.rank}위, ${creator.votes_count.toLocaleString()}표 획득!`} path={`/creator/${creator.id}`} ogImage={creator.avatar_url ? `${creator.avatar_url}` : undefined} ogType="profile" />
 
       {/* ─── Header ─── */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50 md:hidden">
