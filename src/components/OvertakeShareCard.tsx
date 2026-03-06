@@ -5,6 +5,31 @@ import { toast } from "sonner";
 import { copyToClipboard } from "@/lib/clipboard";
 import { toPng } from "html-to-image";
 
+const DAILY_SHARE_LIMIT = 3;
+
+function getShareBonusInfo(): { used: number; remaining: number } {
+  const today = new Date().toISOString().slice(0, 10);
+  const stored = localStorage.getItem("share_bonus_date");
+  const count = parseInt(localStorage.getItem("share_bonus_count") || "0", 10);
+  if (stored !== today) {
+    return { used: 0, remaining: DAILY_SHARE_LIMIT };
+  }
+  return { used: count, remaining: Math.max(0, DAILY_SHARE_LIMIT - count) };
+}
+
+function recordShareBonus(): boolean {
+  const today = new Date().toISOString().slice(0, 10);
+  const stored = localStorage.getItem("share_bonus_date");
+  let count = parseInt(localStorage.getItem("share_bonus_count") || "0", 10);
+  if (stored !== today) {
+    count = 0;
+  }
+  if (count >= DAILY_SHARE_LIMIT) return false;
+  localStorage.setItem("share_bonus_date", today);
+  localStorage.setItem("share_bonus_count", String(count + 1));
+  return true;
+}
+
 interface OvertakeShareCardProps {
   creator: Creator;
   aboveCreator: Creator | null;
