@@ -5,6 +5,31 @@ import { toast } from "sonner";
 import { copyToClipboard } from "@/lib/clipboard";
 import { toPng } from "html-to-image";
 
+const DAILY_SHARE_LIMIT = 3;
+
+function getShareBonusInfo(): { used: number; remaining: number } {
+  const today = new Date().toISOString().slice(0, 10);
+  const stored = localStorage.getItem("share_bonus_date");
+  const count = parseInt(localStorage.getItem("share_bonus_count") || "0", 10);
+  if (stored !== today) {
+    return { used: 0, remaining: DAILY_SHARE_LIMIT };
+  }
+  return { used: count, remaining: Math.max(0, DAILY_SHARE_LIMIT - count) };
+}
+
+function recordShareBonus(): boolean {
+  const today = new Date().toISOString().slice(0, 10);
+  const stored = localStorage.getItem("share_bonus_date");
+  let count = parseInt(localStorage.getItem("share_bonus_count") || "0", 10);
+  if (stored !== today) {
+    count = 0;
+  }
+  if (count >= DAILY_SHARE_LIMIT) return false;
+  localStorage.setItem("share_bonus_date", today);
+  localStorage.setItem("share_bonus_count", String(count + 1));
+  return true;
+}
+
 interface OvertakeShareCardProps {
   creator: Creator;
   aboveCreator: Creator | null;
@@ -78,6 +103,9 @@ const OvertakeShareCard = ({
     }
   }, []);
 
+  const [bonusInfo, setBonusInfo] = useState(getShareBonusInfo);
+  const canGetBonus = !shared && bonusInfo.remaining > 0;
+
   const handleShare = async () => {
     // Attempt card capture but don't block sharing on failure
     let blob: Blob | null = null;
@@ -117,21 +145,33 @@ const OvertakeShareCard = ({
         }
       }
 
-      // Grant bonus regardless of share method
-      if (!shared) {
-        onShared();
-        onShareBonus();
-        toast.success("🎉 공유 완료! 추가 투표권 1개 지급 완료!");
+      // Grant bonus with daily limit check
+      if (!shared && bonusInfo.remaining > 0) {
+        const granted = recordShareBonus();
+        if (granted) {
+          onShared();
+          onShareBonus();
+          setBonusInfo(getShareBonusInfo());
+          toast.success(`🎉 공유 완료! 추가 투표권 +1 지급! (오늘 ${getShareBonusInfo().used}/${DAILY_SHARE_LIMIT}회 사용)`);
+        } else {
+          toast.info("오늘 공유 보너스를 모두 사용했습니다. (최대 3회/일)");
+        }
+      } else if (bonusInfo.remaining <= 0) {
+        toast.info("오늘 공유 보너스를 모두 사용했습니다. (최대 3회/일)");
       }
     } catch (err: any) {
       // Only suppress AbortError (user cancelled share dialog)
       if (err?.name === "AbortError") return;
       console.error("Share failed:", err);
       // Still grant bonus if user attempted to share
-      if (!shared) {
-        onShared();
-        onShareBonus();
-        toast.success("🎉 공유 보너스 투표권 +1 지급!");
+      if (!shared && bonusInfo.remaining > 0) {
+        const granted = recordShareBonus();
+        if (granted) {
+          onShared();
+          onShareBonus();
+          setBonusInfo(getShareBonusInfo());
+          toast.success("🎉 공유 보너스 투표권 +1 지급!");
+        }
       }
     }
   };
@@ -378,9 +418,9 @@ const OvertakeShareCard = ({
           {/* Share button */}
           <button
             onClick={handleShare}
-            disabled={shared || capturing}
+            disabled={capturing}
             className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 ${
-              shared
+              shared && bonusInfo.remaining <= 0
                 ? "glass-sm text-muted-foreground"
                 : "bg-gradient-to-r from-[hsl(var(--neon-purple))] via-[hsl(330_80%_60%)] to-[hsl(var(--neon-cyan))] text-white shadow-lg shadow-[hsl(var(--neon-purple)/0.4)] hover:shadow-xl hover:shadow-[hsl(330_80%_60%/0.4)] hover:scale-[1.02] active:scale-[0.98]"
             }`}
@@ -390,8 +430,6 @@ const OvertakeShareCard = ({
                 <Loader2 className="w-4 h-4 animate-spin" />
                 카드 생성 중...
               </>
-            ) : shared ? (
-              <>✅ 공유 완료! 투표권 +1 지급 완료!</>
             ) : (
               <>
                 <Share2 className="w-4 h-4" />
@@ -401,40 +439,39 @@ const OvertakeShareCard = ({
             )}
           </button>
 
-          {/* Share destination hint */}
-          {!shared && (
-            <div className="flex items-center justify-center gap-2 flex-wrap py-0.5">
-              <span className="text-[10px] text-muted-foreground">공유 가능:</span>
+          {/* Share destination explanation */}
+          <div className="text-center space-y-1 py-0.5">
+            <p className="text-[10px] text-muted-foreground">
+              📲 버튼을 누르면 <span className="font-semibold text-foreground">기기의 공유 메뉴</span>가 열립니다
+            </p>
+            <div className="flex items-center justify-center gap-1.5 flex-wrap">
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground">📱 카카오톡</span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground">📸 인스타</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground">💬 문자 등</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground">💬 문자</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground">🐦 X(트위터)</span>
             </div>
-          )}
-
-          {/* Download + Skip row */}
-          <div className="flex gap-2">
-            <button
-              onClick={handleDownload}
-              disabled={capturing}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium glass-sm text-muted-foreground hover:text-foreground transition-all"
-            >
-              {capturing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-              이미지 저장
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl text-xs text-muted-foreground hover:text-foreground transition-colors glass-sm"
-            >
-              다음에 할게요
-            </button>
+            <p className="text-[9px] text-muted-foreground/60">
+              PC에서는 공유 텍스트가 클립보드에 복사됩니다
+            </p>
           </div>
 
-          {/* Bonus banner */}
-          {!shared && (
+          {/* Daily share bonus status */}
+          {bonusInfo.remaining > 0 ? (
             <div className="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-[hsl(var(--neon-purple)/0.1)] to-[hsl(var(--neon-cyan)/0.1)] border border-[hsl(var(--neon-purple)/0.25)] animate-pulse">
               <span className="text-base">🎁</span>
-              <span className="text-[10px] font-bold text-foreground flex-1">SNS 공유하면 추가 투표권 +1!</span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--neon-cyan)/0.15)] text-[hsl(var(--neon-cyan))] font-bold">FREE</span>
+              <span className="text-[10px] font-bold text-foreground flex-1">
+                공유하면 추가 투표권 +1! (오늘 {bonusInfo.remaining}회 남음)
+              </span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--neon-cyan)/0.15)] text-[hsl(var(--neon-cyan))] font-bold">
+                {bonusInfo.used}/{DAILY_SHARE_LIMIT}
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-muted/30 border border-border/30">
+              <span className="text-base">⏰</span>
+              <span className="text-[10px] text-muted-foreground flex-1">
+                오늘 공유 보너스를 모두 사용했어요! (최대 {DAILY_SHARE_LIMIT}회/일)
+              </span>
             </div>
           )}
         </div>
