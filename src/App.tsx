@@ -12,6 +12,7 @@ import MobileTabBar from "@/components/MobileTabBar";
 import DesktopNavBar from "@/components/DesktopNavBar";
 import PredictionWinPopup from "@/components/PredictionWinPopup";
 import FloatingRPButton from "@/components/FloatingRPButton";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 // Lazy-loaded pages
 const Index = lazy(() => import("./pages/Index"));
