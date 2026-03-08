@@ -242,7 +242,7 @@ const CommunityPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPost, setSelectedPost] = useState<BoardPost | null>(null);
   const [writeOpen, setWriteOpen] = useState(false);
-  const [writeForm, setWriteForm] = useState({ title: "", content: "", author: "", category: "HOT" });
+  const [writeForm, setWriteForm] = useState({ title: "", content: "", author: "", category: "자유" });
   const [submitting, setSubmitting] = useState(false);
   const isMobile = useIsMobile();
   const { user } = useAuth();
