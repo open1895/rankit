@@ -4,7 +4,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
-import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Send, MessageCircle, User, ImagePlus, ChevronLeft, ChevronRight, Image as ImageIcon, EyeOff, Trash2, Edit3, MoreVertical } from "lucide-react";
+import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Send, MessageCircle, User, ImagePlus, ChevronLeft, ChevronRight, Image as ImageIcon, EyeOff, Trash2, Edit3, MoreVertical, Reply } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SEOHead from "@/components/SEOHead";
