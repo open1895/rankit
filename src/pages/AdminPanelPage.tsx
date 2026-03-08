@@ -131,9 +131,15 @@ const AdminPanelPage = () => {
           >
             <Trophy className="w-4 h-4 inline mr-1" />토너먼트
           </button>
+          <button
+            onClick={() => setTab("retention")}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "retention" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
+          >
+            <BarChart3 className="w-4 h-4 inline mr-1" />리텐션
+          </button>
         </div>
 
-        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : tab === "predictions" ? <PredictionsTab /> : <TournamentsTab />}
+        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : tab === "predictions" ? <PredictionsTab /> : tab === "tournaments" ? <TournamentsTab /> : <AdminRetentionDashboard />}
       </div>
       <Footer />
     </div>

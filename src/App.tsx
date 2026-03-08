@@ -95,6 +95,7 @@ const App = () => (
               </PageTransition>
               </div>
               <FloatingRPButton />
+              <PWAInstallPrompt />
               <MobileTabBar />
             </div>
           </BrowserRouter>
