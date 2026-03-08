@@ -21,6 +21,7 @@ import TrendingNowSection from "@/components/TrendingNowSection";
 import CreatorBattleSection from "@/components/CreatorBattleSection";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
+import PopularPosts from "@/components/PopularPosts";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
