@@ -972,7 +972,7 @@ const CommunityPage = () => {
                                 <span className="text-xs font-semibold text-foreground">{c.nickname}</span>
                                 <span className="text-[10px] text-muted-foreground">{formatTimeAgo(c.created_at)}</span>
                               </div>
-                              <p className="text-xs text-foreground/80 mt-0.5 break-words">{c.message}</p>
+                              <p className="text-xs text-foreground/80 mt-0.5 break-words">{renderWithMentions(c.message)}</p>
                               {!isReply && (
                                 <button
                                   onClick={() => setReplyTo(c)}
