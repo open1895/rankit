@@ -110,6 +110,7 @@ export type Database = {
           id: string
           message: string
           nickname: string
+          parent_id: string | null
           post_id: string
           user_id: string | null
         }
@@ -118,6 +119,7 @@ export type Database = {
           id?: string
           message: string
           nickname: string
+          parent_id?: string | null
           post_id: string
           user_id?: string | null
         }
@@ -126,10 +128,18 @@ export type Database = {
           id?: string
           message?: string
           nickname?: string
+          parent_id?: string | null
           post_id?: string
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "board_post_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "board_post_comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "board_post_comments_post_id_fkey"
             columns: ["post_id"]

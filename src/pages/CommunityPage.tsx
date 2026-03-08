@@ -4,7 +4,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
-import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Send, MessageCircle, User, ImagePlus, ChevronLeft, ChevronRight, Image as ImageIcon, EyeOff, Trash2, Edit3, MoreVertical } from "lucide-react";
+import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Send, MessageCircle, User, ImagePlus, ChevronLeft, ChevronRight, Image as ImageIcon, EyeOff, Trash2, Edit3, MoreVertical, Reply } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SEOHead from "@/components/SEOHead";
@@ -31,6 +31,7 @@ interface PostComment {
   nickname: string;
   message: string;
   created_at: string;
+  parent_id: string | null;
 }
 
 type CategoryKey = "공지" | "이벤트" | "HOT";
@@ -61,6 +62,7 @@ const getCategoryStyle = (cat: string) =>
 
 const TABS = [
   { label: "전체", value: "all" },
+  { label: "🔥 인기", value: "popular" },
   { label: "📢 공지", value: "공지" },
   { label: "🎁 이벤트", value: "이벤트" },
   { label: "🔥 자유", value: "HOT" },
@@ -236,6 +238,8 @@ const CommunityPage = () => {
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [showPostMenu, setShowPostMenu] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  // Reply state
+  const [replyTo, setReplyTo] = useState<PostComment | null>(null);
 
   useEffect(() => {
     if (searchParams.get("write") === "true") {
@@ -375,16 +379,21 @@ const CommunityPage = () => {
     }
     setCommentSubmitting(true);
     localStorage.setItem("rankit_nickname", commentNickname.trim());
-    const { error } = await supabase.from("board_post_comments").insert({
+    const insertData: any = {
       post_id: selectedPost.id,
       nickname: commentNickname.trim(),
       message: commentText.trim(),
-    });
+    };
+    if (replyTo) {
+      insertData.parent_id = replyTo.id;
+    }
+    const { error } = await supabase.from("board_post_comments").insert(insertData);
     if (error) {
       toast({ title: "등록 실패", description: "댓글 등록에 실패했습니다.", variant: "destructive" });
     } else {
-      toast({ title: "💬 댓글 등록 완료", description: "댓글이 성공적으로 등록되었습니다!" });
+      toast({ title: "💬 댓글 등록 완료", description: replyTo ? "답글이 등록되었습니다!" : "댓글이 성공적으로 등록되었습니다!" });
       setCommentText("");
+      setReplyTo(null);
       const { data } = await supabase
         .from("board_post_comments")
         .select("*")
@@ -448,6 +457,12 @@ const CommunityPage = () => {
       toast({ title: "등록 실패", description: "게시글 등록에 실패했습니다. 다시 시도해주세요.", variant: "destructive" });
     } else {
       toast({ title: "등록 완료 🎉", description: "게시글이 성공적으로 등록되었습니다!" });
+      // Mission nudge for logged-in users
+      if (user) {
+        setTimeout(() => {
+          toast({ title: "🎯 미션 달성!", description: "더보기 → 일일 미션에서 게시글 작성 보상을 받으세요!" });
+        }, 1500);
+      }
       setWriteOpen(false);
       setWriteForm({ title: "", content: "", author: "", category: "HOT" });
       setAnonymousMode(false);
@@ -510,6 +525,7 @@ const CommunityPage = () => {
   const isPostOwner = (post: BoardPost) => user && post.user_id && user.id === post.user_id;
 
   const filtered = posts.filter((p) => {
+    if (selectedTab === "popular") return true; // will sort below
     if (selectedTab !== "all" && p.category !== selectedTab) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
@@ -517,6 +533,11 @@ const CommunityPage = () => {
     }
     return true;
   });
+
+  // Sort popular tab by engagement
+  const sortedFiltered = selectedTab === "popular"
+    ? [...filtered].sort((a, b) => (b.likes * 2 + b.comments_count) - (a.likes * 2 + a.comments_count)).slice(0, 20)
+    : filtered;
 
   const getLikeCount = (post: BoardPost) => likeCounts[post.id] ?? post.likes;
   const hasImages = (post: BoardPost) => post.image_urls && post.image_urls.length > 0;
@@ -589,13 +610,13 @@ const CommunityPage = () => {
               <div key={i} className="glass p-4 h-20 animate-pulse rounded-2xl" />
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : sortedFiltered.length === 0 ? (
           <div className="text-center py-16 glass rounded-2xl">
             <p className="text-muted-foreground text-sm">게시글이 없습니다</p>
           </div>
         ) : (
           <div className="space-y-2">
-            {filtered.map((post) => {
+            {sortedFiltered.map((post) => {
               const style = getCategoryStyle(post.category);
               const liked = likedPosts.has(post.id);
               const postHasImages = hasImages(post);
@@ -679,7 +700,7 @@ const CommunityPage = () => {
       )}
 
       {/* ====== Detail Modal ====== */}
-      <Dialog open={!!selectedPost} onOpenChange={(open) => { if (!open) { setSelectedPost(null); setComments([]); setEditMode(false); setDeleteConfirm(false); setShowPostMenu(false); } }}>
+      <Dialog open={!!selectedPost} onOpenChange={(open) => { if (!open) { setSelectedPost(null); setComments([]); setEditMode(false); setDeleteConfirm(false); setShowPostMenu(false); setReplyTo(null); } }}>
         <DialogContent className="max-w-[92vw] sm:max-w-md rounded-2xl border border-white/10 backdrop-blur-xl p-0 flex flex-col" style={{ maxHeight: "85vh" }}>
           {selectedPost && (() => {
             const style = getCategoryStyle(selectedPost.category);
@@ -832,20 +853,47 @@ const CommunityPage = () => {
                         아직 댓글이 없어요. 첫 댓글을 남겨보세요! 💬
                       </p>
                     ) : (
-                      comments.map((c) => (
-                        <div key={c.id} className="flex gap-2.5 animate-fade-in">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-neon-purple/30 to-neon-cyan/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <User className="w-3.5 h-3.5 text-neon-purple/70" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-semibold text-foreground">{c.nickname}</span>
-                              <span className="text-[10px] text-muted-foreground">{formatTimeAgo(c.created_at)}</span>
+                      (() => {
+                        const topLevel = comments.filter((c) => !c.parent_id);
+                        const replies = comments.filter((c) => c.parent_id);
+                        const replyMap = new Map<string, PostComment[]>();
+                        replies.forEach((r) => {
+                          const arr = replyMap.get(r.parent_id!) || [];
+                          arr.push(r);
+                          replyMap.set(r.parent_id!, arr);
+                        });
+
+                        const renderComment = (c: PostComment, isReply = false) => (
+                          <div key={c.id} className={`flex gap-2.5 animate-fade-in ${isReply ? "ml-8" : ""}`}>
+                            <div className={`${isReply ? "w-6 h-6" : "w-7 h-7"} rounded-full bg-gradient-to-br from-neon-purple/30 to-neon-cyan/20 flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                              <User className={`${isReply ? "w-3 h-3" : "w-3.5 h-3.5"} text-neon-purple/70`} />
                             </div>
-                            <p className="text-xs text-foreground/80 mt-0.5 break-words">{c.message}</p>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-foreground">{c.nickname}</span>
+                                <span className="text-[10px] text-muted-foreground">{formatTimeAgo(c.created_at)}</span>
+                              </div>
+                              <p className="text-xs text-foreground/80 mt-0.5 break-words">{c.message}</p>
+                              {!isReply && (
+                                <button
+                                  onClick={() => setReplyTo(c)}
+                                  className="flex items-center gap-1 mt-1 text-[10px] text-muted-foreground hover:text-primary transition-colors"
+                                >
+                                  <Reply className="w-3 h-3" />
+                                  답글
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        );
+
+                        return topLevel.map((c) => (
+                          <div key={c.id} className="space-y-2">
+                            {renderComment(c)}
+                            {(replyMap.get(c.id) || []).map((r) => renderComment(r, true))}
+                          </div>
+                        ));
+                      })()
                     )}
                     <div ref={commentsEndRef} />
                   </div>
@@ -853,6 +901,18 @@ const CommunityPage = () => {
 
                 {/* Fixed comment input */}
                 <div className="p-4 border-t border-white/10 bg-card/50 backdrop-blur-sm" style={{ paddingBottom: isMobile ? "calc(1rem + env(safe-area-inset-bottom))" : "1rem" }}>
+                  {/* Reply context */}
+                  {replyTo && (
+                    <div className="flex items-center justify-between mb-2 px-2 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
+                      <span className="text-[11px] text-primary font-medium">
+                        <Reply className="w-3 h-3 inline mr-1" />
+                        {replyTo.nickname}님에게 답글
+                      </span>
+                      <button onClick={() => setReplyTo(null)} className="text-muted-foreground hover:text-foreground">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-neon-purple/40 to-neon-cyan/30 flex items-center justify-center flex-shrink-0">
                       <User className="w-3 h-3 text-neon-purple/80" />

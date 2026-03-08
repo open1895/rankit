@@ -1,0 +1,1 @@
+ALTER TABLE public.board_post_comments ADD COLUMN parent_id uuid REFERENCES public.board_post_comments(id) ON DELETE CASCADE DEFAULT NULL;
