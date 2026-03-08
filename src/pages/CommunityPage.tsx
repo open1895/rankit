@@ -4,7 +4,9 @@ import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
-import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Send, MessageCircle, User, ImagePlus, ChevronLeft, ChevronRight, Image as ImageIcon, EyeOff, Trash2, Edit3, MoreVertical, Reply } from "lucide-react";
+import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Send, MessageCircle, User, ImagePlus, ChevronLeft, ChevronRight, Image as ImageIcon, EyeOff, Trash2, Edit3, MoreVertical, Reply, Pin, ShieldCheck } from "lucide-react";
+import CommunityActivityRanking from "@/components/CommunityActivityRanking";
+import { getAuthorBadge } from "@/components/CommunityActivityRanking";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SEOHead from "@/components/SEOHead";
@@ -34,7 +36,7 @@ interface PostComment {
   parent_id: string | null;
 }
 
-type CategoryKey = "공지" | "이벤트" | "HOT";
+type CategoryKey = "공지" | "이벤트" | "자유" | "팬아트" | "질문" | "공략" | "기타";
 
 const CATEGORY_STYLES: Record<CategoryKey, { bg: string; text: string; border: string; glow: string }> = {
   "공지": {
@@ -49,24 +51,55 @@ const CATEGORY_STYLES: Record<CategoryKey, { bg: string; text: string; border: s
     border: "border-[hsl(330,80%,55%)]/30",
     glow: "shadow-[0_0_12px_hsl(330,80%,55%,0.4)]",
   },
-  "HOT": {
+  "자유": {
     bg: "bg-[hsl(25,90%,55%)]/15",
     text: "text-[hsl(25,95%,60%)]",
     border: "border-[hsl(25,90%,55%)]/30",
     glow: "shadow-[0_0_12px_hsl(25,90%,55%,0.4)]",
   },
+  "팬아트": {
+    bg: "bg-[hsl(280,80%,60%)]/15",
+    text: "text-[hsl(280,90%,70%)]",
+    border: "border-[hsl(280,80%,60%)]/30",
+    glow: "shadow-[0_0_12px_hsl(280,80%,60%,0.4)]",
+  },
+  "질문": {
+    bg: "bg-[hsl(200,80%,55%)]/15",
+    text: "text-[hsl(200,90%,65%)]",
+    border: "border-[hsl(200,80%,55%)]/30",
+    glow: "shadow-[0_0_12px_hsl(200,80%,55%,0.4)]",
+  },
+  "공략": {
+    bg: "bg-[hsl(50,85%,50%)]/15",
+    text: "text-[hsl(50,90%,60%)]",
+    border: "border-[hsl(50,85%,50%)]/30",
+    glow: "shadow-[0_0_12px_hsl(50,85%,50%,0.4)]",
+  },
+  "기타": {
+    bg: "bg-[hsl(0,0%,60%)]/15",
+    text: "text-[hsl(0,0%,70%)]",
+    border: "border-[hsl(0,0%,60%)]/30",
+    glow: "shadow-[0_0_8px_hsl(0,0%,60%,0.3)]",
+  },
 };
 
 const getCategoryStyle = (cat: string) =>
-  CATEGORY_STYLES[cat as CategoryKey] || CATEGORY_STYLES["공지"];
+  CATEGORY_STYLES[cat as CategoryKey] || CATEGORY_STYLES["기타"];
 
 const TABS = [
   { label: "전체", value: "all" },
   { label: "🔥 인기", value: "popular" },
   { label: "📢 공지", value: "공지" },
   { label: "🎁 이벤트", value: "이벤트" },
-  { label: "🔥 자유", value: "HOT" },
+  { label: "💬 자유", value: "자유" },
+  { label: "🎨 팬아트", value: "팬아트" },
+  { label: "❓ 질문", value: "질문" },
+  { label: "📖 공략", value: "공략" },
+  { label: "📦 기타", value: "기타" },
 ];
+
+const ADMIN_AUTHORS = ["Rankit 운영팀"];
+const isAdminAuthor = (author: string) => ADMIN_AUTHORS.includes(author);
 
 const MAX_IMAGES = 5;
 const MAX_IMAGE_SIZE_MB = 5;
@@ -211,7 +244,7 @@ const CommunityPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPost, setSelectedPost] = useState<BoardPost | null>(null);
   const [writeOpen, setWriteOpen] = useState(false);
-  const [writeForm, setWriteForm] = useState({ title: "", content: "", author: "", category: "HOT" });
+  const [writeForm, setWriteForm] = useState({ title: "", content: "", author: "", category: "자유유" });
   const [submitting, setSubmitting] = useState(false);
   const isMobile = useIsMobile();
   const { user } = useAuth();
@@ -464,7 +497,7 @@ const CommunityPage = () => {
         }, 1500);
       }
       setWriteOpen(false);
-      setWriteForm({ title: "", content: "", author: "", category: "HOT" });
+      setWriteForm({ title: "", content: "", author: "", category: "자유" });
       setAnonymousMode(false);
       selectedImages.forEach((img) => URL.revokeObjectURL(img.preview));
       setSelectedImages([]);
@@ -534,10 +567,12 @@ const CommunityPage = () => {
     return true;
   });
 
-  // Sort popular tab by engagement
+  // Sort: pinned notices first, then popular or chronological
+  const pinnedPosts = selectedTab === "all" ? filtered.filter((p) => p.category === "공지") : [];
+  const normalPosts = selectedTab === "all" ? filtered.filter((p) => p.category !== "공지") : filtered;
   const sortedFiltered = selectedTab === "popular"
     ? [...filtered].sort((a, b) => (b.likes * 2 + b.comments_count) - (a.likes * 2 + a.comments_count)).slice(0, 20)
-    : filtered;
+    : [...pinnedPosts, ...normalPosts];
 
   const getLikeCount = (post: BoardPost) => likeCounts[post.id] ?? post.likes;
   const hasImages = (post: BoardPost) => post.image_urls && post.image_urls.length > 0;
@@ -620,15 +655,22 @@ const CommunityPage = () => {
               const style = getCategoryStyle(post.category);
               const liked = likedPosts.has(post.id);
               const postHasImages = hasImages(post);
+              const isPinned = selectedTab === "all" && post.category === "공지";
+              const isAdmin = isAdminAuthor(post.author);
               return (
                 <button
                   key={post.id}
                   onClick={() => setSelectedPost(post)}
-                  className="w-full text-left p-4 rounded-2xl border border-white/10 backdrop-blur-md bg-white/[0.04] hover:bg-white/[0.08] transition-all duration-200 hover:border-white/20 group"
+                  className={`w-full text-left p-4 rounded-2xl border backdrop-blur-md transition-all duration-200 group ${
+                    isPinned
+                      ? "border-[hsl(170,80%,45%)]/30 bg-[hsl(170,80%,45%)]/[0.06] hover:bg-[hsl(170,80%,45%)]/[0.1]"
+                      : "border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20"
+                  }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="flex-1 min-w-0 space-y-1.5">
                       <div className="flex items-center gap-2">
+                        {isPinned && <Pin className="w-3 h-3 text-[hsl(170,90%,55%)]" />}
                         <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${style.bg} ${style.text} ${style.border} ${style.glow}`}>
                           [{post.category}]
                         </span>
@@ -643,7 +685,13 @@ const CommunityPage = () => {
                         {post.title}
                       </p>
                       <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                        <span>{post.author}</span>
+                        <span className="flex items-center gap-1">
+                          {isAdmin && <ShieldCheck className="w-3 h-3 text-[hsl(170,90%,55%)]" />}
+                          {post.author}
+                          {isAdmin && (
+                            <span className="text-[8px] px-1 py-0 rounded-full bg-[hsl(170,80%,45%)]/15 text-[hsl(170,90%,55%)] border border-[hsl(170,80%,45%)]/30 font-semibold">공식</span>
+                          )}
+                        </span>
                         <span
                           className={`flex items-center gap-0.5 transition-colors ${liked ? "text-red-400" : ""}`}
                           onClick={(e) => handleLike(post.id, e)}
@@ -674,6 +722,9 @@ const CommunityPage = () => {
             })}
           </div>
         )}
+
+        {/* Activity Ranking */}
+        <CommunityActivityRanking />
       </main>
 
       <Footer />
@@ -749,7 +800,13 @@ const CommunityPage = () => {
                       )}
                     </div>
                     <DialogTitle className="text-base font-bold">{selectedPost.title}</DialogTitle>
-                    <p className="text-xs text-muted-foreground">{selectedPost.author}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      {isAdminAuthor(selectedPost.author) && <ShieldCheck className="w-3 h-3 text-[hsl(170,90%,55%)]" />}
+                      {selectedPost.author}
+                      {isAdminAuthor(selectedPost.author) && (
+                        <span className="text-[8px] px-1 py-0 rounded-full bg-[hsl(170,80%,45%)]/15 text-[hsl(170,90%,55%)] border border-[hsl(170,80%,45%)]/30 font-semibold">공식</span>
+                      )}
+                    </p>
                   </DialogHeader>
                 </div>
 
@@ -967,14 +1024,14 @@ const CommunityPage = () => {
           </DialogHeader>
           <div className="space-y-3 pt-1">
             {/* Category Select */}
-            <div className="flex gap-2">
-              {(["HOT", "공지", "이벤트"] as const).map((cat) => {
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+              {(["자유", "팬아트", "질문", "공략", "기타"] as const).map((cat) => {
                 const s = getCategoryStyle(cat);
                 return (
                   <button
                     key={cat}
                     onClick={() => setWriteForm((f) => ({ ...f, category: cat }))}
-                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all ${s.bg} ${s.text} ${s.border} ${
+                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all whitespace-nowrap ${s.bg} ${s.text} ${s.border} ${
                       writeForm.category === cat ? `${s.glow} ring-1 ring-offset-1 ring-offset-background` : "opacity-50"
                     }`}
                   >
