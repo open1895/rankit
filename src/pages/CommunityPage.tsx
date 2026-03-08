@@ -242,7 +242,7 @@ const CommunityPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPost, setSelectedPost] = useState<BoardPost | null>(null);
   const [writeOpen, setWriteOpen] = useState(false);
-  const [writeForm, setWriteForm] = useState({ title: "", content: "", author: "", category: "자유" });
+  const [writeForm, setWriteForm] = useState({ title: "", content: "", author: "", category: "자유유" });
   const [submitting, setSubmitting] = useState(false);
   const isMobile = useIsMobile();
   const { user } = useAuth();
@@ -495,7 +495,7 @@ const CommunityPage = () => {
         }, 1500);
       }
       setWriteOpen(false);
-      setWriteForm({ title: "", content: "", author: "", category: "HOT" });
+      setWriteForm({ title: "", content: "", author: "", category자유HOT" });
       setAnonymousMode(false);
       selectedImages.forEach((img) => URL.revokeObjectURL(img.preview));
       setSelectedImages([]);
