@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import { useIsMobile } from "@/hooks/use-mobile";
+import MentionInput, { extractMentions, renderWithMentions } from "@/components/MentionInput";
 
 interface BoardPost {
   id: string;
@@ -401,6 +402,45 @@ const CommunityPage = () => {
   };
 
   // --- Comments ---
+  // Mention suggestions: unique nicknames from current post's commenters + post author
+  const mentionSuggestions = useMemo(() => {
+    const names = new Set<string>();
+    if (selectedPost) names.add(selectedPost.author);
+    comments.forEach((c) => names.add(c.nickname));
+    // Remove the current user's own nickname
+    names.delete(commentNickname.trim());
+    return Array.from(names);
+  }, [comments, selectedPost, commentNickname]);
+
+  // Send mention notifications
+  const sendMentionNotifications = async (message: string, postTitle: string) => {
+    const mentions = extractMentions(message);
+    if (mentions.length === 0) return;
+    // Look up user_ids for mentioned display_names from profiles
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("user_id, display_name")
+      .in("display_name", mentions);
+    if (!profiles || profiles.length === 0) return;
+    // Send notifications via edge function
+    for (const profile of profiles) {
+      try {
+        await supabase.functions.invoke("notify", {
+          body: {
+            action: "create",
+            user_id: profile.user_id,
+            type: "mention",
+            title: "💬 댓글에서 멘션되었어요",
+            message: `${commentNickname.trim()}님이 "${postTitle.slice(0, 20)}" 글에서 당신을 멘션했습니다.`,
+            link: "/community",
+          },
+        });
+      } catch (e) {
+        console.error("Mention notification error:", e);
+      }
+    }
+  };
+
   const handleCommentSubmit = async () => {
     if (!selectedPost || !commentText.trim() || !commentNickname.trim()) {
       toast({ title: "입력 오류", description: "닉네임과 댓글을 입력해주세요.", variant: "destructive" });
@@ -425,6 +465,8 @@ const CommunityPage = () => {
       toast({ title: "등록 실패", description: "댓글 등록에 실패했습니다.", variant: "destructive" });
     } else {
       toast({ title: "💬 댓글 등록 완료", description: replyTo ? "답글이 등록되었습니다!" : "댓글이 성공적으로 등록되었습니다!" });
+      // Send mention notifications (fire and forget)
+      sendMentionNotifications(commentText.trim(), selectedPost.title);
       setCommentText("");
       setReplyTo(null);
       const { data } = await supabase
@@ -930,7 +972,7 @@ const CommunityPage = () => {
                                 <span className="text-xs font-semibold text-foreground">{c.nickname}</span>
                                 <span className="text-[10px] text-muted-foreground">{formatTimeAgo(c.created_at)}</span>
                               </div>
-                              <p className="text-xs text-foreground/80 mt-0.5 break-words">{c.message}</p>
+                              <p className="text-xs text-foreground/80 mt-0.5 break-words">{renderWithMentions(c.message)}</p>
                               {!isReply && (
                                 <button
                                   onClick={() => setReplyTo(c)}
@@ -984,14 +1026,14 @@ const CommunityPage = () => {
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="text"
+                    <MentionInput
                       value={commentText}
-                      onChange={(e) => setCommentText(e.target.value)}
+                      onChange={setCommentText}
                       onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleCommentSubmit()}
-                      placeholder="따뜻한 댓글을 남겨주세요 ✨"
+                      placeholder="따뜻한 댓글을 남겨주세요 ✨ (@로 멘션)"
                       maxLength={500}
                       className="flex-1 px-3 py-2 rounded-xl bg-white/5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/40"
+                      suggestions={mentionSuggestions}
                     />
                     <button
                       onClick={handleCommentSubmit}
