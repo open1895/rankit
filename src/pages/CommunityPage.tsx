@@ -655,15 +655,22 @@ const CommunityPage = () => {
               const style = getCategoryStyle(post.category);
               const liked = likedPosts.has(post.id);
               const postHasImages = hasImages(post);
+              const isPinned = selectedTab === "all" && post.category === "공지";
+              const isAdmin = isAdminAuthor(post.author);
               return (
                 <button
                   key={post.id}
                   onClick={() => setSelectedPost(post)}
-                  className="w-full text-left p-4 rounded-2xl border border-white/10 backdrop-blur-md bg-white/[0.04] hover:bg-white/[0.08] transition-all duration-200 hover:border-white/20 group"
+                  className={`w-full text-left p-4 rounded-2xl border backdrop-blur-md transition-all duration-200 group ${
+                    isPinned
+                      ? "border-[hsl(170,80%,45%)]/30 bg-[hsl(170,80%,45%)]/[0.06] hover:bg-[hsl(170,80%,45%)]/[0.1]"
+                      : "border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20"
+                  }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="flex-1 min-w-0 space-y-1.5">
                       <div className="flex items-center gap-2">
+                        {isPinned && <Pin className="w-3 h-3 text-[hsl(170,90%,55%)]" />}
                         <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${style.bg} ${style.text} ${style.border} ${style.glow}`}>
                           [{post.category}]
                         </span>
@@ -678,7 +685,13 @@ const CommunityPage = () => {
                         {post.title}
                       </p>
                       <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                        <span>{post.author}</span>
+                        <span className="flex items-center gap-1">
+                          {isAdmin && <ShieldCheck className="w-3 h-3 text-[hsl(170,90%,55%)]" />}
+                          {post.author}
+                          {isAdmin && (
+                            <span className="text-[8px] px-1 py-0 rounded-full bg-[hsl(170,80%,45%)]/15 text-[hsl(170,90%,55%)] border border-[hsl(170,80%,45%)]/30 font-semibold">공식</span>
+                          )}
+                        </span>
                         <span
                           className={`flex items-center gap-0.5 transition-colors ${liked ? "text-red-400" : ""}`}
                           onClick={(e) => handleLike(post.id, e)}
