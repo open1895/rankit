@@ -379,16 +379,21 @@ const CommunityPage = () => {
     }
     setCommentSubmitting(true);
     localStorage.setItem("rankit_nickname", commentNickname.trim());
-    const { error } = await supabase.from("board_post_comments").insert({
+    const insertData: any = {
       post_id: selectedPost.id,
       nickname: commentNickname.trim(),
       message: commentText.trim(),
-    });
+    };
+    if (replyTo) {
+      insertData.parent_id = replyTo.id;
+    }
+    const { error } = await supabase.from("board_post_comments").insert(insertData);
     if (error) {
       toast({ title: "등록 실패", description: "댓글 등록에 실패했습니다.", variant: "destructive" });
     } else {
-      toast({ title: "💬 댓글 등록 완료", description: "댓글이 성공적으로 등록되었습니다!" });
+      toast({ title: "💬 댓글 등록 완료", description: replyTo ? "답글이 등록되었습니다!" : "댓글이 성공적으로 등록되었습니다!" });
       setCommentText("");
+      setReplyTo(null);
       const { data } = await supabase
         .from("board_post_comments")
         .select("*")
