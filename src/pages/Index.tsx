@@ -633,6 +633,11 @@ const Index = () => {
         </ScrollReveal>
       </main>
 
+      {/* Popular Posts */}
+      <section className="container max-w-5xl mx-auto px-4 py-2">
+        <PopularPosts />
+      </section>
+
       {/* Live Feed */}
       <LiveFeed />
 
