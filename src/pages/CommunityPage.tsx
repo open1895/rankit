@@ -31,6 +31,7 @@ interface PostComment {
   nickname: string;
   message: string;
   created_at: string;
+  parent_id: string | null;
 }
 
 type CategoryKey = "공지" | "이벤트" | "HOT";
