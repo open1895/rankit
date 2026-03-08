@@ -1,0 +1,25 @@
+{
+  "name": "Rankit - 크리에이터 영향력 랭킹",
+  "short_name": "Rankit",
+  "description": "팬의 투표로 결정되는 크리에이터 종합 영향력 순위 플랫폼",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e8e9ed",
+  "theme_color": "#7c3aed",
+  "orientation": "portrait-primary",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

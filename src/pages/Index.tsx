@@ -16,6 +16,7 @@ import SEOHead from "@/components/SEOHead";
 import HeroSection from "@/components/HeroSection";
 import HomepageHero from "@/components/HomepageHero";
 import HomepageSections from "@/components/HomepageSections";
+import SocialProofCounters from "@/components/SocialProofCounters";
 import CreatorRecommendations from "@/components/CreatorRecommendations";
 import TrendingNowSection from "@/components/TrendingNowSection";
 import CreatorBattleSection from "@/components/CreatorBattleSection";
@@ -484,6 +485,9 @@ const Index = () => {
 
       {/* 1. Hero Section */}
       <HomepageHero />
+
+      {/* 1.5. Social Proof Counters */}
+      <SocialProofCounters />
 
       {/* 2. Section Cards */}
       <HomepageSections />
