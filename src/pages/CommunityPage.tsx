@@ -901,6 +901,18 @@ const CommunityPage = () => {
 
                 {/* Fixed comment input */}
                 <div className="p-4 border-t border-white/10 bg-card/50 backdrop-blur-sm" style={{ paddingBottom: isMobile ? "calc(1rem + env(safe-area-inset-bottom))" : "1rem" }}>
+                  {/* Reply context */}
+                  {replyTo && (
+                    <div className="flex items-center justify-between mb-2 px-2 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
+                      <span className="text-[11px] text-primary font-medium">
+                        <Reply className="w-3 h-3 inline mr-1" />
+                        {replyTo.nickname}님에게 답글
+                      </span>
+                      <button onClick={() => setReplyTo(null)} className="text-muted-foreground hover:text-foreground">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-neon-purple/40 to-neon-cyan/30 flex items-center justify-center flex-shrink-0">
                       <User className="w-3 h-3 text-neon-purple/80" />
