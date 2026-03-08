@@ -238,6 +238,8 @@ const CommunityPage = () => {
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [showPostMenu, setShowPostMenu] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  // Reply state
+  const [replyTo, setReplyTo] = useState<PostComment | null>(null);
 
   useEffect(() => {
     if (searchParams.get("write") === "true") {
