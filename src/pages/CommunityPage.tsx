@@ -1026,14 +1026,14 @@ const CommunityPage = () => {
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="text"
+                    <MentionInput
                       value={commentText}
-                      onChange={(e) => setCommentText(e.target.value)}
+                      onChange={setCommentText}
                       onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleCommentSubmit()}
-                      placeholder="따뜻한 댓글을 남겨주세요 ✨"
+                      placeholder="따뜻한 댓글을 남겨주세요 ✨ (@로 멘션)"
                       maxLength={500}
                       className="flex-1 px-3 py-2 rounded-xl bg-white/5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/40"
+                      suggestions={mentionSuggestions}
                     />
                     <button
                       onClick={handleCommentSubmit}
