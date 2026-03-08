@@ -616,7 +616,7 @@ const CommunityPage = () => {
           </div>
         ) : (
           <div className="space-y-2">
-            {filtered.map((post) => {
+            {sortedFiltered.map((post) => {
               const style = getCategoryStyle(post.category);
               const liked = likedPosts.has(post.id);
               const postHasImages = hasImages(post);
