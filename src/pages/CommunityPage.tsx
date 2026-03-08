@@ -700,7 +700,7 @@ const CommunityPage = () => {
       )}
 
       {/* ====== Detail Modal ====== */}
-      <Dialog open={!!selectedPost} onOpenChange={(open) => { if (!open) { setSelectedPost(null); setComments([]); setEditMode(false); setDeleteConfirm(false); setShowPostMenu(false); } }}>
+      <Dialog open={!!selectedPost} onOpenChange={(open) => { if (!open) { setSelectedPost(null); setComments([]); setEditMode(false); setDeleteConfirm(false); setShowPostMenu(false); setReplyTo(null); } }}>
         <DialogContent className="max-w-[92vw] sm:max-w-md rounded-2xl border border-white/10 backdrop-blur-xl p-0 flex flex-col" style={{ maxHeight: "85vh" }}>
           {selectedPost && (() => {
             const style = getCategoryStyle(selectedPost.category);
