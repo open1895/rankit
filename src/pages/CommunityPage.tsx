@@ -722,6 +722,9 @@ const CommunityPage = () => {
             })}
           </div>
         )}
+
+        {/* Activity Ranking */}
+        <CommunityActivityRanking />
       </main>
 
       <Footer />
