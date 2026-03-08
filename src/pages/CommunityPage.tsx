@@ -525,6 +525,7 @@ const CommunityPage = () => {
   const isPostOwner = (post: BoardPost) => user && post.user_id && user.id === post.user_id;
 
   const filtered = posts.filter((p) => {
+    if (selectedTab === "popular") return true; // will sort below
     if (selectedTab !== "all" && p.category !== selectedTab) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
@@ -532,6 +533,11 @@ const CommunityPage = () => {
     }
     return true;
   });
+
+  // Sort popular tab by engagement
+  const sortedFiltered = selectedTab === "popular"
+    ? [...filtered].sort((a, b) => (b.likes * 2 + b.comments_count) - (a.likes * 2 + a.comments_count)).slice(0, 20)
+    : filtered;
 
   const getLikeCount = (post: BoardPost) => likeCounts[post.id] ?? post.likes;
   const hasImages = (post: BoardPost) => post.image_urls && post.image_urls.length > 0;
