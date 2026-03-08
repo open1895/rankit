@@ -853,20 +853,47 @@ const CommunityPage = () => {
                         아직 댓글이 없어요. 첫 댓글을 남겨보세요! 💬
                       </p>
                     ) : (
-                      comments.map((c) => (
-                        <div key={c.id} className="flex gap-2.5 animate-fade-in">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-neon-purple/30 to-neon-cyan/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <User className="w-3.5 h-3.5 text-neon-purple/70" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-semibold text-foreground">{c.nickname}</span>
-                              <span className="text-[10px] text-muted-foreground">{formatTimeAgo(c.created_at)}</span>
+                      (() => {
+                        const topLevel = comments.filter((c) => !c.parent_id);
+                        const replies = comments.filter((c) => c.parent_id);
+                        const replyMap = new Map<string, PostComment[]>();
+                        replies.forEach((r) => {
+                          const arr = replyMap.get(r.parent_id!) || [];
+                          arr.push(r);
+                          replyMap.set(r.parent_id!, arr);
+                        });
+
+                        const renderComment = (c: PostComment, isReply = false) => (
+                          <div key={c.id} className={`flex gap-2.5 animate-fade-in ${isReply ? "ml-8" : ""}`}>
+                            <div className={`${isReply ? "w-6 h-6" : "w-7 h-7"} rounded-full bg-gradient-to-br from-neon-purple/30 to-neon-cyan/20 flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                              <User className={`${isReply ? "w-3 h-3" : "w-3.5 h-3.5"} text-neon-purple/70`} />
                             </div>
-                            <p className="text-xs text-foreground/80 mt-0.5 break-words">{c.message}</p>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-foreground">{c.nickname}</span>
+                                <span className="text-[10px] text-muted-foreground">{formatTimeAgo(c.created_at)}</span>
+                              </div>
+                              <p className="text-xs text-foreground/80 mt-0.5 break-words">{c.message}</p>
+                              {!isReply && (
+                                <button
+                                  onClick={() => setReplyTo(c)}
+                                  className="flex items-center gap-1 mt-1 text-[10px] text-muted-foreground hover:text-primary transition-colors"
+                                >
+                                  <Reply className="w-3 h-3" />
+                                  답글
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        );
+
+                        return topLevel.map((c) => (
+                          <div key={c.id} className="space-y-2">
+                            {renderComment(c)}
+                            {(replyMap.get(c.id) || []).map((r) => renderComment(r, true))}
+                          </div>
+                        ));
+                      })()
                     )}
                     <div ref={commentsEndRef} />
                   </div>
