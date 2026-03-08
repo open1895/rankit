@@ -497,7 +497,7 @@ const CommunityPage = () => {
         }, 1500);
       }
       setWriteOpen(false);
-      setWriteForm({ title: "", content: "", author: "", category자유HOT" });
+      setWriteForm({ title: "", content: "", author: "", category: "자유" });
       setAnonymousMode(false);
       selectedImages.forEach((img) => URL.revokeObjectURL(img.preview));
       setSelectedImages([]);
