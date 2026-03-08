@@ -1018,14 +1018,14 @@ const CommunityPage = () => {
           </DialogHeader>
           <div className="space-y-3 pt-1">
             {/* Category Select */}
-            <div className="flex gap-2">
-              {(["HOT", "공지", "이벤트"] as const).map((cat) => {
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+              {(["자유", "팬아트", "질문", "공략", "기타"] as const).map((cat) => {
                 const s = getCategoryStyle(cat);
                 return (
                   <button
                     key={cat}
                     onClick={() => setWriteForm((f) => ({ ...f, category: cat }))}
-                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all ${s.bg} ${s.text} ${s.border} ${
+                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all whitespace-nowrap ${s.bg} ${s.text} ${s.border} ${
                       writeForm.category === cat ? `${s.glow} ring-1 ring-offset-1 ring-offset-background` : "opacity-50"
                     }`}
                   >
