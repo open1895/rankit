@@ -610,7 +610,7 @@ const CommunityPage = () => {
               <div key={i} className="glass p-4 h-20 animate-pulse rounded-2xl" />
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : sortedFiltered.length === 0 ? (
           <div className="text-center py-16 glass rounded-2xl">
             <p className="text-muted-foreground text-sm">게시글이 없습니다</p>
           </div>
