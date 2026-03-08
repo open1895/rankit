@@ -62,6 +62,7 @@ const getCategoryStyle = (cat: string) =>
 
 const TABS = [
   { label: "전체", value: "all" },
+  { label: "🔥 인기", value: "popular" },
   { label: "📢 공지", value: "공지" },
   { label: "🎁 이벤트", value: "이벤트" },
   { label: "🔥 자유", value: "HOT" },
