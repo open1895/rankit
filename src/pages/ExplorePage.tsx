@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import ScrollReveal from "@/components/ScrollReveal";
 import Footer from "@/components/Footer";
-import { Trophy, Sparkles, Calendar, Star, Crown, Swords, Flame, GitCompareArrows, ArrowRight } from "lucide-react";
+import { Trophy, Sparkles, Calendar, Star, Crown, Swords, Flame, GitCompareArrows, ArrowRight, MessageSquare, ShoppingBag } from "lucide-react";
 
 const HomeTournamentSection = lazy(() => import("@/components/HomeTournamentSection"));
 const HomePredictionSection = lazy(() => import("@/components/HomePredictionSection"));
