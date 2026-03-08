@@ -34,7 +34,7 @@ interface PostComment {
   parent_id: string | null;
 }
 
-type CategoryKey = "공지" | "이벤트" | "HOT";
+type CategoryKey = "공지" | "이벤트" | "자유" | "팬아트" | "질문" | "공략" | "기타";
 
 const CATEGORY_STYLES: Record<CategoryKey, { bg: string; text: string; border: string; glow: string }> = {
   "공지": {
@@ -49,24 +49,55 @@ const CATEGORY_STYLES: Record<CategoryKey, { bg: string; text: string; border: s
     border: "border-[hsl(330,80%,55%)]/30",
     glow: "shadow-[0_0_12px_hsl(330,80%,55%,0.4)]",
   },
-  "HOT": {
+  "자유": {
     bg: "bg-[hsl(25,90%,55%)]/15",
     text: "text-[hsl(25,95%,60%)]",
     border: "border-[hsl(25,90%,55%)]/30",
     glow: "shadow-[0_0_12px_hsl(25,90%,55%,0.4)]",
   },
+  "팬아트": {
+    bg: "bg-[hsl(280,80%,60%)]/15",
+    text: "text-[hsl(280,90%,70%)]",
+    border: "border-[hsl(280,80%,60%)]/30",
+    glow: "shadow-[0_0_12px_hsl(280,80%,60%,0.4)]",
+  },
+  "질문": {
+    bg: "bg-[hsl(200,80%,55%)]/15",
+    text: "text-[hsl(200,90%,65%)]",
+    border: "border-[hsl(200,80%,55%)]/30",
+    glow: "shadow-[0_0_12px_hsl(200,80%,55%,0.4)]",
+  },
+  "공략": {
+    bg: "bg-[hsl(50,85%,50%)]/15",
+    text: "text-[hsl(50,90%,60%)]",
+    border: "border-[hsl(50,85%,50%)]/30",
+    glow: "shadow-[0_0_12px_hsl(50,85%,50%,0.4)]",
+  },
+  "기타": {
+    bg: "bg-[hsl(0,0%,60%)]/15",
+    text: "text-[hsl(0,0%,70%)]",
+    border: "border-[hsl(0,0%,60%)]/30",
+    glow: "shadow-[0_0_8px_hsl(0,0%,60%,0.3)]",
+  },
 };
 
 const getCategoryStyle = (cat: string) =>
-  CATEGORY_STYLES[cat as CategoryKey] || CATEGORY_STYLES["공지"];
+  CATEGORY_STYLES[cat as CategoryKey] || CATEGORY_STYLES["기타"];
 
 const TABS = [
   { label: "전체", value: "all" },
   { label: "🔥 인기", value: "popular" },
   { label: "📢 공지", value: "공지" },
   { label: "🎁 이벤트", value: "이벤트" },
-  { label: "🔥 자유", value: "HOT" },
+  { label: "💬 자유", value: "자유" },
+  { label: "🎨 팬아트", value: "팬아트" },
+  { label: "❓ 질문", value: "질문" },
+  { label: "📖 공략", value: "공략" },
+  { label: "📦 기타", value: "기타" },
 ];
+
+const ADMIN_AUTHORS = ["Rankit 운영팀"];
+const isAdminAuthor = (author: string) => ADMIN_AUTHORS.includes(author);
 
 const MAX_IMAGES = 5;
 const MAX_IMAGE_SIZE_MB = 5;
