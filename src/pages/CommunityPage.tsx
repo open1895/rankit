@@ -567,10 +567,12 @@ const CommunityPage = () => {
     return true;
   });
 
-  // Sort popular tab by engagement
+  // Sort: pinned notices first, then popular or chronological
+  const pinnedPosts = selectedTab === "all" ? filtered.filter((p) => p.category === "공지") : [];
+  const normalPosts = selectedTab === "all" ? filtered.filter((p) => p.category !== "공지") : filtered;
   const sortedFiltered = selectedTab === "popular"
     ? [...filtered].sort((a, b) => (b.likes * 2 + b.comments_count) - (a.likes * 2 + a.comments_count)).slice(0, 20)
-    : filtered;
+    : [...pinnedPosts, ...normalPosts];
 
   const getLikeCount = (post: BoardPost) => likeCounts[post.id] ?? post.likes;
   const hasImages = (post: BoardPost) => post.image_urls && post.image_urls.length > 0;
