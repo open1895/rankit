@@ -800,7 +800,13 @@ const CommunityPage = () => {
                       )}
                     </div>
                     <DialogTitle className="text-base font-bold">{selectedPost.title}</DialogTitle>
-                    <p className="text-xs text-muted-foreground">{selectedPost.author}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      {isAdminAuthor(selectedPost.author) && <ShieldCheck className="w-3 h-3 text-[hsl(170,90%,55%)]" />}
+                      {selectedPost.author}
+                      {isAdminAuthor(selectedPost.author) && (
+                        <span className="text-[8px] px-1 py-0 rounded-full bg-[hsl(170,80%,45%)]/15 text-[hsl(170,90%,55%)] border border-[hsl(170,80%,45%)]/30 font-semibold">공식</span>
+                      )}
+                    </p>
                   </DialogHeader>
                 </div>
 
