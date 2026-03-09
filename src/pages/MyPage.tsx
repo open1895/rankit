@@ -48,6 +48,7 @@ import { ko } from "date-fns/locale";
 interface Profile {
   display_name: string;
   avatar_url: string;
+  is_beta_tester?: boolean;
 }
 
 interface VoteRecord {
