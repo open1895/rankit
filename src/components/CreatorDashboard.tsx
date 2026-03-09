@@ -508,6 +508,9 @@ const CreatorDashboard = ({ creatorId, creatorName }: CreatorDashboardProps) => 
         <p className="text-[8px] text-muted-foreground text-center">투표·댓글·게시글 데이터를 AI가 분석합니다</p>
       </div>
 
+      {/* ═══ 5. Announcement Tool ═══ */}
+      <CreatorAnnouncement creatorId={creatorId} creatorName={creatorName} />
+
       {/* Fan Activity Insights (existing component) */}
       <div className="glass p-5">
         <FanActivityInsights creatorId={creatorId} />
