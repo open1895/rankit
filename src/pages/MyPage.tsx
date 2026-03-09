@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
 
 import SEOHead from "@/components/SEOHead";
+import EarlyAdopterBadge from "@/components/EarlyAdopterBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
