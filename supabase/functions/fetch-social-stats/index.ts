@@ -177,8 +177,14 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Recalculate ranks after stats update
+    if (updatedCount > 0) {
+      await supabase.rpc("batch_recalculate_ranks");
+      console.log("Ranks recalculated after stats update");
+    }
+
     return new Response(
-      JSON.stringify({ message: `Updated ${updatedCount}/${creators.length} creators` }),
+      JSON.stringify({ message: `Updated ${updatedCount}/${creators.length} creators, ranks recalculated` }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
