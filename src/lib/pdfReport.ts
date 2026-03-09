@@ -27,7 +27,6 @@ export function generateWeeklyPDF(data: CreatorReportData) {
   const dark = [20, 20, 35] as [number, number, number];
   const gray = [120, 120, 140] as [number, number, number];
   const white = [255, 255, 255] as [number, number, number];
-  const light = [240, 240, 255] as [number, number, number];
 
   // Background
   doc.setFillColor(...dark);
@@ -47,7 +46,7 @@ export function generateWeeklyPDF(data: CreatorReportData) {
   doc.setTextColor(...gray);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text("Weekly Creator Report", margin, y + 7);
+  doc.text("Creator Influence Report", margin, y + 7);
   doc.setTextColor(...white);
   doc.setFontSize(9);
   doc.text(data.weekLabel, pageW - margin, y + 7, { align: "right" });
@@ -104,6 +103,32 @@ export function generateWeeklyPDF(data: CreatorReportData) {
 
   y += 30;
 
+  // ══ B2B: Influence Score Breakdown ══
+  const totalFollowers = data.youtube_subscribers + data.chzzk_followers + data.instagram_followers + data.tiktok_followers;
+  const influenceEstimate = Math.min(100, Math.round(
+    (data.youtube_subscribers * 1.5 + data.chzzk_followers * 2.0 + data.instagram_followers * 1.2 + data.tiktok_followers * 0.8) / 10000
+  ));
+
+  doc.setTextColor(...white);
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  doc.text("Influence Score Breakdown", margin, y);
+  y += 6;
+
+  doc.setFillColor(35, 35, 55);
+  doc.roundedRect(margin, y, pageW - margin * 2, 18, 3, 3, "F");
+  doc.setTextColor(...purple);
+  doc.setFontSize(20);
+  doc.setFont("helvetica", "bold");
+  doc.text(`${influenceEstimate}`, margin + 8, y + 13);
+  doc.setTextColor(...gray);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.text("/ 100", margin + 25, y + 13);
+  doc.text(`Total Followers: ${totalFollowers.toLocaleString()}`, pageW - margin - 4, y + 13, { align: "right" });
+
+  y += 24;
+
   // Platform stats
   doc.setTextColor(...white);
   doc.setFontSize(11);
@@ -140,7 +165,36 @@ export function generateWeeklyPDF(data: CreatorReportData) {
 
   y += 4;
 
-  // Rank History chart (text-based sparkline)
+  // ══ B2B: Audience Reach Summary ══
+  doc.setTextColor(...white);
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  doc.text("Audience Reach Summary", margin, y);
+  y += 6;
+
+  const reachData = [
+    { label: "Total Cross-Platform Reach", value: totalFollowers.toLocaleString() },
+    { label: "Estimated Engagement Rate", value: `${Math.min(15, Math.max(1, Math.round(data.votes_count / Math.max(1, totalFollowers) * 1000) / 10))}%` },
+    { label: "Active Fan Community", value: `${data.fanRanking.length} contributors` },
+    { label: "Fan Votes (Engagement Proxy)", value: data.votes_count.toLocaleString() },
+  ];
+
+  reachData.forEach((item) => {
+    doc.setFillColor(35, 35, 55);
+    doc.roundedRect(margin, y, pageW - margin * 2, 10, 2, 2, "F");
+    doc.setTextColor(...gray);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text(item.label, margin + 4, y + 7);
+    doc.setTextColor(...cyan);
+    doc.setFont("helvetica", "bold");
+    doc.text(item.value, pageW - margin - 4, y + 7, { align: "right" });
+    y += 12;
+  });
+
+  y += 4;
+
+  // Rank History chart
   if (data.rankHistory.length > 1) {
     doc.setTextColor(...white);
     doc.setFontSize(11);
@@ -148,7 +202,7 @@ export function generateWeeklyPDF(data: CreatorReportData) {
     doc.text("Rank History (recent)", margin, y);
     y += 6;
 
-    const chartH = 30;
+    const chartH = 25;
     const chartW = pageW - margin * 2;
     doc.setFillColor(35, 35, 55);
     doc.roundedRect(margin, y, chartW, chartH, 3, 3, "F");
@@ -173,14 +227,7 @@ export function generateWeeklyPDF(data: CreatorReportData) {
       }
     });
 
-    doc.setTextColor(...gray);
-    doc.setFontSize(6);
-    last12.slice(0, 1).concat(last12.slice(-1)).forEach((h, i) => {
-      const px = margin + 6 + (i === 0 ? 0 : chartW - 12);
-      doc.text(`#${h.rank}`, px, y + chartH - 2);
-    });
-
-    y += chartH + 8;
+    y += chartH + 6;
   }
 
   // Fan TOP 5
@@ -191,7 +238,6 @@ export function generateWeeklyPDF(data: CreatorReportData) {
     doc.text("Top Fan Supporters", margin, y);
     y += 6;
 
-    const medals = ["🥇", "🥈", "🥉", "4", "5"];
     const medalColors: [number, number, number][] = [
       [255, 215, 0], [192, 192, 192], [205, 127, 50], [150, 150, 170], [130, 130, 150]
     ];
@@ -217,13 +263,26 @@ export function generateWeeklyPDF(data: CreatorReportData) {
     });
   }
 
+  // ══ B2B: Contact / Partnership CTA ══
+  y = Math.max(y + 4, 260);
+  doc.setFillColor(35, 35, 55);
+  doc.roundedRect(margin, y, pageW - margin * 2, 16, 3, 3, "F");
+  doc.setTextColor(...purple);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
+  doc.text("Partnership & Collaboration", margin + 4, y + 7);
+  doc.setTextColor(...gray);
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "normal");
+  doc.text("Contact via Rankit platform for sponsorship & brand collaboration opportunities", margin + 4, y + 13);
+
   // Footer
   doc.setFillColor(...purple);
   doc.rect(0, 285, pageW, 2, "F");
   doc.setTextColor(...gray);
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
-  doc.text(`Generated by Rank It · ${data.weekLabel}`, pageW / 2, 292, { align: "center" });
+  doc.text(`Generated by Rank It · ${data.weekLabel} · Influence Report`, pageW / 2, 292, { align: "center" });
 
-  doc.save(`rankit-report-${data.name}-${data.weekLabel}.pdf`);
+  doc.save(`rankit-influence-report-${data.name}-${data.weekLabel}.pdf`);
 }

@@ -20,6 +20,8 @@ import SocialProofCounters from "@/components/SocialProofCounters";
 import CreatorRecommendations from "@/components/CreatorRecommendations";
 import TrendingNowSection from "@/components/TrendingNowSection";
 import CreatorBattleSection from "@/components/CreatorBattleSection";
+import MonthlyTop3Widget from "@/components/MonthlyTop3Widget";
+import SeasonRewardsBanner from "@/components/SeasonRewardsBanner";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
 import PopularPosts from "@/components/PopularPosts";
@@ -499,6 +501,16 @@ const Index = () => {
       <ScrollReveal>
         <CreatorBattleSection />
       </ScrollReveal>
+
+      {/* Monthly TOP 3 + Season Rewards */}
+      <div className="container max-w-5xl mx-auto px-4 space-y-4">
+        <ScrollReveal>
+          <MonthlyTop3Widget />
+        </ScrollReveal>
+        <ScrollReveal delay={80}>
+          <SeasonRewardsBanner />
+        </ScrollReveal>
+      </div>
 
       {/* 3. Live VS Battle + Countdown */}
       <div className="container max-w-5xl mx-auto px-4 space-y-6">

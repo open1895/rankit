@@ -40,6 +40,7 @@ const PredictionLeaderboard = lazy(() => import("./pages/PredictionLeaderboard")
 const RisingCreatorsPage = lazy(() => import("./pages/RisingCreatorsPage"));
 const BattlePage = lazy(() => import("./pages/BattlePage"));
 const ExplorePage = lazy(() => import("./pages/ExplorePage"));
+const MonthlyTop3 = lazy(() => import("./pages/MonthlyTop3"));
 
 const queryClient = new QueryClient();
 
@@ -91,6 +92,7 @@ const App = () => (
                     <Route path="/rising" element={<RisingCreatorsPage />} />
                     <Route path="/battle" element={<BattlePage />} />
                     <Route path="/explore" element={<ExplorePage />} />
+                    <Route path="/monthly-top3" element={<MonthlyTop3 />} />
                     <Route path="/widget/creator/:id" element={<WidgetPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
