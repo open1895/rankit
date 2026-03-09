@@ -1207,4 +1207,199 @@ const SeasonRewardsTab = () => {
   );
 };
 
+
+/* ─── Banners Tab ─── */
+const BANNER_COLORS = ["purple", "orange", "blue", "green", "red", "gold"];
+
+const BannersTab = () => {
+  const queryClient = useQueryClient();
+  const [showForm, setShowForm] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [emoji, setEmoji] = useState("🎉");
+  const [bgColor, setBgColor] = useState("purple");
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkLabel, setLinkLabel] = useState("");
+  const [daysActive, setDaysActive] = useState("7");
+
+  const { data: banners, isLoading } = useQuery({
+    queryKey: ["admin-banners"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("event_banners")
+        .select("*")
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const now = new Date();
+      const endsAt = new Date(now.getTime() + parseInt(daysActive) * 86400000);
+      const { error } = await supabase.from("event_banners").insert({
+        title: title.trim(),
+        description: description.trim(),
+        emoji,
+        bg_color: bgColor,
+        link_url: linkUrl.trim(),
+        link_label: linkLabel.trim(),
+        starts_at: now.toISOString(),
+        ends_at: endsAt.toISOString(),
+        is_active: true,
+        priority: 0,
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("배너가 생성되었습니다!");
+      queryClient.invalidateQueries({ queryKey: ["admin-banners"] });
+      setShowForm(false);
+      setTitle(""); setDescription(""); setEmoji("🎉"); setLinkUrl(""); setLinkLabel("");
+    },
+    onError: () => toast.error("배너 생성 실패"),
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase.from("event_banners").update({ is_active } as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-banners"] });
+      toast.success("배너 상태가 변경되었습니다.");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("event_banners").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-banners"] });
+      toast.success("배너가 삭제되었습니다.");
+    },
+  });
+
+  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin" /></div>;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-bold flex items-center gap-2"><Flag className="w-4 h-4 text-primary" />이벤트 배너 관리</h2>
+        <Button size="sm" onClick={() => setShowForm(!showForm)}>
+          <Plus className="w-4 h-4 mr-1" />{showForm ? "취소" : "새 배너"}
+        </Button>
+      </div>
+
+      {showForm && (
+        <div className="glass-sm rounded-xl p-4 space-y-3">
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-muted-foreground">제목 *</label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="🔥 2배 투표 이벤트 진행 중!" />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-muted-foreground">설명</label>
+            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="이벤트 상세 설명" rows={2} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">이모지</label>
+              <Input value={emoji} onChange={(e) => setEmoji(e.target.value)} placeholder="🎉" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">기간 (일)</label>
+              <Input type="number" value={daysActive} onChange={(e) => setDaysActive(e.target.value)} min="1" max="90" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-muted-foreground">배경색</label>
+            <div className="flex gap-2">
+              {BANNER_COLORS.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setBgColor(c)}
+                  className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${bgColor === c ? "ring-2 ring-primary font-bold text-foreground" : "text-muted-foreground"}`}
+                  style={{ background: `hsl(var(--${c === "purple" ? "primary" : "muted"}) / 0.2)` }}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">링크 URL (선택)</label>
+              <Input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="/predictions" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground">링크 텍스트</label>
+              <Input value={linkLabel} onChange={(e) => setLinkLabel(e.target.value)} placeholder="참여하기" />
+            </div>
+          </div>
+          <Button onClick={() => createMutation.mutate()} disabled={!title.trim() || createMutation.isPending} className="w-full">
+            {createMutation.isPending ? "생성 중..." : "배너 생성"}
+          </Button>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {banners?.map((b: any) => {
+          const isExpired = new Date(b.ends_at) < new Date();
+          return (
+            <div key={b.id} className="glass-sm rounded-xl p-3 space-y-2">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{b.emoji}</span>
+                  <div>
+                    <p className="text-sm font-bold">{b.title}</p>
+                    {b.description && <p className="text-[10px] text-muted-foreground">{b.description}</p>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  {b.is_active && !isExpired ? (
+                    <Badge variant="default" className="text-[9px]">활성</Badge>
+                  ) : isExpired ? (
+                    <Badge variant="secondary" className="text-[9px]">만료</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[9px]">비활성</Badge>
+                  )}
+                </div>
+              </div>
+              <div className="text-[10px] text-muted-foreground">
+                {new Date(b.starts_at).toLocaleDateString("ko-KR")} ~ {new Date(b.ends_at).toLocaleDateString("ko-KR")}
+                {b.link_url && <span className="ml-2">🔗 {b.link_url}</span>}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 text-xs"
+                  onClick={() => toggleMutation.mutate({ id: b.id, is_active: !b.is_active })}
+                >
+                  {b.is_active ? "비활성화" : "활성화"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="text-xs"
+                  onClick={() => {
+                    if (confirm("이 배너를 삭제하시겠습니까?")) deleteMutation.mutate(b.id);
+                  }}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+        {banners?.length === 0 && (
+          <p className="text-xs text-muted-foreground text-center py-4">등록된 배너가 없습니다.</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default AdminPanelPage;
