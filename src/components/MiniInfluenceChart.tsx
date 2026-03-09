@@ -89,6 +89,8 @@ const MiniInfluenceChart = forwardRef<HTMLDivElement, MiniInfluenceChartProps>((
       </Tooltip>
     </TooltipProvider>
   );
-};
+});
+
+MiniInfluenceChart.displayName = "MiniInfluenceChart";
 
 export default MiniInfluenceChart;

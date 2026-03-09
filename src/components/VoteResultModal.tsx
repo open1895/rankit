@@ -32,6 +32,8 @@ const VoteResultModal = forwardRef<HTMLDivElement, VoteResultModalProps>(({ show
       onShared={() => setShared(true)}
     />
   );
-};
+});
+
+VoteResultModal.displayName = "VoteResultModal";
 
 export default VoteResultModal;
