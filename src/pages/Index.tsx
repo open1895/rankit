@@ -502,6 +502,16 @@ const Index = () => {
         <CreatorBattleSection />
       </ScrollReveal>
 
+      {/* Monthly TOP 3 + Season Rewards */}
+      <div className="container max-w-5xl mx-auto px-4 space-y-4">
+        <ScrollReveal>
+          <MonthlyTop3Widget />
+        </ScrollReveal>
+        <ScrollReveal delay={80}>
+          <SeasonRewardsBanner />
+        </ScrollReveal>
+      </div>
+
       {/* 3. Live VS Battle + Countdown */}
       <div className="container max-w-5xl mx-auto px-4 space-y-6">
         <ScrollReveal>
