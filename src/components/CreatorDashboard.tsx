@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FanActivityInsights from "@/components/FanActivityInsights";
+import CreatorAnnouncement from "@/components/CreatorAnnouncement";
 import {
   TrendingUp, TrendingDown, Users, BarChart3, Clock,
   MessageSquare, FileText, Sparkles, Crown, Activity,
