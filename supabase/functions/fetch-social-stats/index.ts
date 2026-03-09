@@ -70,42 +70,48 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Authentication: require admin role
+    // Check if this is a cron call (Authorization: Bearer <anon_key>)
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const authClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user }, error: authError } = await authClient.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const isCronCall = authHeader === `Bearer ${anonKey}`;
+
+    if (!isCronCall) {
+      // Manual call: require admin role
+      if (!authHeader) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const authClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
       });
+      const { data: { user }, error: authError } = await authClient.auth.getUser();
+      if (authError || !user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+      const { data: roleData } = await supabaseAdmin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (!roleData) {
+        return new Response(JSON.stringify({ error: "Forbidden: admin only" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
-    // Verify admin role
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
-    const { data: roleData } = await supabaseAdmin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle();
-
-    if (!roleData) {
-      return new Response(JSON.stringify({ error: "Forbidden: admin only" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    console.log(`fetch-social-stats called (cron: ${isCronCall})`);
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
@@ -171,8 +177,14 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Recalculate ranks after stats update
+    if (updatedCount > 0) {
+      await supabase.rpc("batch_recalculate_ranks");
+      console.log("Ranks recalculated after stats update");
+    }
+
     return new Response(
-      JSON.stringify({ message: `Updated ${updatedCount}/${creators.length} creators` }),
+      JSON.stringify({ message: `Updated ${updatedCount}/${creators.length} creators, ranks recalculated` }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
