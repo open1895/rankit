@@ -1080,6 +1080,57 @@ export type Database = {
         }
         Relationships: []
       }
+      season_awards: {
+        Row: {
+          award_key: string
+          award_label: string
+          award_type: string
+          created_at: string
+          creator_id: string | null
+          id: string
+          season_id: string
+          season_number: number
+          user_id: string | null
+        }
+        Insert: {
+          award_key?: string
+          award_label?: string
+          award_type?: string
+          created_at?: string
+          creator_id?: string | null
+          id?: string
+          season_id: string
+          season_number?: number
+          user_id?: string | null
+        }
+        Update: {
+          award_key?: string
+          award_label?: string
+          award_type?: string
+          created_at?: string
+          creator_id?: string | null
+          id?: string
+          season_id?: string
+          season_number?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_awards_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_awards_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       season_rankings: {
         Row: {
           created_at: string
