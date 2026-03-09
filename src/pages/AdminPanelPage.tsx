@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff, UserX, Megaphone, Plus, Target, Trophy, BarChart3, Gift, Flag } from "lucide-react";
+import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff, UserX, Megaphone, Plus, Target, Trophy, BarChart3, Gift, Flag, Flag } from "lucide-react";
 import AdminRetentionDashboard from "@/components/AdminRetentionDashboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ const AdminPanelPage = () => {
   const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingRole, setCheckingRole] = useState(true);
-  const [tab, setTab] = useState<"nominations" | "creators" | "users" | "board" | "predictions" | "tournaments" | "retention" | "seasonRewards">("nominations");
+  const [tab, setTab] = useState<"nominations" | "creators" | "users" | "board" | "predictions" | "tournaments" | "retention" | "seasonRe | "banners"wards">("nominations");
   const navigate = useNavigate();
 
   useEffect(() => {
