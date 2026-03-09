@@ -20,6 +20,8 @@ import SocialProofCounters from "@/components/SocialProofCounters";
 import CreatorRecommendations from "@/components/CreatorRecommendations";
 import TrendingNowSection from "@/components/TrendingNowSection";
 import CreatorBattleSection from "@/components/CreatorBattleSection";
+import MonthlyTop3Widget from "@/components/MonthlyTop3Widget";
+import SeasonRewardsBanner from "@/components/SeasonRewardsBanner";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
 import PopularPosts from "@/components/PopularPosts";
