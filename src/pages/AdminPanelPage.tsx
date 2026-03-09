@@ -1102,6 +1102,101 @@ const TournamentsTab = () => {
       </Dialog>
     </>
   );
+/* ─── Season Rewards Tab ─── */
+const SeasonRewardsTab = () => {
+  const queryClient = useQueryClient();
+  const [processing, setProcessing] = useState(false);
+
+  const { data: seasons, isLoading } = useQuery({
+    queryKey: ["admin-seasons"],
+    queryFn: async () => {
+      const { data } = await supabase.from("seasons").select("*").order("season_number", { ascending: false });
+      return data || [];
+    },
+  });
+
+  const { data: awards } = useQuery({
+    queryKey: ["admin-season-awards"],
+    queryFn: async () => {
+      const { data } = await supabase.from("season_awards").select("*").order("created_at", { ascending: false }).limit(50);
+      return data || [];
+    },
+  });
+
+  const processRewards = async (seasonId: string) => {
+    setProcessing(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("로그인이 필요합니다.");
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke("season-rewards", {
+        body: { season_id: seasonId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`시즌 보상 지급 완료! 크리에이터 ${data.creator_awards}건, 팬 ${data.fan_awards}건`);
+      queryClient.invalidateQueries({ queryKey: ["admin-seasons"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-season-awards"] });
+    } catch (err: any) {
+      toast.error(err.message || "보상 지급 실패");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin" /></div>;
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-sm font-bold flex items-center gap-2"><Gift className="w-4 h-4 text-primary" />시즌 보상 관리</h2>
+
+      {/* Active seasons */}
+      <div className="space-y-2">
+        <p className="text-xs text-muted-foreground font-semibold">활성 시즌</p>
+        {seasons?.filter(s => s.is_active).length === 0 && (
+          <p className="text-xs text-muted-foreground">활성 시즌이 없습니다.</p>
+        )}
+        {seasons?.filter(s => s.is_active).map(s => (
+          <div key={s.id} className="glass-sm rounded-xl p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-sm font-bold">{s.title || `시즌 ${s.season_number}`}</span>
+                <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-bold">활성</span>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              {new Date(s.started_at).toLocaleDateString("ko-KR")} ~ {new Date(s.ended_at).toLocaleDateString("ko-KR")}
+            </p>
+            <Button
+              size="sm"
+              onClick={() => processRewards(s.id)}
+              disabled={processing}
+              className="w-full"
+            >
+              {processing ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Gift className="w-4 h-4 mr-1" />}
+              시즌 종료 & 보상 지급
+            </Button>
+          </div>
+        ))}
+      </div>
+
+      {/* Past awards */}
+      <div className="space-y-2">
+        <p className="text-xs text-muted-foreground font-semibold">최근 지급된 보상 ({awards?.length || 0}건)</p>
+        {awards?.slice(0, 20).map(a => (
+          <div key={a.id} className="glass-sm rounded-lg p-2 flex items-center justify-between text-xs">
+            <div>
+              <span className="font-semibold">{a.award_label}</span>
+              <span className="ml-1 text-muted-foreground">({a.award_type})</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground">시즌 {a.season_number}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default AdminPanelPage;
