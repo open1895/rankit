@@ -92,6 +92,7 @@ const App = () => (
                     <Route path="/rising" element={<RisingCreatorsPage />} />
                     <Route path="/battle" element={<BattlePage />} />
                     <Route path="/explore" element={<ExplorePage />} />
+                    <Route path="/monthly-top3" element={<MonthlyTop3 />} />
                     <Route path="/widget/creator/:id" element={<WidgetPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
