@@ -1,5 +1,8 @@
-import { Home, Trophy, TrendingUp, Compass, User } from "lucide-react";
+import { useState } from "react";
+import { Home, Trophy, TrendingUp, Compass, User, Zap } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import RPChargeModal from "./RPChargeModal";
 
 const tabs = [
   { to: "/", icon: Home, label: "홈" },
@@ -12,6 +15,8 @@ const tabs = [
 const DesktopNavBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  const [chargeOpen, setChargeOpen] = useState(false);
 
   const isActive = (to: string) => {
     if (to === "/") return location.pathname === "/";
@@ -34,38 +39,55 @@ const DesktopNavBar = () => {
   };
 
   return (
-    <div className="hidden md:block fixed top-0 left-0 right-0 z-50" style={{
-      background: "rgba(255,255,255,0.72)",
-      backdropFilter: "blur(18px) saturate(180%)",
-      WebkitBackdropFilter: "blur(18px) saturate(180%)",
-      borderBottom: "1px solid rgba(168,130,255,0.18)",
-    }}>
-      <div className="container max-w-2xl mx-auto px-4">
-        <nav className="flex items-center justify-around py-2">
-          {tabs.map(({ to, icon: Icon, label }) => {
-            const active = isActive(to);
-            return (
-              <button
-                key={to}
-                onClick={() => handleClick(to)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 ${
-                  active ? "text-primary" : "text-muted-foreground hover:text-primary/70"
-                }`}
-              >
-                <div className={`p-1.5 rounded-xl transition-all duration-200 ${
-                  active ? "bg-primary/10 shadow-[0_0_12px_hsl(var(--primary)/0.3)]" : ""
-                }`}>
-                  <Icon className={`w-5 h-5 transition-all ${active ? "stroke-[2.5]" : ""}`} />
-                </div>
-                <span className={`text-sm leading-tight ${active ? "font-bold" : "font-medium"}`}>
-                  {label}
-                </span>
-              </button>
-            );
-          })}
-        </nav>
+    <>
+      <div className="hidden md:block fixed top-0 left-0 right-0 z-50" style={{
+        background: "rgba(255,255,255,0.72)",
+        backdropFilter: "blur(18px) saturate(180%)",
+        WebkitBackdropFilter: "blur(18px) saturate(180%)",
+        borderBottom: "1px solid rgba(168,130,255,0.18)",
+      }}>
+        <div className="container max-w-2xl mx-auto px-4">
+          <nav className="flex items-center justify-around py-2">
+            {tabs.map(({ to, icon: Icon, label }) => {
+              const active = isActive(to);
+              return (
+                <button
+                  key={to}
+                  onClick={() => handleClick(to)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 ${
+                    active ? "text-primary" : "text-muted-foreground hover:text-primary/70"
+                  }`}
+                >
+                  <div className={`p-1.5 rounded-xl transition-all duration-200 ${
+                    active ? "bg-primary/10 shadow-[0_0_12px_hsl(var(--primary)/0.3)]" : ""
+                  }`}>
+                    <Icon className={`w-5 h-5 transition-all ${active ? "stroke-[2.5]" : ""}`} />
+                  </div>
+                  <span className={`text-sm leading-tight ${active ? "font-bold" : "font-medium"}`}>
+                    {label}
+                  </span>
+                </button>
+              );
+            })}
+            <button
+              onClick={() => {
+                if (!user) {
+                  import("sonner").then(({ toast }) => toast.info("로그인 후 이용할 수 있습니다."));
+                  return;
+                }
+                setChargeOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold text-sm hover:shadow-[0_2px_16px_hsl(var(--primary)/0.4)] hover:scale-105 transition-all duration-200"
+            >
+              <Zap className="w-4 h-4" />
+              <span>RP 충전</span>
+            </button>
+          </nav>
+        </div>
       </div>
-    </div>
+
+      <RPChargeModal open={chargeOpen} onOpenChange={setChargeOpen} />
+    </>
   );
 };
 
