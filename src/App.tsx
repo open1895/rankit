@@ -94,7 +94,7 @@ const App = () => (
                 </Suspense>
               </PageTransition>
               </div>
-              <FloatingRPButton />
+              
               <PWAInstallPrompt />
               <MobileTabBar />
             </div>
