@@ -148,7 +148,7 @@ const MyPage = () => {
       const [profileRes, votesRes, creatorRes, pointsRes] = await Promise.all([
         supabase
           .from("profiles")
-          .select("display_name, avatar_url")
+          .select("display_name, avatar_url, is_beta_tester")
           .eq("user_id", user.id)
           .single(),
         supabase
