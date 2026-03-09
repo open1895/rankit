@@ -612,6 +612,7 @@ const MyPage = () => {
                   <h2 className="text-lg font-bold truncate">
                     {profile?.display_name || "이름 없음"}
                   </h2>
+                  {profile?.is_beta_tester && <EarlyAdopterBadge size="sm" />}
                   <button
                     onClick={() => setEditing(true)}
                     className="shrink-0 w-7 h-7 rounded-lg glass-sm flex items-center justify-center text-muted-foreground hover:text-neon-cyan transition-colors"
