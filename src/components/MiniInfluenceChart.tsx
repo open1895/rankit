@@ -54,7 +54,7 @@ const MiniInfluenceChart = forwardRef<HTMLDivElement, MiniInfluenceChartProps>((
     <TooltipProvider delayDuration={200}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex flex-col items-center shrink-0 cursor-pointer">
+          <div ref={ref} className="flex flex-col items-center shrink-0 cursor-pointer">
             <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
               <span className="text-xs font-bold text-primary">{displayScore > 99999 ? formatCount(displayScore) : displayScore.toLocaleString()}</span>
             </div>
