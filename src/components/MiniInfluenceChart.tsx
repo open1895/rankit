@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface MiniInfluenceChartProps {
@@ -32,14 +33,14 @@ const platforms = [
   { key: "tiktok", label: "TikTok", icon: "♪", color: "text-foreground", weight: "×0.8" },
 ] as const;
 
-const MiniInfluenceChart = ({
+const MiniInfluenceChart = forwardRef<HTMLDivElement, MiniInfluenceChartProps>(({
   rankitScore,
   youtubeSubscribers,
   chzzkFollowers,
   instagramFollowers,
   tiktokFollowers,
   lastStatsUpdated,
-}: MiniInfluenceChartProps) => {
+}, ref) => {
   const counts: Record<string, number> = {
     youtube: youtubeSubscribers,
     chzzk: chzzkFollowers,
