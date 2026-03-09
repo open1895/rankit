@@ -1102,6 +1102,8 @@ const TournamentsTab = () => {
       </Dialog>
     </>
   );
+};
+
 /* ─── Season Rewards Tab ─── */
 const SeasonRewardsTab = () => {
   const queryClient = useQueryClient();
