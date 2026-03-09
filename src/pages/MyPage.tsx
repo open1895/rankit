@@ -656,6 +656,10 @@ const MyPage = () => {
           {(() => {
             const activity = { votes: votes.length, posts: 0, comments: 0 };
             const earned = getEarnedBadges(activity);
+            // Add early_adopter badge if user is beta tester
+            if (profile?.is_beta_tester && !earned.some(e => e.key === "early_adopter")) {
+              earned.unshift({ key: "early_adopter", label: "얼리어답터", emoji: "✨", color: "bg-amber-500/20 text-amber-400 border-amber-500/30" });
+            }
             const all = getAllBadges();
             return (
               <div className="space-y-2">
