@@ -151,7 +151,7 @@ const AdminPanelPage = () => {
           </button>
         </div>
 
-        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : tab === "predictions" ? <PredictionsTab /> : tab === "tournaments" ? <TournamentsTab /> : tab === "seasonRewards" ? <SeasonRewardsTab /> : <AdminRetentionDashboard />}
+        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : tab === "predictions" ? <PredictionsTab /> : tab === "tournaments" ? <TournamentsTab /> : tab === "seasonRewards" ? <SeasonRewardsTab /> : tab === "banners" ? <BannersTab /> : <AdminRetentionDashboard />}
       </div>
       <Footer />
     </div>

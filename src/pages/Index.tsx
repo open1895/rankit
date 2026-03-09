@@ -486,6 +486,9 @@ const Index = () => {
 
       {/* ===== NEW HOMEPAGE STRUCTURE ===== */}
 
+      {/* 0.5. Event Banners */}
+      <EventBanner />
+
       {/* 1. Hero Section */}
       <HomepageHero />
 
