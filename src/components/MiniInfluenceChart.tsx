@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface MiniInfluenceChartProps {
@@ -32,14 +33,14 @@ const platforms = [
   { key: "tiktok", label: "TikTok", icon: "♪", color: "text-foreground", weight: "×0.8" },
 ] as const;
 
-const MiniInfluenceChart = ({
+const MiniInfluenceChart = forwardRef<HTMLDivElement, MiniInfluenceChartProps>(({
   rankitScore,
   youtubeSubscribers,
   chzzkFollowers,
   instagramFollowers,
   tiktokFollowers,
   lastStatsUpdated,
-}: MiniInfluenceChartProps) => {
+}, ref) => {
   const counts: Record<string, number> = {
     youtube: youtubeSubscribers,
     chzzk: chzzkFollowers,
@@ -53,7 +54,7 @@ const MiniInfluenceChart = ({
     <TooltipProvider delayDuration={200}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex flex-col items-center shrink-0 cursor-pointer">
+          <div ref={ref} className="flex flex-col items-center shrink-0 cursor-pointer">
             <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
               <span className="text-xs font-bold text-primary">{displayScore > 99999 ? formatCount(displayScore) : displayScore.toLocaleString()}</span>
             </div>
@@ -88,6 +89,8 @@ const MiniInfluenceChart = ({
       </Tooltip>
     </TooltipProvider>
   );
-};
+});
+
+MiniInfluenceChart.displayName = "MiniInfluenceChart";
 
 export default MiniInfluenceChart;

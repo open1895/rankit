@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { Creator } from "@/lib/data";
 import OvertakeShareCard from "./OvertakeShareCard";
 
@@ -12,7 +12,7 @@ interface VoteResultModalProps {
   onBonusVote: () => void;
 }
 
-const VoteResultModal = ({ show, creator, aboveCreator, gap, siteUrl, onClose, onBonusVote }: VoteResultModalProps) => {
+const VoteResultModal = forwardRef<HTMLDivElement, VoteResultModalProps>(({ show, creator, aboveCreator, gap, siteUrl, onClose, onBonusVote }, ref) => {
   const [shared, setShared] = useState(false);
 
   if (!show) return null;
@@ -32,6 +32,8 @@ const VoteResultModal = ({ show, creator, aboveCreator, gap, siteUrl, onClose, o
       onShared={() => setShared(true)}
     />
   );
-};
+});
+
+VoteResultModal.displayName = "VoteResultModal";
 
 export default VoteResultModal;
