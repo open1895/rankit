@@ -581,6 +581,54 @@ export type Database = {
         }
         Relationships: []
       }
+      event_banners: {
+        Row: {
+          banner_type: string
+          bg_color: string | null
+          created_at: string
+          description: string
+          emoji: string | null
+          ends_at: string
+          id: string
+          is_active: boolean
+          link_label: string | null
+          link_url: string | null
+          priority: number
+          starts_at: string
+          title: string
+        }
+        Insert: {
+          banner_type?: string
+          bg_color?: string | null
+          created_at?: string
+          description?: string
+          emoji?: string | null
+          ends_at?: string
+          id?: string
+          is_active?: boolean
+          link_label?: string | null
+          link_url?: string | null
+          priority?: number
+          starts_at?: string
+          title: string
+        }
+        Update: {
+          banner_type?: string
+          bg_color?: string | null
+          created_at?: string
+          description?: string
+          emoji?: string | null
+          ends_at?: string
+          id?: string
+          is_active?: boolean
+          link_label?: string | null
+          link_url?: string | null
+          priority?: number
+          starts_at?: string
+          title?: string
+        }
+        Relationships: []
+      }
       hall_of_fame: {
         Row: {
           created_at: string
