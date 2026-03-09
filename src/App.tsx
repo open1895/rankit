@@ -11,12 +11,13 @@ import PageTransition from "@/components/PageTransition";
 import MobileTabBar from "@/components/MobileTabBar";
 import DesktopNavBar from "@/components/DesktopNavBar";
 import PredictionWinPopup from "@/components/PredictionWinPopup";
-
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Lazy-loaded pages
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const CreatorProfile = lazy(() => import("./pages/CreatorProfile"));
 const CreatorBoard = lazy(() => import("./pages/CreatorBoard"));
@@ -49,61 +50,63 @@ const PageFallback = () => (
 );
 
 const App = () => (
-  <HelmetProvider>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TicketProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <PredictionWinPopup />
-            <div className="flex flex-col min-h-screen">
-              <DesktopNavBar />
-              <div className="md:pt-14">
-              <PageTransition>
-                <Suspense fallback={<PageFallback />}>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/onboarding" element={<Onboarding />} />
-                  <Route path="/creator/:id" element={<CreatorProfile />} />
-                  <Route path="/creator/:id/board" element={<CreatorBoard />} />
-                  <Route path="/mypage" element={<MyPage />} />
-                  <Route path="/my" element={<MyPage />} />
-                  <Route path="/support" element={<Support />} />
-                  <Route path="/seasons" element={<SeasonArchive />} />
-                  <Route path="/compare" element={<CompareCreators />} />
-                  <Route path="/fans" element={<FanLeaderboard />} />
-                  <Route path="/tournament" element={<Tournament />} />
-                  <Route path="/shop" element={<PointShop />} />
-                  <Route path="/admin" element={<AdminPage />} />
-                  <Route path="/admin-panel" element={<AdminPanelPage />} />
-                  <Route path="/hall-of-fame" element={<HallOfFame />} />
-                  <Route path="/predictions" element={<PredictionGame />} />
-                  <Route path="/prediction" element={<PredictionGame />} />
-                  <Route path="/community" element={<CommunityPage />} />
-                  <Route path="/recharge" element={<RechargePage />} />
-                  <Route path="/prediction-leaderboard" element={<PredictionLeaderboard />} />
-                  <Route path="/rising" element={<RisingCreatorsPage />} />
-                  <Route path="/battle" element={<BattlePage />} />
-                  <Route path="/explore" element={<ExplorePage />} />
-                  <Route path="/widget/creator/:id" element={<WidgetPage />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                </Suspense>
-              </PageTransition>
+  <ErrorBoundary>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TicketProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <PredictionWinPopup />
+              <div className="flex flex-col min-h-screen">
+                <DesktopNavBar />
+                <div className="md:pt-14">
+                <PageTransition>
+                  <Suspense fallback={<PageFallback />}>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/onboarding" element={<Onboarding />} />
+                    <Route path="/creator/:id" element={<CreatorProfile />} />
+                    <Route path="/creator/:id/board" element={<CreatorBoard />} />
+                    <Route path="/mypage" element={<MyPage />} />
+                    <Route path="/my" element={<MyPage />} />
+                    <Route path="/support" element={<Support />} />
+                    <Route path="/seasons" element={<SeasonArchive />} />
+                    <Route path="/compare" element={<CompareCreators />} />
+                    <Route path="/fans" element={<FanLeaderboard />} />
+                    <Route path="/tournament" element={<Tournament />} />
+                    <Route path="/shop" element={<PointShop />} />
+                    <Route path="/admin" element={<AdminPage />} />
+                    <Route path="/admin-panel" element={<AdminPanelPage />} />
+                    <Route path="/hall-of-fame" element={<HallOfFame />} />
+                    <Route path="/predictions" element={<PredictionGame />} />
+                    <Route path="/prediction" element={<PredictionGame />} />
+                    <Route path="/community" element={<CommunityPage />} />
+                    <Route path="/recharge" element={<RechargePage />} />
+                    <Route path="/prediction-leaderboard" element={<PredictionLeaderboard />} />
+                    <Route path="/rising" element={<RisingCreatorsPage />} />
+                    <Route path="/battle" element={<BattlePage />} />
+                    <Route path="/explore" element={<ExplorePage />} />
+                    <Route path="/widget/creator/:id" element={<WidgetPage />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  </Suspense>
+                </PageTransition>
+                </div>
+                <PWAInstallPrompt />
+                <MobileTabBar />
               </div>
-              
-              <PWAInstallPrompt />
-              <MobileTabBar />
-            </div>
-          </BrowserRouter>
-        </TooltipProvider>
-        </TicketProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  </HelmetProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+          </TicketProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
+  </ErrorBoundary>
 );
 
 export default App;
