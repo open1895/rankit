@@ -143,6 +143,12 @@ const AdminPanelPage = () => {
           >
             <Gift className="w-4 h-4 inline mr-1" />시즌 보상
           </button>
+          <button
+            onClick={() => setTab("banners")}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "banners" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
+          >
+            <Flag className="w-4 h-4 inline mr-1" />배너
+          </button>
         </div>
 
         {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : tab === "predictions" ? <PredictionsTab /> : tab === "tournaments" ? <TournamentsTab /> : tab === "seasonRewards" ? <SeasonRewardsTab /> : <AdminRetentionDashboard />}
