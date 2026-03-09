@@ -8,6 +8,7 @@ export interface FanAchievementBadge {
 }
 
 const BADGES: { key: string; label: string; emoji: string; color: string; test: (a: FanActivityPoints) => boolean }[] = [
+  { key: "early_adopter", label: "얼리어답터", emoji: "✨", color: "bg-amber-500/20 text-amber-400 border-amber-500/30", test: () => false }, // Granted via DB flag, always shown separately
   { key: "top_voter", label: "Top Voter", emoji: "🗳️", color: "bg-purple-500/20 text-purple-400 border-purple-500/30", test: (a) => a.votes >= 30 },
   { key: "top_commenter", label: "Top Commenter", emoji: "💬", color: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30", test: (a) => a.comments >= 20 },
   { key: "early_fan", label: "Early Fan", emoji: "🌟", color: "bg-amber-500/20 text-amber-400 border-amber-500/30", test: (a) => a.votes >= 1 && a.posts >= 1 && a.comments >= 1 },

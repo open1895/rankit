@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
 
 import SEOHead from "@/components/SEOHead";
+import EarlyAdopterBadge from "@/components/EarlyAdopterBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -48,6 +49,7 @@ import { ko } from "date-fns/locale";
 interface Profile {
   display_name: string;
   avatar_url: string;
+  is_beta_tester?: boolean;
 }
 
 interface VoteRecord {
@@ -146,7 +148,7 @@ const MyPage = () => {
       const [profileRes, votesRes, creatorRes, pointsRes] = await Promise.all([
         supabase
           .from("profiles")
-          .select("display_name, avatar_url")
+          .select("display_name, avatar_url, is_beta_tester")
           .eq("user_id", user.id)
           .single(),
         supabase
@@ -610,6 +612,7 @@ const MyPage = () => {
                   <h2 className="text-lg font-bold truncate">
                     {profile?.display_name || "이름 없음"}
                   </h2>
+                  {profile?.is_beta_tester && <EarlyAdopterBadge size="sm" />}
                   <button
                     onClick={() => setEditing(true)}
                     className="shrink-0 w-7 h-7 rounded-lg glass-sm flex items-center justify-center text-muted-foreground hover:text-neon-cyan transition-colors"
@@ -653,6 +656,10 @@ const MyPage = () => {
           {(() => {
             const activity = { votes: votes.length, posts: 0, comments: 0 };
             const earned = getEarnedBadges(activity);
+            // Add early_adopter badge if user is beta tester
+            if (profile?.is_beta_tester && !earned.some(e => e.key === "early_adopter")) {
+              earned.unshift({ key: "early_adopter", label: "얼리어답터", emoji: "✨", color: "bg-amber-500/20 text-amber-400 border-amber-500/30" });
+            }
             const all = getAllBadges();
             return (
               <div className="space-y-2">

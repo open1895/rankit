@@ -974,6 +974,7 @@ export type Database = {
           daily_ticket_claimed_at: string | null
           display_name: string
           id: string
+          is_beta_tester: boolean
           tickets: number
           updated_at: string
           user_id: string
@@ -984,6 +985,7 @@ export type Database = {
           daily_ticket_claimed_at?: string | null
           display_name?: string
           id?: string
+          is_beta_tester?: boolean
           tickets?: number
           updated_at?: string
           user_id: string
@@ -994,6 +996,7 @@ export type Database = {
           daily_ticket_claimed_at?: string | null
           display_name?: string
           id?: string
+          is_beta_tester?: boolean
           tickets?: number
           updated_at?: string
           user_id?: string
