@@ -137,6 +137,12 @@ const AdminPanelPage = () => {
           >
             <BarChart3 className="w-4 h-4 inline mr-1" />리텐션
           </button>
+          <button
+            onClick={() => setTab("season-rewards")}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "season-rewards" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
+          >
+            <Gift className="w-4 h-4 inline mr-1" />시즌 보상
+          </button>
         </div>
 
         {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : tab === "predictions" ? <PredictionsTab /> : tab === "tournaments" ? <TournamentsTab /> : <AdminRetentionDashboard />}
