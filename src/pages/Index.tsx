@@ -26,6 +26,8 @@ import EventBanner from "@/components/EventBanner";
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import NewUserWelcome from "@/components/NewUserWelcome";
 import PopularPosts from "@/components/PopularPosts";
+import LandingHero from "@/components/LandingHero";
+import PushNotificationPrompt from "@/components/PushNotificationPrompt";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -332,6 +334,21 @@ const Index = () => {
         description="팬의 투표로 결정되는 크리에이터 영향력 순위! 투표하고, 예측하고, 좋아하는 크리에이터를 응원하세요."
         path="/"
       />
+
+      {/* Push Notification Prompt */}
+      <PushNotificationPrompt />
+
+      {/* Landing page for non-logged-in users */}
+      {!user && !loading && (
+        <>
+          <LandingHero />
+          <Footer />
+        </>
+      )}
+
+      {/* Show full app only for logged-in users or during loading */}
+      {(user || loading) && (
+      <>
 
       {/* Mobile Header */}
       <header className="sticky top-0 z-40 w-full overflow-x-hidden glass border-b border-glass-border/50 md:hidden">
@@ -665,7 +682,8 @@ const Index = () => {
 
       {/* Modals */}
       <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
-      
+      </>
+      )}
     </div>
   );
 };
