@@ -335,6 +335,21 @@ const Index = () => {
         path="/"
       />
 
+      {/* Push Notification Prompt */}
+      <PushNotificationPrompt />
+
+      {/* Landing page for non-logged-in users */}
+      {!user && !loading && (
+        <>
+          <LandingHero />
+          <Footer />
+        </>
+      )}
+
+      {/* Show full app only for logged-in users or during loading */}
+      {(user || loading) && (
+      <>
+
       {/* Mobile Header */}
       <header className="sticky top-0 z-40 w-full overflow-x-hidden glass border-b border-glass-border/50 md:hidden">
         <div className="w-full py-2.5 flex items-center justify-between gap-1 px-2">
