@@ -1408,4 +1408,118 @@ const BannersTab = () => {
   );
 };
 
+/* ─── Claims Tab ─── */
+const ClaimsTab = () => {
+  const queryClient = useQueryClient();
+
+  const { data: claims, isLoading } = useQuery({
+    queryKey: ["admin-claims"],
+    queryFn: async () => {
+      const { data } = await supabase.functions.invoke("admin", { body: { action: "list_claim_requests" } });
+      return data?.claims || [];
+    },
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async (creator_id: string) => {
+      const { data, error } = await supabase.functions.invoke("admin", { body: { action: "approve_claim", creator_id } });
+      if (error) throw error; return data;
+    },
+    onSuccess: () => { toast.success("인증이 승인되었습니다!"); queryClient.invalidateQueries({ queryKey: ["admin-claims"] }); },
+    onError: (e: any) => toast.error(`승인 실패: ${e.message}`),
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async (creator_id: string) => {
+      const { data, error } = await supabase.functions.invoke("admin", { body: { action: "reject_claim", creator_id } });
+      if (error) throw error; return data;
+    },
+    onSuccess: () => { toast.success("인증이 반려되었습니다."); queryClient.invalidateQueries({ queryKey: ["admin-claims"] }); },
+    onError: (e: any) => toast.error(`반려 실패: ${e.message}`),
+  });
+
+  if (isLoading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
+
+  const pending = (claims || []).filter((c: any) => c.verification_status === "pending");
+  const rejected = (claims || []).filter((c: any) => c.verification_status === "rejected");
+
+  return (
+    <div className="space-y-4">
+      <Badge variant="outline" className="text-xs">대기 {pending.length}건</Badge>
+
+      {pending.length === 0 && rejected.length === 0 && (
+        <div className="text-center py-16 text-muted-foreground text-sm">대기 중인 인증 요청이 없습니다.</div>
+      )}
+
+      {pending.map((c: any) => (
+        <div key={c.id} className="glass rounded-xl border border-glass-border p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <img src={c.avatar_url?.startsWith("http") ? c.avatar_url : c.avatar_url?.startsWith("/") ? c.avatar_url : "/placeholder.svg"} alt="" className="w-12 h-12 rounded-full object-cover bg-muted" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-foreground truncate">{c.name}</p>
+              <div className="flex items-center gap-1.5">
+                <Badge variant="secondary" className="text-[10px]">{c.category || "-"}</Badge>
+                <span className="text-[10px] text-muted-foreground">#{c.rank}</span>
+                <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px]">심사 대기</Badge>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-sm p-3 rounded-lg space-y-1.5">
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground font-medium w-16 shrink-0">신청자</span>
+              <span className="text-foreground">{c.applicant_name}</span>
+            </div>
+            {c.contact_email && (
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground font-medium w-16 shrink-0">이메일</span>
+                <span className="text-foreground truncate">{c.contact_email}</span>
+              </div>
+            )}
+            {c.instagram_handle && (
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground font-medium w-16 shrink-0">Instagram</span>
+                <span className="text-foreground">{c.instagram_handle}</span>
+              </div>
+            )}
+            {c.claim_message && (
+              <div className="text-xs mt-2">
+                <span className="text-muted-foreground font-medium">메시지:</span>
+                <p className="text-foreground mt-0.5 line-clamp-3">{c.claim_message}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => approveMutation.mutate(c.id)} disabled={approveMutation.isPending || rejectMutation.isPending} className="flex-1 bg-green-600 hover:bg-green-700 text-white h-9">
+              {approveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              <span className="ml-1">승인</span>
+            </Button>
+            <Button size="sm" variant="destructive" onClick={() => rejectMutation.mutate(c.id)} disabled={approveMutation.isPending || rejectMutation.isPending} className="flex-1 h-9">
+              {rejectMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+              <span className="ml-1">반려</span>
+            </Button>
+          </div>
+        </div>
+      ))}
+
+      {rejected.length > 0 && (
+        <>
+          <div className="text-xs font-semibold text-muted-foreground pt-2">반려됨 ({rejected.length}건)</div>
+          {rejected.map((c: any) => (
+            <div key={c.id} className="glass rounded-xl border border-destructive/20 p-3 flex items-center gap-3 opacity-60">
+              <img src={c.avatar_url?.startsWith("http") ? c.avatar_url : "/placeholder.svg"} alt="" className="w-8 h-8 rounded-full object-cover bg-muted" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-foreground truncate">{c.name}</p>
+                <p className="text-[10px] text-muted-foreground">{c.applicant_name}</p>
+              </div>
+              <Badge variant="destructive" className="text-[10px]">반려</Badge>
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  );
+};
+
 export default AdminPanelPage;
