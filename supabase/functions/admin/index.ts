@@ -489,6 +489,93 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
 
+    // ─── LIST CLAIM REQUESTS ─────────────────────────────
+    if (action === "list_claim_requests") {
+      const { data, error } = await adminClient
+        .from("creators")
+        .select("id, name, avatar_url, category, user_id, verification_status, contact_email, instagram_handle, claim_message, rank")
+        .in("verification_status", ["pending", "rejected"])
+        .order("rank", { ascending: true });
+      if (error) throw error;
+
+      // Fetch applicant display names
+      const userIds = (data || []).filter((c: any) => c.user_id).map((c: any) => c.user_id);
+      let profileMap = new Map();
+      if (userIds.length > 0) {
+        const { data: profiles } = await adminClient
+          .from("profiles")
+          .select("user_id, display_name")
+          .in("user_id", userIds);
+        profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p.display_name]));
+      }
+
+      const enriched = (data || []).map((c: any) => ({
+        ...c,
+        applicant_name: profileMap.get(c.user_id) || "알 수 없음",
+      }));
+
+      return new Response(JSON.stringify({ claims: enriched }), { headers: corsHeaders });
+    }
+
+    // ─── APPROVE CLAIM ───────────────────────────────────
+    if (action === "approve_claim") {
+      const { creator_id } = body;
+      if (!creator_id) return new Response(JSON.stringify({ error: "creator_id required" }), { status: 400, headers: corsHeaders });
+
+      const { data: creator } = await adminClient.from("creators").select("user_id, name").eq("id", creator_id).single();
+      if (!creator) return new Response(JSON.stringify({ error: "Creator not found" }), { status: 404, headers: corsHeaders });
+
+      const { error } = await adminClient.from("creators").update({
+        claimed: true,
+        claimed_at: new Date().toISOString(),
+        verification_status: "verified",
+        is_verified: true,
+      }).eq("id", creator_id);
+      if (error) throw error;
+
+      // Notify the user
+      if (creator.user_id) {
+        await adminClient.from("notifications").insert({
+          user_id: creator.user_id,
+          type: "claim_approved",
+          title: "🎉 크리에이터 인증 승인!",
+          message: `${creator.name} 프로필이 인증되었습니다. 대시보드와 배지가 활성화되었습니다!`,
+          link: `/creator/${creator_id}`,
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── REJECT CLAIM ────────────────────────────────────
+    if (action === "reject_claim") {
+      const { creator_id } = body;
+      if (!creator_id) return new Response(JSON.stringify({ error: "creator_id required" }), { status: 400, headers: corsHeaders });
+
+      const { data: creator } = await adminClient.from("creators").select("user_id, name").eq("id", creator_id).single();
+      if (!creator) return new Response(JSON.stringify({ error: "Creator not found" }), { status: 404, headers: corsHeaders });
+
+      const { error } = await adminClient.from("creators").update({
+        verification_status: "rejected",
+        user_id: null,
+        claimed: false,
+      }).eq("id", creator_id);
+      if (error) throw error;
+
+      // Notify the user
+      if (creator.user_id) {
+        await adminClient.from("notifications").insert({
+          user_id: creator.user_id,
+          type: "claim_rejected",
+          title: "크리에이터 인증 결과",
+          message: `${creator.name} 프로필 인증 요청이 반려되었습니다. 추가 정보와 함께 다시 신청해주세요.`,
+          link: `/creator/${creator_id}`,
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
     return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: corsHeaders });
 
   } catch (err: any) {

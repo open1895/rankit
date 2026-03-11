@@ -520,15 +520,27 @@ const CreatorProfile = () => {
             </Button>
           )}
 
-          {/* Claim Profile Button - show for logged in users when creator has no owner */}
-          {!isEditing && user && !creator.user_id && (
+          {/* Claim Profile Button */}
+          {!isEditing && user && !creator.user_id && (creator as any).verification_status !== "pending" && (
             <Button
               onClick={() => setShowClaimModal(true)}
               variant="outline" size="sm"
               className="w-full glass-sm border-[hsl(var(--neon-cyan)/0.3)] text-[hsl(var(--neon-cyan))] text-xs rounded-xl hover:border-[hsl(var(--neon-cyan)/0.6)]"
             >
-              <Shield className="w-3 h-3 mr-1" /> 이 크리에이터 프로필 인증하기
+              <Shield className="w-3 h-3 mr-1" />
+              {(creator as any).verification_status === "rejected" ? "인증 재신청하기" : "이 크리에이터 프로필 인증하기"}
             </Button>
+          )}
+
+          {/* Pending status indicator */}
+          {(creator as any).verification_status === "pending" && (
+            <div className="glass-sm p-3 rounded-xl border border-yellow-500/30 text-center">
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+                <span className="text-xs font-semibold text-yellow-500">인증 심사 중</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">관리자 심사가 진행 중입니다. 결과는 알림으로 안내됩니다.</p>
+            </div>
           )}
         </div>
 
