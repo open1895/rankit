@@ -38,7 +38,8 @@ Deno.serve(async (req) => {
     }
 
     const userId = userData.user.id;
-    const { action, creator_id, verification_code } = await req.json();
+    const body = await req.json();
+    const { action, creator_id } = body;
 
     if (!creator_id || typeof creator_id !== "string") {
       return new Response(
@@ -56,37 +57,116 @@ Deno.serve(async (req) => {
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (existingCreator) {
+    if (existingCreator && action !== "generate_code" && action !== "verify_claim") {
       return new Response(
         JSON.stringify({ error: "이미 연동된 크리에이터가 있습니다.", existing_creator: existingCreator.name }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Check if the target creator exists and has no user_id
+    // Check if the target creator exists
     const { data: targetCreator, error: fetchError } = await adminClient
       .from("creators")
-      .select("id, name, user_id, channel_link, youtube_channel_id, chzzk_channel_id")
+      .select("id, name, user_id, channel_link, youtube_channel_id, chzzk_channel_id, verification_status")
       .eq("id", creator_id)
       .single();
 
     if (fetchError || !targetCreator) {
       return new Response(
         JSON.stringify({ error: "크리에이터를 찾을 수 없습니다." }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (targetCreator.user_id) {
+    if (targetCreator.user_id && targetCreator.user_id !== userId) {
       return new Response(
         JSON.stringify({ error: "이미 다른 계정에 연동된 크리에이터입니다." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // === SUBMIT CLAIM REQUEST (new simple form) ===
+    if (action === "submit_claim_request") {
+      const { applicant_name, contact_email, instagram_handle, youtube_channel, claim_message } = body;
+
+      // Validate inputs
+      if (!applicant_name || typeof applicant_name !== "string" || applicant_name.trim().length < 2 || applicant_name.trim().length > 50) {
+        return new Response(
+          JSON.stringify({ error: "이름은 2~50자로 입력해주세요." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (!contact_email || typeof contact_email !== "string" || !contact_email.includes("@") || contact_email.length > 255) {
+        return new Response(
+          JSON.stringify({ error: "유효한 이메일 주소를 입력해주세요." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Check if already pending
+      if (targetCreator.verification_status === "pending") {
+        return new Response(
+          JSON.stringify({ error: "이미 인증 심사가 진행 중입니다." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (targetCreator.verification_status === "verified") {
+        return new Response(
+          JSON.stringify({ error: "이미 인증된 크리에이터입니다." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Update creator with claim request data
+      const { error: updateError } = await adminClient
+        .from("creators")
+        .update({
+          user_id: userId,
+          verification_status: "pending",
+          contact_email: (contact_email || "").trim().slice(0, 255),
+          instagram_handle: (instagram_handle || "").trim().slice(0, 100),
+          claim_message: (claim_message || "").trim().slice(0, 500),
+        })
+        .eq("id", creator_id);
+
+      if (updateError) {
+        return new Response(
+          JSON.stringify({ error: "신청에 실패했습니다." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Notify admins
+      const { data: adminRoles } = await adminClient
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      if (adminRoles && adminRoles.length > 0) {
+        const notifications = adminRoles.map((r: any) => ({
+          user_id: r.user_id,
+          type: "claim_request",
+          title: "🔔 크리에이터 인증 요청",
+          message: `${applicant_name.trim()}님이 "${targetCreator.name}" 프로필 인증을 요청했습니다.`,
+          link: "/admin-panel",
+        }));
+        await adminClient.from("notifications").insert(notifications);
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, message: "인증 신청이 접수되었습니다! 관리자 심사 후 결과를 알려드립니다." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // === GENERATE VERIFICATION CODE ===
     if (action === "generate_code") {
-      // Generate a unique verification code based on user + creator
+      if (existingCreator) {
+        return new Response(
+          JSON.stringify({ error: "이미 연동된 크리에이터가 있습니다.", existing_creator: existingCreator.name }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       const rawCode = `RANKIT-${creator_id.slice(0, 4).toUpperCase()}-${userId.slice(0, 4).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
       const code = rawCode.slice(0, 24);
       
@@ -104,34 +184,38 @@ Deno.serve(async (req) => {
       );
     }
 
-    // === VERIFY AND CLAIM ===
+    // === VERIFY AND CLAIM (instant code verification) ===
     if (action === "verify_claim") {
+      const { verification_code } = body;
       if (!verification_code || typeof verification_code !== "string" || verification_code.length < 10) {
         return new Response(
           JSON.stringify({ error: "유효한 인증 코드가 필요합니다." }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Verify the code format matches expected pattern
       if (!verification_code.startsWith("RANKIT-")) {
         return new Response(
           JSON.stringify({ error: "잘못된 인증 코드 형식입니다." }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // For now, trust the verification code and claim the profile
-      // In production, you could check the YouTube/channel description via API
       const { error: updateError } = await adminClient
         .from("creators")
-        .update({ user_id: userId, is_verified: true })
+        .update({ 
+          user_id: userId, 
+          is_verified: true, 
+          claimed: true, 
+          claimed_at: new Date().toISOString(),
+          verification_status: "verified",
+        })
         .eq("id", creator_id);
 
       if (updateError) {
         return new Response(
           JSON.stringify({ error: "연동에 실패했습니다." }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -141,21 +225,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // === DIRECT CLAIM (legacy, simple claim) ===
-    const { error: updateError } = await adminClient
-      .from("creators")
-      .update({ user_id: userId })
-      .eq("id", creator_id);
-
-    if (updateError) {
-      return new Response(
-        JSON.stringify({ error: "연동에 실패했습니다." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     return new Response(
-      JSON.stringify({ success: true, message: "크리에이터가 연동되었습니다!", creator_name: targetCreator.name }),
+      JSON.stringify({ error: "알 수 없는 액션입니다." }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {

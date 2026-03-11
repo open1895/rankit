@@ -522,9 +522,14 @@ export type Database = {
           channel_link: string
           chzzk_channel_id: string
           chzzk_followers: number
+          claim_message: string | null
+          claimed: boolean
+          claimed_at: string | null
+          contact_email: string | null
           created_at: string
           id: string
           instagram_followers: number
+          instagram_handle: string | null
           is_verified: boolean
           last_stats_updated: string | null
           name: string
@@ -533,6 +538,7 @@ export type Database = {
           subscriber_count: number
           tiktok_followers: number
           user_id: string | null
+          verification_status: string
           votes_count: number
           youtube_channel_id: string
           youtube_subscribers: number
@@ -543,9 +549,14 @@ export type Database = {
           channel_link?: string
           chzzk_channel_id?: string
           chzzk_followers?: number
+          claim_message?: string | null
+          claimed?: boolean
+          claimed_at?: string | null
+          contact_email?: string | null
           created_at?: string
           id?: string
           instagram_followers?: number
+          instagram_handle?: string | null
           is_verified?: boolean
           last_stats_updated?: string | null
           name: string
@@ -554,6 +565,7 @@ export type Database = {
           subscriber_count?: number
           tiktok_followers?: number
           user_id?: string | null
+          verification_status?: string
           votes_count?: number
           youtube_channel_id?: string
           youtube_subscribers?: number
@@ -564,9 +576,14 @@ export type Database = {
           channel_link?: string
           chzzk_channel_id?: string
           chzzk_followers?: number
+          claim_message?: string | null
+          claimed?: boolean
+          claimed_at?: string | null
+          contact_email?: string | null
           created_at?: string
           id?: string
           instagram_followers?: number
+          instagram_handle?: string | null
           is_verified?: boolean
           last_stats_updated?: string | null
           name?: string
@@ -575,6 +592,7 @@ export type Database = {
           subscriber_count?: number
           tiktok_followers?: number
           user_id?: string | null
+          verification_status?: string
           votes_count?: number
           youtube_channel_id?: string
           youtube_subscribers?: number
