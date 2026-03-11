@@ -103,7 +103,7 @@ const CreatorProfile = () => {
   const hallOfFameWins = useHallOfFameWins();
 
   // State
-  const [creator, setCreator] = useState<(Creator & { channel_link?: string; user_id?: string; youtube_channel_id?: string; chzzk_channel_id?: string }) | null>(null);
+  const [creator, setCreator] = useState<(Creator & { channel_link?: string; user_id?: string; youtube_channel_id?: string; chzzk_channel_id?: string; verification_status?: string }) | null>(null);
   const [rankHistory, setRankHistory] = useState<RankHistoryPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCreators, setTotalCreators] = useState(0);
