@@ -149,9 +149,15 @@ const AdminPanelPage = () => {
           >
             <Flag className="w-4 h-4 inline mr-1" />배너
           </button>
+          <button
+            onClick={() => setTab("claims")}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "claims" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
+          >
+            <Shield className="w-4 h-4 inline mr-1" />인증
+          </button>
         </div>
 
-        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : tab === "predictions" ? <PredictionsTab /> : tab === "tournaments" ? <TournamentsTab /> : tab === "seasonRewards" ? <SeasonRewardsTab /> : tab === "banners" ? <BannersTab /> : <AdminRetentionDashboard />}
+        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : tab === "predictions" ? <PredictionsTab /> : tab === "tournaments" ? <TournamentsTab /> : tab === "seasonRewards" ? <SeasonRewardsTab /> : tab === "banners" ? <BannersTab /> : tab === "claims" ? <ClaimsTab /> : <AdminRetentionDashboard />}
       </div>
       <Footer />
     </div>
