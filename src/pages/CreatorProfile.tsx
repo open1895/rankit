@@ -160,6 +160,7 @@ const CreatorProfile = () => {
         instagram_followers: (c as any).instagram_followers ?? 0,
         tiktok_followers: (c as any).tiktok_followers ?? 0,
         rankit_score: (c as any).rankit_score ?? 0,
+        verification_status: (c as any).verification_status || "none",
       });
       setRankHistory(historyRes.data || []);
       setComments(commentsRes.data || []);
