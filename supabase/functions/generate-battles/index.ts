@@ -101,7 +101,8 @@ Deno.serve(async (req) => {
           newBattles.push({
             creator_a_id: a.id,
             creator_b_id: b.id,
-            featured: i === 0 && activeCount === 0, // First battle is featured
+            category: cat,
+            featured: i === 0 && activeCount === 0,
           });
           // Remove used creators from pool
           pool.splice(j, 2);
