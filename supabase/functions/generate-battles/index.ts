@@ -15,12 +15,27 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Close expired battles
-    await supabase
+    // Get expired battles to determine winners before closing
+    const { data: expiredBattles } = await supabase
       .from("battles")
-      .update({ status: "completed" })
+      .select("id, votes_a, votes_b, creator_a_id, creator_b_id")
       .eq("status", "active")
       .lt("ends_at", new Date().toISOString());
+
+    // Close expired battles with winner_id
+    if (expiredBattles && expiredBattles.length > 0) {
+      for (const battle of expiredBattles) {
+        const winnerId = battle.votes_a > battle.votes_b
+          ? battle.creator_a_id
+          : battle.votes_b > battle.votes_a
+            ? battle.creator_b_id
+            : null; // tie = no winner
+        await supabase
+          .from("battles")
+          .update({ status: "completed", winner_id: winnerId })
+          .eq("id", battle.id);
+      }
+    }
 
     // Check how many active battles exist
     const { data: activeBattles } = await supabase
