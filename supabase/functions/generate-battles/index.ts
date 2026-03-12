@@ -15,12 +15,27 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Close expired battles
-    await supabase
+    // Get expired battles to determine winners before closing
+    const { data: expiredBattles } = await supabase
       .from("battles")
-      .update({ status: "completed" })
+      .select("id, votes_a, votes_b, creator_a_id, creator_b_id")
       .eq("status", "active")
       .lt("ends_at", new Date().toISOString());
+
+    // Close expired battles with winner_id
+    if (expiredBattles && expiredBattles.length > 0) {
+      for (const battle of expiredBattles) {
+        const winnerId = battle.votes_a > battle.votes_b
+          ? battle.creator_a_id
+          : battle.votes_b > battle.votes_a
+            ? battle.creator_b_id
+            : null; // tie = no winner
+        await supabase
+          .from("battles")
+          .update({ status: "completed", winner_id: winnerId })
+          .eq("id", battle.id);
+      }
+    }
 
     // Check how many active battles exist
     const { data: activeBattles } = await supabase
@@ -86,7 +101,8 @@ Deno.serve(async (req) => {
           newBattles.push({
             creator_a_id: a.id,
             creator_b_id: b.id,
-            featured: i === 0 && activeCount === 0, // First battle is featured
+            category: cat,
+            featured: i === 0 && activeCount === 0,
           });
           // Remove used creators from pool
           pool.splice(j, 2);
@@ -117,6 +133,7 @@ Deno.serve(async (req) => {
           newBattles.push({
             creator_a_id: a.id,
             creator_b_id: b.id,
+            category: a.category || b.category || '크로스',
             featured: newBattles.length === 0 && activeCount === 0,
           });
           remaining.splice(idx, 2);

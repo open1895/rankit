@@ -55,6 +55,7 @@ export type Database = {
       }
       battles: {
         Row: {
+          category: string
           created_at: string
           creator_a_id: string
           creator_b_id: string
@@ -64,8 +65,10 @@ export type Database = {
           status: string
           votes_a: number
           votes_b: number
+          winner_id: string | null
         }
         Insert: {
+          category?: string
           created_at?: string
           creator_a_id: string
           creator_b_id: string
@@ -75,8 +78,10 @@ export type Database = {
           status?: string
           votes_a?: number
           votes_b?: number
+          winner_id?: string | null
         }
         Update: {
+          category?: string
           created_at?: string
           creator_a_id?: string
           creator_b_id?: string
@@ -86,6 +91,7 @@ export type Database = {
           status?: string
           votes_a?: number
           votes_b?: number
+          winner_id?: string | null
         }
         Relationships: [
           {
@@ -98,6 +104,13 @@ export type Database = {
           {
             foreignKeyName: "battles_creator_b_id_fkey"
             columns: ["creator_b_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battles_winner_id_fkey"
+            columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "creators"
             referencedColumns: ["id"]
