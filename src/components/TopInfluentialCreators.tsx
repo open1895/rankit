@@ -20,22 +20,20 @@ const TopInfluentialCreators = () => {
     const fetch = async () => {
       const { data } = await supabase
         .from("creators")
-        .select("id, name, avatar_url, category, rank, votes_count, subscriber_count, youtube_subscribers, chzzk_followers, instagram_followers, tiktok_followers")
+        .select("id, name, avatar_url, category, rank, rankit_score")
         .order("rank", { ascending: true })
-        .limit(100);
+        .limit(10);
 
       if (!data) { setLoading(false); return; }
 
-      const maxSubs = Math.max(1, ...data.map(c => (c.youtube_subscribers || 0) + (c.chzzk_followers || 0) + (c.instagram_followers || 0) + (c.tiktok_followers || 0)));
-      const maxVotes = Math.max(1, ...data.map(c => c.votes_count || 0));
-
-      const scored = data.map(c => {
-        const totalSubs = (c.youtube_subscribers || 0) + (c.chzzk_followers || 0) + (c.instagram_followers || 0) + (c.tiktok_followers || 0);
-        const subsNorm = Math.min(100, (totalSubs / maxSubs) * 100);
-        const votesNorm = Math.min(100, ((c.votes_count || 0) / maxVotes) * 100);
-        const influenceScore = Math.round(subsNorm * 0.4 + votesNorm * 0.3 + 50 * 0.2 + 50 * 0.1);
-        return { id: c.id, name: c.name, avatar_url: c.avatar_url, category: c.category, influenceScore, rank: c.rank };
-      });
+      const scored = data.map(c => ({
+        id: c.id,
+        name: c.name,
+        avatar_url: c.avatar_url,
+        category: c.category,
+        influenceScore: Math.round(c.rankit_score || 0),
+        rank: c.rank
+      }));
 
       scored.sort((a, b) => b.influenceScore - a.influenceScore);
       setCreators(scored.slice(0, 5));
