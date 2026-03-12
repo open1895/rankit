@@ -133,6 +133,7 @@ Deno.serve(async (req) => {
           newBattles.push({
             creator_a_id: a.id,
             creator_b_id: b.id,
+            category: a.category || b.category || '크로스',
             featured: newBattles.length === 0 && activeCount === 0,
           });
           remaining.splice(idx, 2);
