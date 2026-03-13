@@ -19,7 +19,7 @@ const AdminPanelPage = () => {
   const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingRole, setCheckingRole] = useState(true);
-  const [tab, setTab] = useState<"nominations" | "creators" | "users" | "board" | "predictions" | "tournaments" | "retention" | "seasonRewards" | "banners" | "claims">("nominations");
+  const [tab, setTab] = useState<"nominations" | "creators" | "users" | "board" | "predictions" | "tournaments" | "retention" | "seasonRewards" | "banners" | "claims" | "promotions">("nominations");
   const navigate = useNavigate();
 
   useEffect(() => {
