@@ -1528,4 +1528,98 @@ const ClaimsTab = () => {
   );
 };
 
+/* ─── Promotions Tab ─── */
+const PromotionsTab = () => {
+  const queryClient = useQueryClient();
+  const [durationMap, setDurationMap] = useState<Record<string, number>>({});
+
+  const { data: promotions, isLoading } = useQuery({
+    queryKey: ["admin-promotions"],
+    queryFn: async () => {
+      const { data } = await supabase.functions.invoke("admin", {
+        body: { action: "list_promotions" },
+      });
+      return data?.promotions || [];
+    },
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async ({ id, hours }: { id: string; hours: number }) => {
+      const { data, error } = await supabase.functions.invoke("admin", {
+        body: { action: "approve_promotion", creator_id: id, duration_hours: hours },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { toast.success("프로모션 승인 완료!"); queryClient.invalidateQueries({ queryKey: ["admin-promotions"] }); },
+    onError: (e: any) => toast.error(`승인 실패: ${e.message}`),
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase.functions.invoke("admin", {
+        body: { action: "reject_promotion", creator_id: id },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { toast.success("프로모션 반려 완료"); queryClient.invalidateQueries({ queryKey: ["admin-promotions"] }); },
+    onError: (e: any) => toast.error(`반려 실패: ${e.message}`),
+  });
+
+  if (isLoading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
+  if (!promotions?.length) return <div className="text-center py-16 text-muted-foreground text-sm">대기 중인 프로모션 신청이 없습니다.</div>;
+
+  return (
+    <div className="space-y-3">
+      <Badge variant="outline" className="text-xs">대기 {promotions.length}건</Badge>
+      {promotions.map((p: any) => (
+        <div key={p.id} className="glass rounded-xl border border-glass-border p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <img src={p.avatar_url?.startsWith("http") ? p.avatar_url : p.avatar_url?.startsWith("/") ? p.avatar_url : "/placeholder.svg"} alt="" className="w-10 h-10 rounded-full object-cover bg-muted" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-foreground truncate">{p.name}</p>
+              <div className="flex items-center gap-1.5">
+                <Badge variant="secondary" className="text-[10px]">{p.category || "-"}</Badge>
+                <span className="text-[10px] text-muted-foreground">#{p.rank}</span>
+                <Badge className="text-[10px]">
+                  {p.promotion_type === "featured" ? "⭐ Featured" : "🚀 Rising"}
+                </Badge>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-semibold text-muted-foreground">승인 기간</label>
+            <div className="flex gap-1.5">
+              {[{ l: "24시간", h: 24 }, { l: "3일", h: 72 }, { l: "7일", h: 168 }].map((d) => (
+                <button
+                  key={d.h}
+                  onClick={() => setDurationMap(prev => ({ ...prev, [p.id]: d.h }))}
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                    (durationMap[p.id] || 24) === d.h
+                      ? "gradient-primary text-primary-foreground"
+                      : "glass-sm text-muted-foreground"
+                  }`}
+                >
+                  {d.l}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => approveMutation.mutate({ id: p.id, hours: durationMap[p.id] || 24 })} disabled={approveMutation.isPending || rejectMutation.isPending} className="flex-1 bg-green-600 hover:bg-green-700 text-white h-9">
+              {approveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} 승인
+            </Button>
+            <Button size="sm" variant="destructive" onClick={() => rejectMutation.mutate(p.id)} disabled={approveMutation.isPending || rejectMutation.isPending} className="flex-1 h-9">
+              {rejectMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} 반려
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export default AdminPanelPage;
