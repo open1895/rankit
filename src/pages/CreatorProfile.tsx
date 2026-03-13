@@ -133,6 +133,7 @@ const CreatorProfile = () => {
   const [hasVotedToday, setHasVotedToday] = useState(false);
   const [isRising, setIsRising] = useState(false);
   const [showClaimModal, setShowClaimModal] = useState(false);
+  const [showPromotionModal, setShowPromotionModal] = useState(false);
 
   // ─── Data Fetching ──────────────────────────────────────
   useEffect(() => {
