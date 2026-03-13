@@ -37,7 +37,6 @@ import {
   MessageSquare, Medal, Star, Edit3, Save, X, Camera, Code2,
   FileDown, Copy, Check, Users, Activity, ChartArea, Shield,
 } from "lucide-react";
-} from "lucide-react";
 import { toast } from "sonner";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
