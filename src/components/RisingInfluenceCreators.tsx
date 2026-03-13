@@ -108,14 +108,25 @@ export const fetchRisingCreators = async (limit = 10): Promise<RisingCreator[]> 
     };
   });
 
-  return scored
-    .filter(c => c.growthDelta > 0 || c.voteGrowthPercent > 0)
+  // Separate promoted rising creators from organic ones
+  const now = new Date().toISOString();
+  const promotedRising = scored.filter(c => {
+    const orig = allCreators.find(oc => oc.id === c.id);
+    return orig && orig.is_promoted && orig.promotion_type === "rising" && orig.promotion_status === "approved" && orig.promotion_end && orig.promotion_end > now;
+  });
+  const organicRising = scored
+    .filter(c => {
+      const orig = allCreators.find(oc => oc.id === c.id);
+      const isPromotedRising = orig && orig.is_promoted && orig.promotion_type === "rising" && orig.promotion_status === "approved" && orig.promotion_end && orig.promotion_end > now;
+      return !isPromotedRising && (c.growthDelta > 0 || c.voteGrowthPercent > 0);
+    })
     .sort((a, b) => {
       const scoreA = a.growthDelta * 2 + a.voteGrowthPercent + a.communityGrowth * 0.5;
       const scoreB = b.growthDelta * 2 + b.voteGrowthPercent + b.communityGrowth * 0.5;
       return scoreB - scoreA;
-    })
-    .slice(0, limit);
+    });
+
+  return [...promotedRising, ...organicRising].slice(0, limit);
 };
 
 /** Check if a specific creator is rising */
