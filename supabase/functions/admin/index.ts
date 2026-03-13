@@ -576,6 +576,99 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
 
+    // ─── SUBMIT PROMOTION ─────────────────────────────────
+    if (action === "submit_promotion") {
+      const { creator_id, promotion_type, duration_hours } = body;
+      if (!creator_id || !promotion_type) return new Response(JSON.stringify({ error: "creator_id and promotion_type required" }), { status: 400, headers: corsHeaders });
+      if (!["featured", "rising"].includes(promotion_type)) return new Response(JSON.stringify({ error: "Invalid promotion_type" }), { status: 400, headers: corsHeaders });
+
+      // Verify user owns this creator
+      const { data: creator } = await adminClient.from("creators").select("user_id, promotion_status").eq("id", creator_id).single();
+      if (!creator) return new Response(JSON.stringify({ error: "Creator not found" }), { status: 404, headers: corsHeaders });
+      if (creator.user_id !== user.id) return new Response(JSON.stringify({ error: "Not your creator profile" }), { status: 403, headers: corsHeaders });
+      if (creator.promotion_status === "pending") return new Response(JSON.stringify({ error: true, message: "이미 심사 대기 중인 신청이 있습니다." }), { status: 200, headers: corsHeaders });
+
+      const { error } = await adminClient.from("creators").update({
+        promotion_type,
+        promotion_status: "pending",
+        is_promoted: false,
+      }).eq("id", creator_id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── LIST PROMOTIONS ──────────────────────────────────
+    if (action === "list_promotions") {
+      const { data, error } = await adminClient
+        .from("creators")
+        .select("id, name, avatar_url, category, rank, promotion_type, promotion_status, promotion_start, promotion_end")
+        .eq("promotion_status", "pending")
+        .order("rank", { ascending: true });
+      if (error) throw error;
+      return new Response(JSON.stringify({ promotions: data }), { headers: corsHeaders });
+    }
+
+    // ─── APPROVE PROMOTION ────────────────────────────────
+    if (action === "approve_promotion") {
+      const { creator_id, duration_hours } = body;
+      if (!creator_id) return new Response(JSON.stringify({ error: "creator_id required" }), { status: 400, headers: corsHeaders });
+      const hours = duration_hours || 24;
+      const now = new Date();
+      const end = new Date(now.getTime() + hours * 60 * 60 * 1000);
+
+      const { data: creator } = await adminClient.from("creators").select("user_id, name").eq("id", creator_id).single();
+      if (!creator) return new Response(JSON.stringify({ error: "Creator not found" }), { status: 404, headers: corsHeaders });
+
+      const { error } = await adminClient.from("creators").update({
+        is_promoted: true,
+        promotion_status: "approved",
+        promotion_start: now.toISOString(),
+        promotion_end: end.toISOString(),
+      }).eq("id", creator_id);
+      if (error) throw error;
+
+      // Notify the creator
+      if (creator.user_id) {
+        await adminClient.from("notifications").insert({
+          user_id: creator.user_id,
+          type: "promotion_approved",
+          title: "⭐ 프로모션 승인!",
+          message: `${creator.name} 프로필 홍보가 승인되었습니다! ${hours}시간 동안 노출됩니다.`,
+          link: `/creator/${creator_id}`,
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
+    // ─── REJECT PROMOTION ─────────────────────────────────
+    if (action === "reject_promotion") {
+      const { creator_id } = body;
+      if (!creator_id) return new Response(JSON.stringify({ error: "creator_id required" }), { status: 400, headers: corsHeaders });
+
+      const { data: creator } = await adminClient.from("creators").select("user_id, name").eq("id", creator_id).single();
+      if (!creator) return new Response(JSON.stringify({ error: "Creator not found" }), { status: 404, headers: corsHeaders });
+
+      const { error } = await adminClient.from("creators").update({
+        is_promoted: false,
+        promotion_status: "rejected",
+        promotion_type: "none",
+      }).eq("id", creator_id);
+      if (error) throw error;
+
+      if (creator.user_id) {
+        await adminClient.from("notifications").insert({
+          user_id: creator.user_id,
+          type: "promotion_rejected",
+          title: "프로모션 신청 결과",
+          message: `${creator.name} 프로필 홍보 신청이 반려되었습니다.`,
+          link: `/creator/${creator_id}`,
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
     return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: corsHeaders });
 
   } catch (err: any) {
