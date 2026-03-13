@@ -20,7 +20,7 @@ export interface RisingCreator {
 export const fetchRisingCreators = async (limit = 10): Promise<RisingCreator[]> => {
   const { data: allCreators } = await supabase
     .from("creators")
-    .select("id, name, avatar_url, category, rank, votes_count, youtube_subscribers, chzzk_followers, instagram_followers, tiktok_followers")
+    .select("id, name, avatar_url, category, rank, votes_count, youtube_subscribers, chzzk_followers, instagram_followers, tiktok_followers, is_promoted, promotion_type, promotion_end, promotion_status")
     .order("rank", { ascending: true })
     .limit(100);
 
