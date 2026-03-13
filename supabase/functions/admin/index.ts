@@ -597,26 +597,6 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
 
-    // ─── SUBMIT PROMOTION ─────────────────────────────────
-    if (action === "submit_promotion") {
-      const { creator_id, promotion_type, duration_hours } = body;
-      if (!creator_id || !promotion_type) return new Response(JSON.stringify({ error: "creator_id and promotion_type required" }), { status: 400, headers: corsHeaders });
-      if (!["featured", "rising"].includes(promotion_type)) return new Response(JSON.stringify({ error: "Invalid promotion_type" }), { status: 400, headers: corsHeaders });
-
-      // Verify user owns this creator
-      const { data: creator } = await adminClient.from("creators").select("user_id, promotion_status").eq("id", creator_id).single();
-      if (!creator) return new Response(JSON.stringify({ error: "Creator not found" }), { status: 404, headers: corsHeaders });
-      if (creator.user_id !== user.id) return new Response(JSON.stringify({ error: "Not your creator profile" }), { status: 403, headers: corsHeaders });
-      if (creator.promotion_status === "pending") return new Response(JSON.stringify({ error: true, message: "이미 심사 대기 중인 신청이 있습니다." }), { status: 200, headers: corsHeaders });
-
-      const { error } = await adminClient.from("creators").update({
-        promotion_type,
-        promotion_status: "pending",
-        is_promoted: false,
-      }).eq("id", creator_id);
-      if (error) throw error;
-      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
-    }
 
     // ─── LIST PROMOTIONS ──────────────────────────────────
     if (action === "list_promotions") {
