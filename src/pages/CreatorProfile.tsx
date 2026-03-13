@@ -27,6 +27,7 @@ import AICreatorInsights from "@/components/AICreatorInsights";
 import { isCreatorRising } from "@/components/RisingInfluenceCreators";
 import CreatorRecommendations from "@/components/CreatorRecommendations";
 import PowerBoostSection from "@/components/PowerBoostCard";
+import PromotionRequestModal from "@/components/PromotionRequestModal";
 import TournamentChampionBadge from "@/components/TournamentChampionBadge";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
