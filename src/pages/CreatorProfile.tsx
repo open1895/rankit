@@ -509,16 +509,50 @@ const CreatorProfile = () => {
 
           {/* Owner Edit */}
           {!isEditing && user && creator.user_id === user.id && (
-            <Button
-              onClick={() => {
-                setEditForm({ name: creator.name, category: creator.category, channel_link: creator.channel_link || "", youtube_channel_id: (creator as any).youtube_channel_id || "", chzzk_channel_id: (creator as any).chzzk_channel_id || "", instagram_id: "", tiktok_id: "", youtube_subscribers: String((creator as any).youtube_subscribers || 0), chzzk_followers: String((creator as any).chzzk_followers || 0), instagram_followers: String((creator as any).instagram_followers || 0), tiktok_followers: String((creator as any).tiktok_followers || 0) });
-                setAvatarFile(null); setAvatarPreview(null); setIsEditing(true);
-              }}
-              variant="outline" size="sm"
-              className="w-full glass-sm border-secondary/30 text-secondary text-xs rounded-xl"
-            >
-              <Edit3 className="w-3 h-3 mr-1" /> 프로필 수정
-            </Button>
+            <div className="space-y-2">
+              <Button
+                onClick={() => {
+                  setEditForm({ name: creator.name, category: creator.category, channel_link: creator.channel_link || "", youtube_channel_id: (creator as any).youtube_channel_id || "", chzzk_channel_id: (creator as any).chzzk_channel_id || "", instagram_id: "", tiktok_id: "", youtube_subscribers: String((creator as any).youtube_subscribers || 0), chzzk_followers: String((creator as any).chzzk_followers || 0), instagram_followers: String((creator as any).instagram_followers || 0), tiktok_followers: String((creator as any).tiktok_followers || 0) });
+                  setAvatarFile(null); setAvatarPreview(null); setIsEditing(true);
+                }}
+                variant="outline" size="sm"
+                className="w-full glass-sm border-secondary/30 text-secondary text-xs rounded-xl"
+              >
+                <Edit3 className="w-3 h-3 mr-1" /> 프로필 수정
+              </Button>
+              {(creator as any).promotion_status !== "pending" && (
+                <Button
+                  onClick={() => setShowPromotionModal(true)}
+                  variant="outline" size="sm"
+                  className="w-full glass-sm border-yellow-500/30 text-yellow-500 text-xs rounded-xl hover:border-yellow-500/60"
+                >
+                  <Star className="w-3 h-3 mr-1" /> 프로필 홍보하기
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Active Promotion Badge */}
+          {(creator as any).is_promoted && (creator as any).promotion_status === "approved" && (creator as any).promotion_end && new Date((creator as any).promotion_end) > new Date() && (
+            <div className="glass-sm p-2.5 rounded-xl border border-yellow-500/30 text-center">
+              <div className="flex items-center justify-center gap-1.5">
+                {(creator as any).promotion_type === "featured" ? (
+                  <span className="text-xs font-bold text-yellow-500">⭐ Featured Creator</span>
+                ) : (
+                  <span className="text-xs font-bold text-orange-500">🚀 Rising Creator</span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Promotion Pending */}
+          {(creator as any).promotion_status === "pending" && user && creator.user_id === user.id && (
+            <div className="glass-sm p-2.5 rounded-xl border border-yellow-500/20 text-center">
+              <div className="flex items-center justify-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+                <span className="text-[11px] font-semibold text-yellow-500">프로모션 심사 중</span>
+              </div>
+            </div>
           )}
 
           {/* Claim Profile Button */}
