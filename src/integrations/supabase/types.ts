@@ -543,9 +543,14 @@ export type Database = {
           id: string
           instagram_followers: number
           instagram_handle: string | null
+          is_promoted: boolean
           is_verified: boolean
           last_stats_updated: string | null
           name: string
+          promotion_end: string | null
+          promotion_start: string | null
+          promotion_status: string
+          promotion_type: string
           rank: number
           rankit_score: number
           subscriber_count: number
@@ -570,9 +575,14 @@ export type Database = {
           id?: string
           instagram_followers?: number
           instagram_handle?: string | null
+          is_promoted?: boolean
           is_verified?: boolean
           last_stats_updated?: string | null
           name: string
+          promotion_end?: string | null
+          promotion_start?: string | null
+          promotion_status?: string
+          promotion_type?: string
           rank?: number
           rankit_score?: number
           subscriber_count?: number
@@ -597,9 +607,14 @@ export type Database = {
           id?: string
           instagram_followers?: number
           instagram_handle?: string | null
+          is_promoted?: boolean
           is_verified?: boolean
           last_stats_updated?: string | null
           name?: string
+          promotion_end?: string | null
+          promotion_start?: string | null
+          promotion_status?: string
+          promotion_type?: string
           rank?: number
           rankit_score?: number
           subscriber_count?: number
