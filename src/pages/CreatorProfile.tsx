@@ -888,6 +888,14 @@ const CreatorProfile = () => {
           }}
         />
       )}
+      {showPromotionModal && creator && (
+        <PromotionRequestModal
+          open={showPromotionModal}
+          onOpenChange={setShowPromotionModal}
+          creatorId={creator.id}
+          creatorName={creator.name}
+        />
+      )}
     </div>
   );
 };
