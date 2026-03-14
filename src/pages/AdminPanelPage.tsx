@@ -289,6 +289,35 @@ const CreatorsTab = () => {
           <Badge variant="outline" className="text-xs whitespace-nowrap">{filtered.length}명</Badge>
         </div>
 
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={fetchingAvatars}
+          onClick={async () => {
+            setFetchingAvatars(true);
+            try {
+              const { data, error } = await supabase.functions.invoke("fetch-creator-avatars", {
+                body: { only_missing: true },
+              });
+              if (error) throw error;
+              if (data?.error) throw new Error(data.error);
+              toast.success(data?.message || "완료!");
+              if (data?.failed?.length > 0) {
+                toast.info(`실패: ${data.failed.join(", ")}`);
+              }
+              queryClient.invalidateQueries({ queryKey: ["admin-creators"] });
+            } catch (e: any) {
+              toast.error(`사진 가져오기 실패: ${e.message}`);
+            } finally {
+              setFetchingAvatars(false);
+            }
+          }}
+          className="w-full"
+        >
+          {fetchingAvatars ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Camera className="w-4 h-4 mr-1" />}
+          YouTube 프로필 사진 가져오기
+        </Button>
+
         {filtered.map((c: any) => (
           <div key={c.id} className="glass rounded-xl border border-glass-border p-3 flex items-center gap-3">
             <img src={c.avatar_url?.startsWith("http") ? c.avatar_url : c.avatar_url?.startsWith("/") ? c.avatar_url : "/placeholder.svg"} alt="" className="w-10 h-10 rounded-full object-cover shrink-0 bg-muted" />
