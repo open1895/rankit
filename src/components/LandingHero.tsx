@@ -92,9 +92,9 @@ const LandingHero = () => {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Link to="/auth">
-              <Button size="lg" className="w-full sm:w-auto font-bold text-sm sm:text-base px-8 py-3 rounded-xl shadow-lg" style={{ background: "linear-gradient(135deg, hsl(var(--neon-purple)), hsl(var(--primary)))", boxShadow: "0 4px 24px hsl(var(--neon-purple) / 0.35)" }}>
+               <Button size="lg" className="w-full sm:w-auto font-bold text-sm sm:text-base px-8 py-3 rounded-xl shadow-lg" style={{ background: "linear-gradient(135deg, hsl(var(--neon-purple)), hsl(var(--primary)))", boxShadow: "0 4px 24px hsl(var(--neon-purple) / 0.35)" }}>
                 <Zap className="w-4 h-4 mr-2" />
-                무료로 시작하기
+                지금 참여하기
               </Button>
             </Link>
             <Button size="lg" variant="outline" className="w-full sm:w-auto font-bold text-sm sm:text-base px-8 py-3 rounded-xl border-2" style={{ borderColor: "hsl(var(--neon-cyan) / 0.5)", color: "hsl(var(--neon-cyan))" }} onClick={() => document.getElementById("ranking-preview")?.scrollIntoView({ behavior: "smooth" })}>
