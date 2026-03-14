@@ -274,7 +274,7 @@ const CreatorsTab = () => {
       const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
 
       const { error: updateError } = await supabase.functions.invoke("admin", {
-        body: { action: "update_creator_avatar", creator_id: creatorId, avatar_url: publicUrl },
+        body: { action: "update_creator", creator_id: creatorId, avatar_url: publicUrl },
       });
       if (updateError) throw updateError;
 
