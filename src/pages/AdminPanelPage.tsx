@@ -243,6 +243,7 @@ const CreatorsTab = () => {
   const [editCategory, setEditCategory] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [search, setSearch] = useState("");
+  const [fetchingAvatars, setFetchingAvatars] = useState(false);
 
   const { data: creators, isLoading } = useQuery({
     queryKey: ["admin-creators"],
