@@ -458,6 +458,25 @@ const CreatorsTab = () => {
           <p className="text-sm text-muted-foreground">
             <span className="font-bold text-foreground">{deleteTarget?.name}</span>을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
           </p>
+          {statsLoading ? (
+            <div className="flex justify-center py-3"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>
+          ) : deleteStats && (
+            <div className="grid grid-cols-3 gap-2 text-center">
+              {[
+                { label: "투표", count: deleteStats.votes },
+                { label: "댓글", count: deleteStats.comments },
+                { label: "게시글", count: deleteStats.posts },
+                { label: "배틀", count: deleteStats.battles },
+                { label: "채팅", count: deleteStats.chatMessages },
+                { label: "순위기록", count: deleteStats.rankHistory },
+              ].map((item) => (
+                <div key={item.label} className="rounded-lg bg-muted/50 p-2">
+                  <p className="text-xs text-muted-foreground">{item.label}</p>
+                  <p className="text-sm font-bold text-foreground">{item.count.toLocaleString()}</p>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="flex gap-2 pt-2">
             <Button variant="outline" onClick={() => setDeleteTarget(null)} className="flex-1">취소</Button>
             <Button variant="destructive" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending} className="flex-1">
