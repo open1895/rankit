@@ -173,7 +173,7 @@ const LandingHero = () => {
       {/* Features */}
       <section className="container max-w-5xl mx-auto px-4 py-8">
         <ScrollReveal>
-          <h2 className="text-base sm:text-lg font-bold text-foreground text-center mb-6">왜 Rankit인가요?</h2>
+          <h2 className="text-base sm:text-lg font-bold text-foreground text-center mb-6">The Creator Competition Platform</h2>
         </ScrollReveal>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
