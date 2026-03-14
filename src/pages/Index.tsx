@@ -19,6 +19,7 @@ import HomepageSections from "@/components/HomepageSections";
 import SocialProofCounters from "@/components/SocialProofCounters";
 import CreatorRecommendations from "@/components/CreatorRecommendations";
 import TrendingNowSection from "@/components/TrendingNowSection";
+import CreatorLeagueSection from "@/components/CreatorLeagueSection";
 import FeaturedCreatorsSection from "@/components/FeaturedCreatorsSection";
 import CreatorBattleSection from "@/components/CreatorBattleSection";
 import MonthlyTop3Widget from "@/components/MonthlyTop3Widget";
@@ -519,7 +520,10 @@ const Index = () => {
       {/* 2.5. Trending Now - 급상승 크리에이터 */}
       <TrendingNowSection />
 
-      {/* 2.6. Featured Creators */}
+      {/* 2.6. Creator League */}
+      <CreatorLeagueSection />
+
+      {/* 2.7. Featured Creators */}
       <ScrollReveal>
         <FeaturedCreatorsSection />
       </ScrollReveal>
