@@ -11,16 +11,16 @@ import SEOHead from "@/components/SEOHead";
 import { toast } from "sonner";
 
 const CATEGORIES = [
-  { value: "게임", emoji: "🎮", sub: ["게임", "게임/스트리밍"] },
-  { value: "먹방/요리", emoji: "🍽️", sub: ["먹방/요리"] },
-  { value: "뷰티/패션", emoji: "💄", sub: ["뷰티/패션"] },
-  { value: "음악/커버", emoji: "🎵", sub: ["음악/커버"] },
-  { value: "fitness/운동", emoji: "💪", sub: ["fitness/운동"] },
-  { value: "여행/브이로그", emoji: "✈️", sub: ["여행/브이로그"] },
-  { value: "테크/코딩", emoji: "💻", sub: ["테크/코딩"] },
-  { value: "교육/독서", emoji: "📚", sub: ["교육/독서"] },
-  { value: "댄스/퍼포먼스", emoji: "💃", sub: ["댄스/퍼포먼스"] },
-  { value: "아트/일러스트", emoji: "🎨", sub: ["아트/일러스트"] },
+  { value: "게임", emoji: "🎮" },
+  { value: "먹방", emoji: "🍽️" },
+  { value: "뷰티", emoji: "💄" },
+  { value: "음악", emoji: "🎵" },
+  { value: "운동", emoji: "💪" },
+  { value: "여행", emoji: "✈️" },
+  { value: "테크", emoji: "💻" },
+  { value: "교육", emoji: "📚" },
+  { value: "댄스", emoji: "💃" },
+  { value: "아트", emoji: "🎨" },
 ];
 
 const Onboarding = () => {
