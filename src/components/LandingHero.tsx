@@ -177,9 +177,9 @@ const LandingHero = () => {
         </ScrollReveal>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { icon: Heart, title: "팬 투표 기반", desc: "좋아하는 크리에이터에게 매일 무료 투표. 당신의 한 표가 순위를 바꿉니다.", color: "hsl(var(--neon-purple))" },
-            { icon: Star, title: "예측 & 보상", desc: "순위를 예측하고 적중하면 최대 10배 포인트 보상! 전략적으로 플레이하세요.", color: "hsl(var(--neon-cyan))" },
-            { icon: Shield, title: "공정한 시스템", desc: "팬 활동 데이터 기반 분석으로 투명하고 공정한 순위를 제공합니다.", color: "hsl(var(--primary))" },
+            { icon: Zap, title: "실시간 경쟁", desc: "크리에이터 배틀과 투표로 실시간 영향력 경쟁이 펼쳐집니다.", color: "hsl(var(--neon-purple))" },
+            { icon: Star, title: "데이터 기반 순위", desc: "팔로워, 투표, 배틀 승률을 종합한 공정한 영향력 지표를 제공합니다.", color: "hsl(var(--neon-cyan))" },
+            { icon: Shield, title: "팬 보상 시스템", desc: "투표, 예측 적중, 미션 달성으로 포인트와 뱃지를 획득하세요.", color: "hsl(var(--primary))" },
           ].map((f, i) => (
             <ScrollReveal key={f.title} delay={i * 80}>
               <div className="glass rounded-2xl p-5 text-center space-y-3 border border-glass-border/50">
