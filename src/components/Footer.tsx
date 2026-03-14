@@ -36,10 +36,9 @@ const Footer = () => {
   return (
     <footer className="w-full bg-card border-t border-border mt-12 pb-16 md:pb-0">
       <div className="max-w-2xl mx-auto px-4 py-8 flex flex-col items-center gap-4">
-        <div className="flex items-center gap-3">
-          <span className="font-bold text-lg tracking-tight text-foreground">Creator Pulse</span>
-          <span className="text-muted-foreground">·</span>
-          <span className="text-neon-cyan font-semibold">Rankit</span>
+        <div className="flex flex-col items-center gap-1">
+          <span className="font-bold text-lg tracking-tight text-foreground">Rankit</span>
+          <span className="text-[11px] text-muted-foreground tracking-wide">The Creator Competition Platform</span>
         </div>
 
         <button
@@ -69,7 +68,7 @@ const Footer = () => {
           className="text-xs text-muted-foreground text-center cursor-default select-none"
           onClick={handleCopyrightClick}
         >
-          © 2026 Creator Pulse. All rights reserved.
+          © 2026 Rankit. All rights reserved.
         </p>
       </div>
 

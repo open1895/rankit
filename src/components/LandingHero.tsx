@@ -79,29 +79,27 @@ const LandingHero = () => {
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight tracking-tight">
             <span className="gradient-text">Rankit</span>
             <br />
-            <span className="text-foreground">팬의 투표가</span>
-            <br className="sm:hidden" />
-            <span className="text-foreground"> 크리에이터 순위를</span>
+            <span className="text-foreground">크리에이터 영향력,</span>
             <br />
-            <span className="text-foreground">결정합니다</span>
+            <span className="text-foreground">팬이 증명하다</span>
           </h1>
 
           <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-            좋아하는 크리에이터에게 투표하고, 순위를 예측하고,
+            투표, 배틀, 예측 — 팬 활동이 만드는
             <br className="hidden sm:block" />
-            <span className="font-semibold text-foreground">팬 활동으로 영향력 순위를 바꿔보세요.</span>
+            <span className="font-semibold text-foreground">공정한 크리에이터 영향력 지표</span>
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Link to="/auth">
-              <Button size="lg" className="w-full sm:w-auto font-bold text-sm sm:text-base px-8 py-3 rounded-xl shadow-lg" style={{ background: "linear-gradient(135deg, hsl(var(--neon-purple)), hsl(var(--primary)))", boxShadow: "0 4px 24px hsl(var(--neon-purple) / 0.35)" }}>
+               <Button size="lg" className="w-full sm:w-auto font-bold text-sm sm:text-base px-8 py-3 rounded-xl shadow-lg" style={{ background: "linear-gradient(135deg, hsl(var(--neon-purple)), hsl(var(--primary)))", boxShadow: "0 4px 24px hsl(var(--neon-purple) / 0.35)" }}>
                 <Zap className="w-4 h-4 mr-2" />
-                무료로 시작하기
+                지금 참여하기
               </Button>
             </Link>
             <Button size="lg" variant="outline" className="w-full sm:w-auto font-bold text-sm sm:text-base px-8 py-3 rounded-xl border-2" style={{ borderColor: "hsl(var(--neon-cyan) / 0.5)", color: "hsl(var(--neon-cyan))" }} onClick={() => document.getElementById("ranking-preview")?.scrollIntoView({ behavior: "smooth" })}>
               <TrendingUp className="w-4 h-4 mr-2" />
-              실시간 순위 보기
+              랭킹 보기
             </Button>
           </div>
         </div>
@@ -175,13 +173,13 @@ const LandingHero = () => {
       {/* Features */}
       <section className="container max-w-5xl mx-auto px-4 py-8">
         <ScrollReveal>
-          <h2 className="text-base sm:text-lg font-bold text-foreground text-center mb-6">왜 Rankit인가요?</h2>
+          <h2 className="text-base sm:text-lg font-bold text-foreground text-center mb-6">The Creator Competition Platform</h2>
         </ScrollReveal>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { icon: Heart, title: "팬 투표 기반", desc: "좋아하는 크리에이터에게 매일 무료 투표. 당신의 한 표가 순위를 바꿉니다.", color: "hsl(var(--neon-purple))" },
-            { icon: Star, title: "예측 & 보상", desc: "순위를 예측하고 적중하면 최대 10배 포인트 보상! 전략적으로 플레이하세요.", color: "hsl(var(--neon-cyan))" },
-            { icon: Shield, title: "공정한 시스템", desc: "팬 활동 데이터 기반 분석으로 투명하고 공정한 순위를 제공합니다.", color: "hsl(var(--primary))" },
+            { icon: Zap, title: "실시간 경쟁", desc: "크리에이터 배틀과 투표로 실시간 영향력 경쟁이 펼쳐집니다.", color: "hsl(var(--neon-purple))" },
+            { icon: Star, title: "데이터 기반 순위", desc: "팔로워, 투표, 배틀 승률을 종합한 공정한 영향력 지표를 제공합니다.", color: "hsl(var(--neon-cyan))" },
+            { icon: Shield, title: "팬 보상 시스템", desc: "투표, 예측 적중, 미션 달성으로 포인트와 뱃지를 획득하세요.", color: "hsl(var(--primary))" },
           ].map((f, i) => (
             <ScrollReveal key={f.title} delay={i * 80}>
               <div className="glass rounded-2xl p-5 text-center space-y-3 border border-glass-border/50">

@@ -11,8 +11,9 @@ const scaleMap = {
 };
 
 const RankitLogo = ({ size = "md", className = "" }: RankitLogoProps) => {
+  const showTagline = size === "lg" || size === "xl";
   return (
-    <div className={`flex items-center ${className}`} style={{ transformOrigin: "left center" }}>
+    <div className={`flex flex-col ${className}`} style={{ transformOrigin: "left center" }}>
       <svg
         width="180"
         height="50"
@@ -45,6 +46,11 @@ const RankitLogo = ({ size = "md", className = "" }: RankitLogoProps) => {
         </text>
         <path d="M135 15 L140 8 L145 15" stroke="#06B6D4" strokeWidth="3" fill="none" filter="url(#glow)" />
       </svg>
+      {showTagline && (
+        <span className="text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-medium ml-2 -mt-1">
+          The Creator Competition Platform
+        </span>
+      )}
     </div>
   );
 };

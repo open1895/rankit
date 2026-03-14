@@ -15,13 +15,13 @@ interface SEOHeadProps {
 
 const SEOHead = ({
   title,
-  description = "팬의 투표로 결정되는 크리에이터 영향력 순위! 게임, 먹방, 뷰티, 음악 등 다양한 카테고리에서 당신의 한 표가 순위를 바꿉니다.",
+  description = "크리에이터 영향력을 팬이 증명하는 플랫폼. 투표, 배틀, 예측으로 공정한 영향력 순위를 만들어갑니다.",
   path = "/",
   ogImage = DEFAULT_OG_IMAGE,
   ogType = "website",
   noIndex = false,
 }: SEOHeadProps) => {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - 크리에이터 종합 영향력 랭킹`;
+  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - The Creator Competition Platform`;
   const url = `${BASE_URL}${path}`;
 
   return (

@@ -94,8 +94,8 @@ const HomepageSections = () => {
     <section className="container max-w-5xl mx-auto px-4 py-6">
       <ScrollReveal>
         <div className="flex items-center gap-2 mb-4">
-          <h2 className="text-base sm:text-lg font-bold text-foreground">둘러보기</h2>
-          <span className="text-xs text-muted-foreground">· 다양한 참여 방법</span>
+          <h2 className="text-base sm:text-lg font-bold text-foreground">Rankit에서 할 수 있는 것</h2>
+          <span className="text-xs text-muted-foreground">· 투표 → 경쟁 → 순위 → 보상</span>
         </div>
       </ScrollReveal>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

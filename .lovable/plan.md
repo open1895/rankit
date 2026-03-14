@@ -1,46 +1,32 @@
 
-
-## 리브랜딩 계획: "Creator Influence Platform"
+## CTA 배너 밝기 개선
 
 ### 현재 문제
-- Footer에 "Creator Pulse"라는 레거시 브랜드명이 남아있음
-- 히어로 메시지가 "팬 투표" 중심으로 단순하게 포지셔닝됨
-- SEO 메타 설명이 투표 기능에만 집중, 플랫폼의 독창적 가치를 전달하지 못함
-- 전체적으로 "투표 사이트" 느낌 → "Creator Competition Platform"으로 격상 필요
+- 배경 gradient 투명도가 너무 낮음: `neon-purple / 0.18`, `neon-cyan / 0.12`
+- 다크 배경(230 25% 7%)에서 거의 구별이 안 됨
+- 텍스트도 `gradient-text` + `text-neon-cyan` 인데 배경과 대비가 약함
 
-### 리브랜딩 방향
+### 수정 방향
 
-**핵심 슬로건**: `크리에이터 영향력, 팬이 증명하다`
-**영문 태그라인**: `The Creator Competition Platform`
+**`src/pages/Index.tsx`** — 배너 div 스타일 변경
 
-### 수정 범위
+1. **배경 opacity 대폭 상향**: `0.18` → `0.45`, `0.12` → `0.35`
+2. **border 강화**: `border-primary/30` → `border-primary/60`
+3. **glow 효과 추가**: `box-shadow`로 외곽에 보라/청록 glow 적용
+4. **텍스트 대비 강화**: "1초 만에 참여" 텍스트를 `font-bold` + 약간 더 큰 사이즈로
 
-| 파일 | 변경 내용 |
-|------|-----------|
-| `LandingHero.tsx` | 히어로 타이틀 → "크리에이터 영향력, 팬이 증명하다", 서브카피/피쳐 카드 리라이트, 특징 섹션을 "투표 → 경쟁 → 순위 → 보상" 루프로 재구성 |
-| `HomepageHero.tsx` | 로그인 유저용 히어로 카피 동일 톤으로 업데이트 |
-| `Footer.tsx` | "Creator Pulse" → "Rankit" 통일, 카피라이트 "© 2026 Rankit." |
-| `SEOHead.tsx` | 기본 description을 플랫폼 포지셔닝 반영하는 문구로 변경 |
-| `index.html` | title, description, OG 메타, JSON-LD 동일하게 업데이트 |
-| `RankitLogo.tsx` | 로고 하단에 "The Creator Competition Platform" 서브텍스트 옵션 추가 (size lg/xl에서만 표시) |
-| `HomepageSections.tsx` | 섹션 헤더를 "Rankit에서 할 수 있는 것"으로 변경, 더 프로페셔널한 설명 문구 |
+```tsx
+// 변경 전
+style={{ background: "linear-gradient(135deg, hsl(var(--neon-purple) / 0.18), hsl(var(--neon-cyan) / 0.12))" }}
 
-### 카피 변경 상세
+// 변경 후
+style={{
+  background: "linear-gradient(135deg, hsl(var(--neon-purple) / 0.45), hsl(var(--neon-cyan) / 0.35))",
+  boxShadow: "0 0 24px hsl(var(--neon-purple) / 0.25), 0 0 8px hsl(var(--neon-cyan) / 0.15)"
+}}
+```
 
-**랜딩 히어로 (비로그인)**:
-- 타이틀: `Rankit` → `크리에이터 영향력,` → `팬이 증명하다`
-- 서브카피: "투표, 배틀, 예측 — 팬 활동이 만드는 공정한 크리에이터 영향력 지표"
-- CTA: "지금 참여하기" / "랭킹 보기"
-- 특징 3개: "실시간 경쟁" / "데이터 기반 순위" / "팬 보상 시스템"
-
-**로그인 히어로**:
-- 타이틀: `Rankit` → `팬 활동이 만드는` → `크리에이터 영향력 지표`
-- 서브카피: "투표하고, 배틀에 참여하고, 순위를 예측하세요."
-
-**Footer**:
-- `Rankit — The Creator Competition Platform`
-- `© 2026 Rankit. All rights reserved.`
-
-**SEO 기본 description**:
-- "크리에이터 영향력을 팬이 증명하는 플랫폼. 투표, 배틀, 예측으로 공정한 영향력 순위를 만들어갑니다."
-
+추가로 border에도 neon 색상 직접 적용:
+```tsx
+className="... border-2 border-white/20"
+```
