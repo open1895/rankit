@@ -244,6 +244,48 @@ const CreatorsTab = () => {
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [fetchingAvatars, setFetchingAvatars] = useState(false);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+
+  const handleAvatarUpload = async (creatorId: string, file: File) => {
+    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error("JPG, PNG, WebP, GIF 파일만 업로드할 수 있습니다.");
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      toast.error("파일 크기는 2MB 이하여야 합니다.");
+      return;
+    }
+
+    setUploadingId(creatorId);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const filePath = `creators/${creatorId}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase.functions.invoke("admin", {
+        body: { action: "update_creator_avatar", creator_id: creatorId, avatar_url: publicUrl },
+      });
+      if (updateError) throw updateError;
+
+      toast.success("프로필 사진이 업데이트되었습니다.");
+      queryClient.invalidateQueries({ queryKey: ["admin-creators"] });
+    } catch (e: any) {
+      toast.error(`업로드 실패: ${e.message}`);
+    } finally {
+      setUploadingId(null);
+    }
+  };
 
   const { data: creators, isLoading } = useQuery({
     queryKey: ["admin-creators"],
