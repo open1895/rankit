@@ -246,6 +246,31 @@ const CreatorsTab = () => {
   const [fetchingAvatars, setFetchingAvatars] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
 
+  const { data: deleteStats, isLoading: statsLoading } = useQuery({
+    queryKey: ["creator-delete-stats", deleteTarget?.id],
+    queryFn: async () => {
+      if (!deleteTarget?.id) return null;
+      const id = deleteTarget.id;
+      const [votes, comments, posts, battles, chatMsgs, rankHistory] = await Promise.all([
+        supabase.from("votes").select("id", { count: "exact", head: true }).eq("creator_id", id),
+        supabase.from("comments").select("id", { count: "exact", head: true }).eq("creator_id", id),
+        supabase.from("posts").select("id", { count: "exact", head: true }).eq("creator_id", id),
+        supabase.from("battles").select("id", { count: "exact", head: true }).or(`creator_a_id.eq.${id},creator_b_id.eq.${id}`),
+        supabase.from("chat_messages").select("id", { count: "exact", head: true }).eq("creator_id", id),
+        supabase.from("rank_history").select("id", { count: "exact", head: true }).eq("creator_id", id),
+      ]);
+      return {
+        votes: votes.count ?? 0,
+        comments: comments.count ?? 0,
+        posts: posts.count ?? 0,
+        battles: battles.count ?? 0,
+        chatMessages: chatMsgs.count ?? 0,
+        rankHistory: rankHistory.count ?? 0,
+      };
+    },
+    enabled: !!deleteTarget?.id,
+  });
+
   const handleAvatarUpload = async (creatorId: string, file: File) => {
     const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     const MAX_SIZE = 2 * 1024 * 1024; // 2MB
