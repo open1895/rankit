@@ -19,6 +19,7 @@ import HomepageSections from "@/components/HomepageSections";
 import SocialProofCounters from "@/components/SocialProofCounters";
 import CreatorRecommendations from "@/components/CreatorRecommendations";
 import TrendingNowSection from "@/components/TrendingNowSection";
+import CreatorLeagueSection from "@/components/CreatorLeagueSection";
 import FeaturedCreatorsSection from "@/components/FeaturedCreatorsSection";
 import CreatorBattleSection from "@/components/CreatorBattleSection";
 import MonthlyTop3Widget from "@/components/MonthlyTop3Widget";
