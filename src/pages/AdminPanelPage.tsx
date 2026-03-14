@@ -336,7 +336,9 @@ const CreatorsTab = () => {
       const { data, error } = await supabase.functions.invoke("admin", {
         body: { action: "delete_creator", creator_id: id },
       });
-      if (error) throw error; return data;
+      if (error) throw error;
+      if (data?.error) throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
+      return data;
     },
     onSuccess: () => { toast.success("크리에이터가 삭제되었습니다."); setDeleteTarget(null); queryClient.invalidateQueries({ queryKey: ["admin-creators"] }); },
     onError: (e: any) => toast.error(`삭제 실패: ${e.message}`),
