@@ -96,7 +96,7 @@ const LeagueCard = ({ league, creators }: { league: typeof LEAGUES[0]; creators:
             <div className="flex-1 min-w-0">
               <div className="text-xs font-bold text-foreground truncate flex items-center gap-1">
                 {creator.name}
-                {i === 0 && <Crown className="w-3 h-3 text-yellow-500 shrink-0" />}
+                {i === 0 && <Crown className="w-3 h-3 shrink-0" style={{ color: "hsl(45 93% 50%)" }} />}
               </div>
               <div className="text-[10px] text-muted-foreground">
                 {creator.votes_count.toLocaleString()}표 · 스코어 {creator.rankit_score}
