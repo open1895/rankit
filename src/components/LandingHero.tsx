@@ -79,17 +79,15 @@ const LandingHero = () => {
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight tracking-tight">
             <span className="gradient-text">Rankit</span>
             <br />
-            <span className="text-foreground">팬의 투표가</span>
-            <br className="sm:hidden" />
-            <span className="text-foreground"> 크리에이터 순위를</span>
+            <span className="text-foreground">크리에이터 영향력,</span>
             <br />
-            <span className="text-foreground">결정합니다</span>
+            <span className="text-foreground">팬이 증명하다</span>
           </h1>
 
           <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-            좋아하는 크리에이터에게 투표하고, 순위를 예측하고,
+            투표, 배틀, 예측 — 팬 활동이 만드는
             <br className="hidden sm:block" />
-            <span className="font-semibold text-foreground">팬 활동으로 영향력 순위를 바꿔보세요.</span>
+            <span className="font-semibold text-foreground">공정한 크리에이터 영향력 지표</span>
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
