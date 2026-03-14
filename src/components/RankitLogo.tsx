@@ -11,8 +11,9 @@ const scaleMap = {
 };
 
 const RankitLogo = ({ size = "md", className = "" }: RankitLogoProps) => {
+  const showTagline = size === "lg" || size === "xl";
   return (
-    <div className={`flex items-center ${className}`} style={{ transformOrigin: "left center" }}>
+    <div className={`flex flex-col ${className}`} style={{ transformOrigin: "left center" }}>
       <svg
         width="180"
         height="50"
