@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff, UserX, Megaphone, Plus, Target, Trophy, BarChart3, Gift, Flag, Star, Camera } from "lucide-react";
+import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff, UserX, Megaphone, Plus, Target, Trophy, BarChart3, Gift, Flag, Star, Camera, Upload } from "lucide-react";
 import AdminRetentionDashboard from "@/components/AdminRetentionDashboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -244,6 +244,48 @@ const CreatorsTab = () => {
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [fetchingAvatars, setFetchingAvatars] = useState(false);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+
+  const handleAvatarUpload = async (creatorId: string, file: File) => {
+    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error("JPG, PNG, WebP, GIF 파일만 업로드할 수 있습니다.");
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      toast.error("파일 크기는 2MB 이하여야 합니다.");
+      return;
+    }
+
+    setUploadingId(creatorId);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const filePath = `creators/${creatorId}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase.functions.invoke("admin", {
+        body: { action: "update_creator", creator_id: creatorId, avatar_url: publicUrl },
+      });
+      if (updateError) throw updateError;
+
+      toast.success("프로필 사진이 업데이트되었습니다.");
+      queryClient.invalidateQueries({ queryKey: ["admin-creators"] });
+    } catch (e: any) {
+      toast.error(`업로드 실패: ${e.message}`);
+    } finally {
+      setUploadingId(null);
+    }
+  };
 
   const { data: creators, isLoading } = useQuery({
     queryKey: ["admin-creators"],
@@ -320,7 +362,23 @@ const CreatorsTab = () => {
 
         {filtered.map((c: any) => (
           <div key={c.id} className="glass rounded-xl border border-glass-border p-3 flex items-center gap-3">
-            <img src={c.avatar_url?.startsWith("http") ? c.avatar_url : c.avatar_url?.startsWith("/") ? c.avatar_url : "/placeholder.svg"} alt="" className="w-10 h-10 rounded-full object-cover shrink-0 bg-muted" />
+            <label className="relative cursor-pointer group shrink-0">
+              <img src={c.avatar_url?.startsWith("http") ? c.avatar_url : c.avatar_url?.startsWith("/") ? c.avatar_url : "/placeholder.svg"} alt="" className="w-10 h-10 rounded-full object-cover bg-muted" />
+              <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {uploadingId === c.id ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <Upload className="w-4 h-4 text-white" />}
+              </div>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                disabled={uploadingId === c.id}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleAvatarUpload(c.id, file);
+                  e.target.value = "";
+                }}
+              />
+            </label>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-foreground truncate">{c.name}</p>
               <div className="flex items-center gap-1.5">
