@@ -362,7 +362,23 @@ const CreatorsTab = () => {
 
         {filtered.map((c: any) => (
           <div key={c.id} className="glass rounded-xl border border-glass-border p-3 flex items-center gap-3">
-            <img src={c.avatar_url?.startsWith("http") ? c.avatar_url : c.avatar_url?.startsWith("/") ? c.avatar_url : "/placeholder.svg"} alt="" className="w-10 h-10 rounded-full object-cover shrink-0 bg-muted" />
+            <label className="relative cursor-pointer group shrink-0">
+              <img src={c.avatar_url?.startsWith("http") ? c.avatar_url : c.avatar_url?.startsWith("/") ? c.avatar_url : "/placeholder.svg"} alt="" className="w-10 h-10 rounded-full object-cover bg-muted" />
+              <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {uploadingId === c.id ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <Upload className="w-4 h-4 text-white" />}
+              </div>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                disabled={uploadingId === c.id}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleAvatarUpload(c.id, file);
+                  e.target.value = "";
+                }}
+              />
+            </label>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-foreground truncate">{c.name}</p>
               <div className="flex items-center gap-1.5">
