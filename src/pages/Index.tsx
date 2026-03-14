@@ -520,7 +520,10 @@ const Index = () => {
       {/* 2.5. Trending Now - 급상승 크리에이터 */}
       <TrendingNowSection />
 
-      {/* 2.6. Featured Creators */}
+      {/* 2.6. Creator League */}
+      <CreatorLeagueSection />
+
+      {/* 2.7. Featured Creators */}
       <ScrollReveal>
         <FeaturedCreatorsSection />
       </ScrollReveal>
