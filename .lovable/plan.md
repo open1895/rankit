@@ -1,38 +1,32 @@
 
+## CTA 배너 밝기 개선
 
-## 크리에이터 YouTube 프로필 사진 자동 크롤링 계획
+### 현재 문제
+- 배경 gradient 투명도가 너무 낮음: `neon-purple / 0.18`, `neon-cyan / 0.12`
+- 다크 배경(230 25% 7%)에서 거의 구별이 안 됨
+- 텍스트도 `gradient-text` + `text-neon-cyan` 인데 배경과 대비가 약함
 
-### 접근 방식
+### 수정 방향
 
-Firecrawl 커넥터를 연결하고, 각 크리에이터의 YouTube 채널 페이지를 스크래핑하여 프로필 이미지 URL을 추출한 뒤 DB에 저장합니다.
+**`src/pages/Index.tsx`** — 배너 div 스타일 변경
 
-### 구현 단계
+1. **배경 opacity 대폭 상향**: `0.18` → `0.45`, `0.12` → `0.35`
+2. **border 강화**: `border-primary/30` → `border-primary/60`
+3. **glow 효과 추가**: `box-shadow`로 외곽에 보라/청록 glow 적용
+4. **텍스트 대비 강화**: "1초 만에 참여" 텍스트를 `font-bold` + 약간 더 큰 사이즈로
 
-#### 1. Firecrawl 커넥터 연결
-- `standard_connectors--connect`로 Firecrawl 커넥터 설정
-- Edge Function에서 `FIRECRAWL_API_KEY` 환경변수로 접근 가능
+```tsx
+// 변경 전
+style={{ background: "linear-gradient(135deg, hsl(var(--neon-purple) / 0.18), hsl(var(--neon-cyan) / 0.12))" }}
 
-#### 2. Edge Function 생성: `fetch-creator-avatars`
-- `creators` 테이블에서 `channel_link`가 있는 크리에이터 목록 조회
-- 각 YouTube 채널 URL을 Firecrawl scrape API로 호출 (screenshot 또는 branding format 사용)
-- 응답에서 프로필 이미지 URL(og:image 또는 브랜딩 데이터의 logo) 추출
-- `creators.avatar_url`을 추출된 이미지 URL로 업데이트
-- 80명 크리에이터를 배치 처리 (rate limit 고려하여 순차 처리)
+// 변경 후
+style={{
+  background: "linear-gradient(135deg, hsl(var(--neon-purple) / 0.45), hsl(var(--neon-cyan) / 0.35))",
+  boxShadow: "0 0 24px hsl(var(--neon-purple) / 0.25), 0 0 8px hsl(var(--neon-cyan) / 0.15)"
+}}
+```
 
-#### 3. Admin 패널에 "사진 가져오기" 버튼 추가
-- `AdminPanelPage.tsx`에 버튼 추가
-- 클릭 시 `fetch-creator-avatars` Edge Function 호출
-- 진행 상태 표시
-
-### 수정 파일
-
-| 파일 | 변경 |
-|------|------|
-| `supabase/functions/fetch-creator-avatars/index.ts` (새) | YouTube 채널 스크래핑 + avatar_url 업데이트 |
-| `src/pages/AdminPanelPage.tsx` | "사진 가져오기" 버튼 추가 |
-
-### 주의사항
-- Firecrawl의 `branding` format을 사용하면 로고/파비콘을 자동 추출 가능
-- YouTube 채널 페이지의 og:image 메타태그에서 프로필 사진 획득 가능
-- 외부 이미지 URL을 직접 `avatar_url`에 저장 (스토리지 업로드 없이)
-
+추가로 border에도 neon 색상 직접 적용:
+```tsx
+className="... border-2 border-white/20"
+```

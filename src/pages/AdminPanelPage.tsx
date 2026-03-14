@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff, UserX, Megaphone, Plus, Target, Trophy, BarChart3, Gift, Flag, Star } from "lucide-react";
+import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff, UserX, Megaphone, Plus, Target, Trophy, BarChart3, Gift, Flag, Star, Camera } from "lucide-react";
 import AdminRetentionDashboard from "@/components/AdminRetentionDashboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -243,6 +243,7 @@ const CreatorsTab = () => {
   const [editCategory, setEditCategory] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [search, setSearch] = useState("");
+  const [fetchingAvatars, setFetchingAvatars] = useState(false);
 
   const { data: creators, isLoading } = useQuery({
     queryKey: ["admin-creators"],
@@ -287,6 +288,35 @@ const CreatorsTab = () => {
           <Input placeholder="크리에이터 검색..." value={search} onChange={(e) => setSearch(e.target.value)} className="text-sm" />
           <Badge variant="outline" className="text-xs whitespace-nowrap">{filtered.length}명</Badge>
         </div>
+
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={fetchingAvatars}
+          onClick={async () => {
+            setFetchingAvatars(true);
+            try {
+              const { data, error } = await supabase.functions.invoke("fetch-creator-avatars", {
+                body: { only_missing: true },
+              });
+              if (error) throw error;
+              if (data?.error) throw new Error(data.error);
+              toast.success(data?.message || "완료!");
+              if (data?.failed?.length > 0) {
+                toast.info(`실패: ${data.failed.join(", ")}`);
+              }
+              queryClient.invalidateQueries({ queryKey: ["admin-creators"] });
+            } catch (e: any) {
+              toast.error(`사진 가져오기 실패: ${e.message}`);
+            } finally {
+              setFetchingAvatars(false);
+            }
+          }}
+          className="w-full"
+        >
+          {fetchingAvatars ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Camera className="w-4 h-4 mr-1" />}
+          YouTube 프로필 사진 가져오기
+        </Button>
 
         {filtered.map((c: any) => (
           <div key={c.id} className="glass rounded-xl border border-glass-border p-3 flex items-center gap-3">
