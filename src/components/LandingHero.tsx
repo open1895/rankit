@@ -99,7 +99,7 @@ const LandingHero = () => {
             </Link>
             <Button size="lg" variant="outline" className="w-full sm:w-auto font-bold text-sm sm:text-base px-8 py-3 rounded-xl border-2" style={{ borderColor: "hsl(var(--neon-cyan) / 0.5)", color: "hsl(var(--neon-cyan))" }} onClick={() => document.getElementById("ranking-preview")?.scrollIntoView({ behavior: "smooth" })}>
               <TrendingUp className="w-4 h-4 mr-2" />
-              실시간 순위 보기
+              랭킹 보기
             </Button>
           </div>
         </div>

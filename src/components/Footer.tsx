@@ -68,7 +68,7 @@ const Footer = () => {
           className="text-xs text-muted-foreground text-center cursor-default select-none"
           onClick={handleCopyrightClick}
         >
-          © 2026 Creator Pulse. All rights reserved.
+          © 2026 Rankit. All rights reserved.
         </p>
       </div>
 

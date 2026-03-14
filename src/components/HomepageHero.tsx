@@ -38,18 +38,16 @@ const HomepageHero = () => {
         <h1 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight tracking-tight">
           <span className="gradient-text">Rankit</span>
           <br />
-          <span className="text-foreground">팬 활동 데이터로</span>
-          <br className="sm:hidden" />
-          <span className="text-foreground"> 크리에이터 영향력을</span>
+          <span className="text-foreground">팬 활동이 만드는</span>
           <br />
-          <span className="text-foreground">분석하는 플랫폼</span>
+          <span className="text-foreground">크리에이터 영향력 지표</span>
         </h1>
 
         {/* Subtitle */}
         <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-          투표하고, 예측하고, 좋아하는 크리에이터를 응원하세요.
+          투표하고, 배틀에 참여하고, 순위를 예측하세요.
           <br className="hidden sm:block" />
-          <span className="font-semibold text-foreground">팬 활동이 크리에이터 영향력 순위를 결정합니다.</span>
+          <span className="font-semibold text-foreground">팬의 활동이 공정한 영향력 순위를 만듭니다.</span>
         </p>
 
         {/* CTA Buttons */}

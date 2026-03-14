@@ -21,7 +21,7 @@ const SEOHead = ({
   ogType = "website",
   noIndex = false,
 }: SEOHeadProps) => {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - 크리에이터 종합 영향력 랭킹`;
+  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - The Creator Competition Platform`;
   const url = `${BASE_URL}${path}`;
 
   return (
