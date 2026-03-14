@@ -150,8 +150,13 @@ serve(async (req) => {
     if (action === "delete_creator") {
       const { creator_id } = body;
       if (!creator_id) return new Response(JSON.stringify({ error: "creator_id required" }), { status: 400, headers: corsHeaders });
+      console.log("Deleting creator:", creator_id);
       const { error } = await adminClient.from("creators").delete().eq("id", creator_id);
-      if (error) throw error;
+      if (error) {
+        console.error("Delete creator error:", JSON.stringify(error));
+        throw error;
+      }
+      console.log("Creator deleted successfully:", creator_id);
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
 
