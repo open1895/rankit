@@ -135,6 +135,9 @@ const CreatorProfile = () => {
   const [isRising, setIsRising] = useState(false);
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [showPromotionModal, setShowPromotionModal] = useState(false);
+  const [useSuperVote, setUseSuperVote] = useState(false);
+  const [superVotes, setSuperVotes] = useState(0);
+  const [comboCount, setComboCount] = useState(0);
 
   // ─── Data Fetching ──────────────────────────────────────
   useEffect(() => {
@@ -261,7 +264,7 @@ const CreatorProfile = () => {
     if (hasVotedToday) { toast.error("오늘 이미 투표하셨습니다! 내일 다시 투표할 수 있어요."); return; }
     setShowRankUpHint(true);
     setTimeout(() => setShowRankUpHint(false), 3000);
-    const { data, error } = await supabase.functions.invoke("vote", { body: { creator_id: id } });
+    const { data, error } = await supabase.functions.invoke("vote", { body: { creator_id: id, use_super: useSuperVote } });
     if (error || data?.error) {
       setShowRankUpHint(false);
       if (data?.error === "already_voted") { toast.error("오늘 이미 이 크리에이터에게 투표하셨습니다."); setHasVotedToday(true); }
@@ -269,9 +272,40 @@ const CreatorProfile = () => {
       return;
     }
     setHasVotedToday(true); setShowRankUpHint(false);
-    setCelebrationMsg("투표 완료! 🎉"); setShowCelebration(true);
-    toast.success("투표 완료! 🎉"); setAutoShareCard(true); setShowShare(true);
+
+    // Combo feedback
+    if (data?.combo_count > 1) {
+      setComboCount(data.combo_count);
+      if (data.combo_bonus > 0) {
+        toast.success(`🔥 ${data.combo_count} COMBO! +${data.combo_bonus} 보너스 티켓 획득!`);
+      } else {
+        toast.success(`🔥 ${data.combo_count} COMBO!`);
+      }
+    }
+
+    // Super vote feedback
+    if (data?.used_super) {
+      setCelebrationMsg(`⚡ 슈퍼투표! +${data.vote_weight}표 반영!`);
+      setSuperVotes(prev => Math.max(0, prev - 1));
+      setUseSuperVote(false);
+    } else {
+      setCelebrationMsg("투표 완료! 🎉");
+    }
+
+    setShowCelebration(true);
+    toast.success(data?.used_super ? `⚡ 슈퍼투표 완료! +${data.vote_weight}표` : "투표 완료! 🎉");
+    setAutoShareCard(true); setShowShare(true);
   };
+
+  // Fetch super votes count
+  useEffect(() => {
+    if (!user) return;
+    const fetchSuperVotes = async () => {
+      const { data } = await supabase.functions.invoke("tickets", { body: { action: "get_balance" } });
+      if (data?.super_votes) setSuperVotes(data.super_votes);
+    };
+    fetchSuperVotes();
+  }, [user]);
 
   const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
@@ -489,11 +523,39 @@ const CreatorProfile = () => {
             </div>
           )}
 
+          {/* Super Vote Toggle */}
+          {user && superVotes > 0 && !hasVotedToday && (
+            <div className="flex items-center justify-between glass-sm rounded-xl p-2.5 border border-accent/30">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">⚡</span>
+                <div>
+                  <p className="text-xs font-bold text-accent">슈퍼투표 사용</p>
+                  <p className="text-[10px] text-muted-foreground">1표가 3표로! (보유: {superVotes}개)</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setUseSuperVote(!useSuperVote)}
+                className={`w-10 h-5 rounded-full transition-colors ${useSuperVote ? "bg-accent" : "bg-muted"} relative`}
+              >
+                <span className={`block w-4 h-4 rounded-full bg-background shadow transition-transform ${useSuperVote ? "translate-x-5" : "translate-x-0.5"}`} />
+              </button>
+            </div>
+          )}
+
+          {/* Combo Counter */}
+          {comboCount > 1 && (
+            <div className="text-center">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-destructive/20 text-destructive text-xs font-bold animate-pulse">
+                🔥 {comboCount} COMBO
+              </span>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="flex gap-2">
-            <Button onClick={handleVote} disabled={hasVotedToday} className="flex-1 h-11 font-bold gradient-primary text-primary-foreground rounded-xl neon-glow-purple disabled:opacity-50">
-              <Heart className="w-4 h-4 mr-2" />
-              {hasVotedToday ? "오늘 투표 완료 ✓" : "투표하기"}
+            <Button onClick={handleVote} disabled={hasVotedToday} className={`flex-1 h-11 font-bold rounded-xl disabled:opacity-50 ${useSuperVote ? "bg-accent text-accent-foreground neon-glow-purple" : "gradient-primary text-primary-foreground neon-glow-purple"}`}>
+              {useSuperVote ? <span className="mr-2">⚡</span> : <Heart className="w-4 h-4 mr-2" />}
+              {hasVotedToday ? "오늘 투표 완료 ✓" : useSuperVote ? "슈퍼투표 ×3" : "투표하기"}
             </Button>
             <Button onClick={() => setShowShare(true)} variant="outline" className="h-11 px-3 rounded-xl glass-sm border-glass-border">
               <Share2 className="w-4 h-4 text-secondary" />

@@ -62,6 +62,39 @@ Deno.serve(async (req) => {
         }
       }
 
+      // ── Check consecutive daily check-in streak for super vote ──
+      let streakDays = 1;
+      if (profile.daily_ticket_claimed_at) {
+        const lastClaimed = new Date(profile.daily_ticket_claimed_at);
+        const now = new Date();
+        // Check if last claim was yesterday (within 24-48h window)
+        const hoursSinceLastClaim = (now.getTime() - lastClaimed.getTime()) / (1000 * 60 * 60);
+        if (hoursSinceLastClaim >= 24 && hoursSinceLastClaim < 48) {
+          // Count consecutive days by checking ticket_transactions
+          const { data: recentCheckins } = await supabase
+            .from("ticket_transactions")
+            .select("created_at")
+            .eq("user_id", userId)
+            .eq("type", "daily_checkin")
+            .order("created_at", { ascending: false })
+            .limit(7);
+
+          if (recentCheckins) {
+            streakDays = 1; // today
+            for (let i = 0; i < recentCheckins.length - 1; i++) {
+              const curr = new Date(recentCheckins[i].created_at);
+              const next = new Date(recentCheckins[i + 1].created_at);
+              const diffHours = (curr.getTime() - next.getTime()) / (1000 * 60 * 60);
+              if (diffHours >= 20 && diffHours <= 48) {
+                streakDays++;
+              } else {
+                break;
+              }
+            }
+          }
+        }
+      }
+
       // Grant 10 tickets
       await supabase.rpc("add_tickets", {
         p_user_id: userId,
@@ -75,13 +108,38 @@ Deno.serve(async (req) => {
         .update({ daily_ticket_claimed_at: new Date().toISOString() })
         .eq("user_id", userId);
 
+      // ── Grant super vote on 7-day streak ──
+      let superVoteGranted = false;
+      if (streakDays >= 7 && streakDays % 7 === 0) {
+        await supabase
+          .from("profiles")
+          .update({ super_votes: (profile as any).super_votes ? (profile as any).super_votes + 1 : 1 })
+          .eq("user_id", userId);
+
+        await supabase.rpc("add_tickets", {
+          p_user_id: userId,
+          p_amount: 0,
+          p_type: "super_vote_grant",
+          p_description: `⚡ 7일 연속 출석! 슈퍼투표 1회 획득`,
+        });
+
+        superVoteGranted = true;
+      }
+
       const { data: updated } = await supabase
         .from("profiles")
-        .select("tickets")
+        .select("tickets, super_votes")
         .eq("user_id", userId)
         .single();
 
-      return new Response(JSON.stringify({ success: true, tickets: updated?.tickets ?? 0, granted: 10 }), {
+      return new Response(JSON.stringify({
+        success: true,
+        tickets: updated?.tickets ?? 0,
+        granted: 10,
+        streak_days: streakDays,
+        super_vote_granted: superVoteGranted,
+        super_votes: updated?.super_votes ?? 0,
+      }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -94,7 +152,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Deduct 5 tickets
       const { data: deducted } = await supabase.rpc("deduct_tickets", {
         p_user_id: userId,
         p_amount: 5,
@@ -106,7 +163,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Update description for the transaction
       await supabase
         .from("ticket_transactions")
         .update({ description: `🔥 불꽃 투표 사용` })
@@ -116,7 +172,6 @@ Deno.serve(async (req) => {
         .order("created_at", { ascending: false })
         .limit(1);
 
-      // Insert 5 votes
       const votes = Array.from({ length: 5 }, () => ({
         creator_id,
         user_id: userId,
@@ -206,11 +261,11 @@ Deno.serve(async (req) => {
     if (action === "get_balance") {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("tickets")
+        .select("tickets, super_votes")
         .eq("user_id", userId)
         .single();
 
-      return new Response(JSON.stringify({ tickets: profile?.tickets ?? 0 }), {
+      return new Response(JSON.stringify({ tickets: profile?.tickets ?? 0, super_votes: profile?.super_votes ?? 0 }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -226,11 +281,11 @@ Deno.serve(async (req) => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("tickets")
+        .select("tickets, super_votes")
         .eq("user_id", userId)
         .single();
 
-      return new Response(JSON.stringify({ tickets: profile?.tickets ?? 0, transactions: transactions || [] }), {
+      return new Response(JSON.stringify({ tickets: profile?.tickets ?? 0, super_votes: profile?.super_votes ?? 0, transactions: transactions || [] }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

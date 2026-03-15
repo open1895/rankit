@@ -1069,6 +1069,7 @@ export type Database = {
           display_name: string
           id: string
           is_beta_tester: boolean
+          super_votes: number
           tickets: number
           updated_at: string
           user_id: string
@@ -1080,6 +1081,7 @@ export type Database = {
           display_name?: string
           id?: string
           is_beta_tester?: boolean
+          super_votes?: number
           tickets?: number
           updated_at?: string
           user_id: string
@@ -1091,6 +1093,7 @@ export type Database = {
           display_name?: string
           id?: string
           is_beta_tester?: boolean
+          super_votes?: number
           tickets?: number
           updated_at?: string
           user_id?: string
@@ -1260,6 +1263,48 @@ export type Database = {
           },
           {
             foreignKeyName: "season_rankings_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_snapshots: {
+        Row: {
+          created_at: string
+          creator_id: string
+          id: string
+          rank: number
+          season_id: string
+          votes_count: number
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          id?: string
+          rank?: number
+          season_id: string
+          votes_count?: number
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          id?: string
+          rank?: number
+          season_id?: string
+          votes_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_snapshots_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_snapshots_season_id_fkey"
             columns: ["season_id"]
             isOneToOne: false
             referencedRelation: "seasons"
@@ -1660,24 +1705,33 @@ export type Database = {
       }
       votes: {
         Row: {
+          combo_count: number
           created_at: string
           creator_id: string
           id: string
+          is_super: boolean
           user_id: string | null
+          vote_weight: number
           voter_ip: string
         }
         Insert: {
+          combo_count?: number
           created_at?: string
           creator_id: string
           id?: string
+          is_super?: boolean
           user_id?: string | null
+          vote_weight?: number
           voter_ip: string
         }
         Update: {
+          combo_count?: number
           created_at?: string
           creator_id?: string
           id?: string
+          is_super?: boolean
           user_id?: string | null
+          vote_weight?: number
           voter_ip?: string
         }
         Relationships: [

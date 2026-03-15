@@ -22,6 +22,14 @@ function getClientIp(req: Request): string {
   );
 }
 
+// Combo bonus tiers
+function getComboBonus(combo: number): number {
+  if (combo >= 10) return 3;
+  if (combo >= 5) return 2;
+  if (combo >= 3) return 1;
+  return 0;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -47,7 +55,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { creator_id, referral_code } = await req.json();
+    const { creator_id, referral_code, use_super } = await req.json();
     if (!creator_id) {
       return new Response(JSON.stringify({ error: "creator_id is required" }), {
         status: 400,
@@ -60,8 +68,6 @@ Deno.serve(async (req) => {
     const hashedIp = await hashIp(rawIp);
 
     // Check if already voted today (per creator)
-    // For authenticated users: check by user_id
-    // For anonymous users: check by hashed IP
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const todayStartIso = todayStart.toISOString();
@@ -69,7 +75,6 @@ Deno.serve(async (req) => {
     let alreadyVoted = false;
 
     if (userId) {
-      // Logged in user: check by user_id
       const { data: existingVotes } = await supabase
         .from("votes")
         .select("id")
@@ -79,7 +84,6 @@ Deno.serve(async (req) => {
         .limit(1);
       alreadyVoted = !!(existingVotes && existingVotes.length > 0);
     } else {
-      // Anonymous user: check by hashed IP
       const { data: existingVotes } = await supabase
         .from("votes")
         .select("id")
@@ -101,6 +105,52 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ── Combo detection (authenticated users only) ──
+    let comboCount = 1;
+    let comboBonus = 0;
+
+    if (userId) {
+      const { data: lastVotes } = await supabase
+        .from("votes")
+        .select("created_at, combo_count")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (lastVotes && lastVotes.length > 0) {
+        const lastVoteTime = new Date(lastVotes[0].created_at).getTime();
+        const now = Date.now();
+        const diffMinutes = (now - lastVoteTime) / (1000 * 60);
+
+        if (diffMinutes <= 10) {
+          comboCount = (lastVotes[0].combo_count || 1) + 1;
+        }
+      }
+
+      comboBonus = getComboBonus(comboCount);
+    }
+
+    // ── Super vote handling ──
+    let voteWeight = 1;
+    let usedSuper = false;
+
+    if (userId && use_super === true) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("super_votes")
+        .eq("user_id", userId)
+        .single();
+
+      if (profile && profile.super_votes > 0) {
+        voteWeight = 3;
+        usedSuper = true;
+        await supabase
+          .from("profiles")
+          .update({ super_votes: profile.super_votes - 1 })
+          .eq("user_id", userId);
+      }
+    }
+
     // Insert vote with retry for deadlock
     let insertError = null;
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -110,6 +160,9 @@ Deno.serve(async (req) => {
           creator_id,
           user_id: userId,
           voter_ip: userId ? userId : hashedIp,
+          combo_count: comboCount,
+          is_super: usedSuper,
+          vote_weight: voteWeight,
         });
 
       if (!error) {
@@ -118,7 +171,6 @@ Deno.serve(async (req) => {
       }
 
       if (error.code === "40P01" && attempt < 2) {
-        // Deadlock - wait and retry
         await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
         insertError = error;
         continue;
@@ -136,6 +188,16 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ── Grant combo bonus tickets ──
+    if (userId && comboBonus > 0) {
+      await supabase.rpc("add_tickets", {
+        p_user_id: userId,
+        p_amount: comboBonus,
+        p_type: "combo_bonus",
+        p_description: `🔥 ${comboCount}콤보 보너스 티켓`,
+      });
+    }
+
     // Auto-contribute to active boost campaign
     if (userId) {
       try {
@@ -148,8 +210,8 @@ Deno.serve(async (req) => {
         if (activeCampaigns && activeCampaigns.length > 0) {
           const camp = activeCampaigns[0];
           if (new Date(camp.ends_at).getTime() > Date.now()) {
-            await supabase.from("boost_contributions").insert({ campaign_id: camp.id, user_id: userId, action_type: "vote", points: 1 });
-            const newPts = camp.current_points + 1;
+            await supabase.from("boost_contributions").insert({ campaign_id: camp.id, user_id: userId, action_type: "vote", points: voteWeight });
+            const newPts = camp.current_points + voteWeight;
             const updates: any = { current_points: newPts };
             if (newPts >= camp.goal) { updates.status = "completed"; updates.completed_at = new Date().toISOString(); }
             await supabase.from("boost_campaigns").update(updates).eq("id", camp.id);
@@ -196,6 +258,10 @@ Deno.serve(async (req) => {
         success: true,
         referral_bonus: referralBonus,
         is_anonymous: !userId,
+        combo_count: comboCount,
+        combo_bonus: comboBonus,
+        vote_weight: voteWeight,
+        used_super: usedSuper,
       }),
       {
         status: 200,
