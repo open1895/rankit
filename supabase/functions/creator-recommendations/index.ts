@@ -144,7 +144,7 @@ Return ONLY the selected creator IDs.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash-lite",
         messages: [{ role: "user", content: prompt }],
         tools: [
           {
@@ -176,19 +176,15 @@ Return ONLY the selected creator IDs.`;
     });
 
     if (!aiResponse.ok) {
-      if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "Payment required" }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      throw new Error(`AI error: ${aiResponse.status}`);
+      console.error(`AI gateway error: ${aiResponse.status}`);
+      // Fallback: return top creators by score without AI
+      const fallback = allCreators.slice(0, 8);
+      return new Response(JSON.stringify({ 
+        recommendations: fallback, 
+        reason: "인기 크리에이터를 추천합니다 ⭐" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const aiData = await aiResponse.json();
