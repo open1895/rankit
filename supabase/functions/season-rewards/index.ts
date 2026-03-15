@@ -132,7 +132,6 @@ Deno.serve(async (req) => {
             { type: "badge", key: "top3_badge", label: "3위 뱃지" },
           ];
         } else {
-          // rank 4-10
           awards = [
             { type: "badge", key: "top10_badge", label: "TOP 10 뱃지" },
             { type: "title", key: "top10_title", label: `시즌 TOP ${rank}` },
@@ -152,26 +151,22 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ====== 2. Fan Awards: TOP 50 by activity (votes + posts + comments) ======
-    // Get vote counts per user
+    // ====== 2. Fan Awards: TOP 50 by activity ======
     const { data: fanVotes } = await supabaseAdmin
       .from("votes")
       .select("user_id")
       .not("user_id", "is", null);
 
-    // Get comment counts per user (board_post_comments has user_id)
     const { data: fanComments } = await supabaseAdmin
       .from("board_post_comments")
       .select("user_id")
       .not("user_id", "is", null);
 
-    // Get post counts per user (board_posts has user_id)
     const { data: fanPosts } = await supabaseAdmin
       .from("board_posts")
       .select("user_id")
       .not("user_id", "is", null);
 
-    // Aggregate fan scores
     const fanScores: Record<string, number> = {};
 
     if (fanVotes) {
@@ -196,7 +191,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Sort and pick top 50
     const sortedFans = Object.entries(fanScores)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 50);
@@ -221,7 +215,6 @@ Deno.serve(async (req) => {
           { type: "badge", key: "top10_fan_badge", label: "TOP 10 팬 뱃지" },
         ];
       } else {
-        // rank 11-50
         awards = [
           { type: "badge", key: "top50_fan_badge", label: "브론즈 뱃지" },
           { type: "title", key: "top50_fan_title", label: "TOP 50 팬" },
@@ -241,7 +234,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ====== 3. Insert all awards (upsert to avoid duplicates) ======
+    // ====== 3. Insert all awards ======
     const allAwards = [...creatorAwards, ...fanAwardRows];
 
     let insertedCount = 0;
@@ -279,7 +272,54 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ====== 5. Deactivate the season ======
+    // ====== 5. Season Snapshot & Votes Reset ======
+    // 5a. Save all creators' current votes_count and rank to season_snapshots
+    const { data: allCreators } = await supabaseAdmin
+      .from("creators")
+      .select("id, votes_count, rank")
+      .order("rank", { ascending: true });
+
+    if (allCreators && allCreators.length > 0) {
+      const snapshots = allCreators.map((c) => ({
+        season_id,
+        creator_id: c.id,
+        votes_count: c.votes_count,
+        rank: c.rank,
+      }));
+
+      // Insert in batches of 100
+      for (let i = 0; i < snapshots.length; i += 100) {
+        const batch = snapshots.slice(i, i + 100);
+        await supabaseAdmin.from("season_snapshots").insert(batch);
+      }
+
+      // 5b. Also insert into season_rankings
+      const rankings = allCreators.map((c) => ({
+        season_id,
+        creator_id: c.id,
+        final_rank: c.rank,
+        final_votes: c.votes_count,
+      }));
+
+      for (let i = 0; i < rankings.length; i += 100) {
+        const batch = rankings.slice(i, i + 100);
+        await supabaseAdmin.from("season_rankings").insert(batch);
+      }
+
+      // 5c. Reset all creators' votes_count to 0
+      // Process in batches to avoid timeouts
+      for (const creator of allCreators) {
+        await supabaseAdmin
+          .from("creators")
+          .update({ votes_count: 0 })
+          .eq("id", creator.id);
+      }
+    }
+
+    // 5d. Recalculate ranks after reset
+    await supabaseAdmin.rpc("batch_recalculate_ranks");
+
+    // ====== 6. Deactivate the season ======
     await supabaseAdmin
       .from("seasons")
       .update({ is_active: false })
@@ -294,6 +334,7 @@ Deno.serve(async (req) => {
         total_inserted: insertedCount,
         total_skipped: skippedCount,
         fans_notified: notifiedFanIds.size,
+        creators_reset: allCreators?.length || 0,
       }),
       {
         status: 200,
