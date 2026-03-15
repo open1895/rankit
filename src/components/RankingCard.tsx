@@ -275,7 +275,8 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
             <button
               onClick={handleFireVote}
               disabled={isFireVoting || tickets < 5}
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center justify-center gap-0.5 ${
+              translate="no"
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center justify-center gap-0.5 notranslate ${
                 tickets < 5
                   ? "glass-sm text-muted-foreground/50 cursor-not-allowed"
                   : isFireVoting
