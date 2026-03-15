@@ -55,10 +55,10 @@ const LeagueCard = ({ league, creators }: { league: typeof LEAGUES[0]; creators:
         </div>
         <Link
           to={`/?category=${league.category}`}
-          className="text-[10px] font-bold text-muted-foreground hover:text-foreground flex items-center gap-0.5 transition-colors"
+          className="text-xs font-bold text-muted-foreground hover:text-foreground flex items-center gap-0.5 transition-colors py-2 px-3 -mr-2 min-h-[44px] min-w-[44px] items-center relative z-10"
         >
           전체 보기
-          <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
