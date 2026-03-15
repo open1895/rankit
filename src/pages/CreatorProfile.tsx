@@ -264,7 +264,7 @@ const CreatorProfile = () => {
     if (hasVotedToday) { toast.error("오늘 이미 투표하셨습니다! 내일 다시 투표할 수 있어요."); return; }
     setShowRankUpHint(true);
     setTimeout(() => setShowRankUpHint(false), 3000);
-    const { data, error } = await supabase.functions.invoke("vote", { body: { creator_id: id } });
+    const { data, error } = await supabase.functions.invoke("vote", { body: { creator_id: id, use_super: useSuperVote } });
     if (error || data?.error) {
       setShowRankUpHint(false);
       if (data?.error === "already_voted") { toast.error("오늘 이미 이 크리에이터에게 투표하셨습니다."); setHasVotedToday(true); }
@@ -272,9 +272,40 @@ const CreatorProfile = () => {
       return;
     }
     setHasVotedToday(true); setShowRankUpHint(false);
-    setCelebrationMsg("투표 완료! 🎉"); setShowCelebration(true);
-    toast.success("투표 완료! 🎉"); setAutoShareCard(true); setShowShare(true);
+
+    // Combo feedback
+    if (data?.combo_count > 1) {
+      setComboCount(data.combo_count);
+      if (data.combo_bonus > 0) {
+        toast.success(`🔥 ${data.combo_count} COMBO! +${data.combo_bonus} 보너스 티켓 획득!`);
+      } else {
+        toast.success(`🔥 ${data.combo_count} COMBO!`);
+      }
+    }
+
+    // Super vote feedback
+    if (data?.used_super) {
+      setCelebrationMsg(`⚡ 슈퍼투표! +${data.vote_weight}표 반영!`);
+      setSuperVotes(prev => Math.max(0, prev - 1));
+      setUseSuperVote(false);
+    } else {
+      setCelebrationMsg("투표 완료! 🎉");
+    }
+
+    setShowCelebration(true);
+    toast.success(data?.used_super ? `⚡ 슈퍼투표 완료! +${data.vote_weight}표` : "투표 완료! 🎉");
+    setAutoShareCard(true); setShowShare(true);
   };
+
+  // Fetch super votes count
+  useEffect(() => {
+    if (!user) return;
+    const fetchSuperVotes = async () => {
+      const { data } = await supabase.functions.invoke("tickets", { body: { action: "get_balance" } });
+      if (data?.super_votes) setSuperVotes(data.super_votes);
+    };
+    fetchSuperVotes();
+  }, [user]);
 
   const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
