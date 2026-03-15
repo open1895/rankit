@@ -135,6 +135,9 @@ const CreatorProfile = () => {
   const [isRising, setIsRising] = useState(false);
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [showPromotionModal, setShowPromotionModal] = useState(false);
+  const [useSuperVote, setUseSuperVote] = useState(false);
+  const [superVotes, setSuperVotes] = useState(0);
+  const [comboCount, setComboCount] = useState(0);
 
   // ─── Data Fetching ──────────────────────────────────────
   useEffect(() => {
