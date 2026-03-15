@@ -1260,6 +1260,7 @@ const TournamentsTab = () => {
 const SeasonRewardsTab = () => {
   const queryClient = useQueryClient();
   const [processing, setProcessing] = useState(false);
+  const [confirmSeasonId, setConfirmSeasonId] = useState<string | null>(null);
 
   const { data: seasons, isLoading } = useQuery({
     queryKey: ["admin-seasons"],
@@ -1279,6 +1280,7 @@ const SeasonRewardsTab = () => {
 
   const processRewards = async (seasonId: string) => {
     setProcessing(true);
+    setConfirmSeasonId(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -1290,7 +1292,7 @@ const SeasonRewardsTab = () => {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast.success(`시즌 보상 지급 완료! 크리에이터 ${data.creator_awards}건, 팬 ${data.fan_awards}건`);
+      toast.success(`시즌 보상 지급 완료! 크리에이터 ${data.creator_awards}건, 팬 ${data.fan_awards}건, ${data.creators_reset || 0}명 투표수 리셋`);
       queryClient.invalidateQueries({ queryKey: ["admin-seasons"] });
       queryClient.invalidateQueries({ queryKey: ["admin-season-awards"] });
     } catch (err: any) {
@@ -1325,7 +1327,7 @@ const SeasonRewardsTab = () => {
             </p>
             <Button
               size="sm"
-              onClick={() => processRewards(s.id)}
+              onClick={() => setConfirmSeasonId(s.id)}
               disabled={processing}
               className="w-full"
             >
@@ -1335,6 +1337,32 @@ const SeasonRewardsTab = () => {
           </div>
         ))}
       </div>
+
+      {/* Confirm Dialog */}
+      <Dialog open={!!confirmSeasonId} onOpenChange={(v) => !v && setConfirmSeasonId(null)}>
+        <DialogContent className="max-w-[90vw] sm:max-w-sm rounded-2xl">
+          <DialogHeader><DialogTitle className="text-base font-bold">⚠️ 시즌 종료 확인</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="glass-sm rounded-xl p-3 border border-destructive/30 space-y-2">
+              <p className="text-sm font-bold text-destructive">⚠️ 다음 작업이 실행됩니다:</p>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                <li>• 모든 크리에이터의 <span className="font-bold text-foreground">투표수가 0으로 초기화</span>됩니다</li>
+                <li>• 현재 순위와 투표수가 스냅샷으로 저장됩니다</li>
+                <li>• TOP 10 크리에이터 & TOP 50 팬에게 보상이 지급됩니다</li>
+                <li>• 시즌이 비활성화됩니다</li>
+              </ul>
+              <p className="text-[10px] text-destructive font-bold">이 작업은 되돌릴 수 없습니다!</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setConfirmSeasonId(null)} className="flex-1">취소</Button>
+              <Button variant="destructive" onClick={() => confirmSeasonId && processRewards(confirmSeasonId)} disabled={processing} className="flex-1">
+                {processing ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                확인 & 실행
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Past awards */}
       <div className="space-y-2">

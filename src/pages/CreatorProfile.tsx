@@ -523,11 +523,39 @@ const CreatorProfile = () => {
             </div>
           )}
 
+          {/* Super Vote Toggle */}
+          {user && superVotes > 0 && !hasVotedToday && (
+            <div className="flex items-center justify-between glass-sm rounded-xl p-2.5 border border-accent/30">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">⚡</span>
+                <div>
+                  <p className="text-xs font-bold text-accent">슈퍼투표 사용</p>
+                  <p className="text-[10px] text-muted-foreground">1표가 3표로! (보유: {superVotes}개)</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setUseSuperVote(!useSuperVote)}
+                className={`w-10 h-5 rounded-full transition-colors ${useSuperVote ? "bg-accent" : "bg-muted"} relative`}
+              >
+                <span className={`block w-4 h-4 rounded-full bg-background shadow transition-transform ${useSuperVote ? "translate-x-5" : "translate-x-0.5"}`} />
+              </button>
+            </div>
+          )}
+
+          {/* Combo Counter */}
+          {comboCount > 1 && (
+            <div className="text-center">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-destructive/20 text-destructive text-xs font-bold animate-pulse">
+                🔥 {comboCount} COMBO
+              </span>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="flex gap-2">
-            <Button onClick={handleVote} disabled={hasVotedToday} className="flex-1 h-11 font-bold gradient-primary text-primary-foreground rounded-xl neon-glow-purple disabled:opacity-50">
-              <Heart className="w-4 h-4 mr-2" />
-              {hasVotedToday ? "오늘 투표 완료 ✓" : "투표하기"}
+            <Button onClick={handleVote} disabled={hasVotedToday} className={`flex-1 h-11 font-bold rounded-xl disabled:opacity-50 ${useSuperVote ? "bg-accent text-accent-foreground neon-glow-purple" : "gradient-primary text-primary-foreground neon-glow-purple"}`}>
+              {useSuperVote ? <span className="mr-2">⚡</span> : <Heart className="w-4 h-4 mr-2" />}
+              {hasVotedToday ? "오늘 투표 완료 ✓" : useSuperVote ? "슈퍼투표 ×3" : "투표하기"}
             </Button>
             <Button onClick={() => setShowShare(true)} variant="outline" className="h-11 px-3 rounded-xl glass-sm border-glass-border">
               <Share2 className="w-4 h-4 text-secondary" />
