@@ -10,7 +10,7 @@ const HomepageHero = () => {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "linear-gradient(135deg, hsl(var(--neon-purple) / 0.12) 0%, hsl(var(--background)) 40%, hsl(var(--neon-cyan) / 0.08) 100%)",
+            "linear-gradient(135deg, hsl(var(--neon-purple) / 0.30) 0%, hsl(var(--background)) 40%, hsl(var(--neon-cyan) / 0.20) 100%)",
         }}
       />
 
