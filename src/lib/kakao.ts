@@ -39,11 +39,18 @@ interface KakaoShareOptions {
 
 export function shareToKakao(options: KakaoShareOptions) {
   if (!isKakaoReady()) {
-    // Fallback: open Kakao Story share
-    window.open(
-      `https://story.kakao.com/share?url=${encodeURIComponent(options.webUrl)}`,
-      "_blank"
-    );
+    // Fallback: copy URL to clipboard (KakaoStory OpenAPI discontinued)
+    if (navigator.share) {
+      navigator.share({
+        title: options.title,
+        text: options.description,
+        url: options.webUrl,
+      }).catch(() => {
+        navigator.clipboard.writeText(options.webUrl);
+      });
+    } else {
+      navigator.clipboard.writeText(options.webUrl);
+    }
     return;
   }
 
