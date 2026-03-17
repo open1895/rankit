@@ -85,8 +85,8 @@ Deno.serve(async (req) => {
   <text x="120" y="185" font-family="system-ui, sans-serif" font-size="32" fill="white" text-anchor="middle" font-weight="900">${rankEmoji} ${creator.rank}위</text>
 
   <!-- Creator name -->
-  <text x="240" y="160" font-family="system-ui, sans-serif" font-size="52" fill="white" font-weight="900">${creator.name}</text>
-  <text x="240" y="195" font-family="system-ui, sans-serif" font-size="20" fill="#94a3b8">${creator.category || "크리에이터"}</text>
+  <text x="240" y="160" font-family="system-ui, sans-serif" font-size="52" fill="white" font-weight="900">${xmlEscape(creator.name)}</text>
+  <text x="240" y="195" font-family="system-ui, sans-serif" font-size="20" fill="#94a3b8">${xmlEscape(creator.category || "크리에이터")}</text>
 
   <!-- Stats cards -->
   <rect x="40" y="250" width="340" height="100" rx="16" fill="#ffffff08" stroke="#ffffff10" stroke-width="1"/>
