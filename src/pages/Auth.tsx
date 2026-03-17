@@ -106,67 +106,30 @@ const Auth = () => {
     }
   };
 
-  const isCustomDomain = () => {
-    const h = window.location.hostname;
-    return !h.includes("lovable.app") && !h.includes("lovableproject.com") && !h.includes("localhost");
+  const isOAuthProviderNotConfiguredError = (message: string) => {
+    return (
+      message.includes("validation_failed") ||
+      message.includes("Unsupported provider") ||
+      message.includes("missing OAuth secret") ||
+      message.includes("OAuth secret")
+    );
   };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      if (isCustomDomain()) {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: window.location.origin,
-            skipBrowserRedirect: true,
-          },
-        });
-        if (error) throw error;
-        if (data?.url) {
-          window.location.href = data.url;
-        }
-      } else {
-        const { error } = await lovable.auth.signInWithOAuth("google", {
-          redirect_uri: window.location.origin,
-        });
-        if (error) throw error;
-      }
-    } catch (err: any) {
-      const msg = err?.message || "";
-      if (msg.includes("validation_failed") || msg.includes("OAuth secret") || msg.includes("Unsupported provider")) {
-        toast.error("소셜 로그인 설정이 준비 중입니다. 이메일로 로그인해주세요.");
-      } else {
-        toast.error(msg || "Google 로그인에 실패했습니다.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
 
-  const handleAppleLogin = async () => {
-    setLoading(true);
-    try {
-      if (isCustomDomain()) {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: "apple",
-          options: {
-            redirectTo: window.location.origin,
-            skipBrowserRedirect: true,
-          },
-        });
-        if (error) throw error;
-        if (data?.url) {
-          window.location.href = data.url;
-        }
-      } else {
-        const { error } = await lovable.auth.signInWithOAuth("apple", {
-          redirect_uri: window.location.origin,
-        });
-        if (error) throw error;
-      }
+      if (error) throw error;
     } catch (err: any) {
-      toast.error(err?.message || "Apple 로그인에 실패했습니다.");
+      const msg = String(err?.message || err || "");
+      if (isOAuthProviderNotConfiguredError(msg)) {
+        toast.error("Google 로그인 설정이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.");
+      } else {
+        toast.error("Google 로그인에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      }
     } finally {
       setLoading(false);
     }
