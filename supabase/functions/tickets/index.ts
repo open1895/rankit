@@ -24,11 +24,12 @@ Deno.serve(async (req) => {
       });
     }
 
+    const token = authHeader.replace("Bearer ", "");
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: userData } = await userClient.auth.getUser();
-    if (!userData?.user) {
+    const { data: userData, error: authError } = await userClient.auth.getUser(token);
+    if (authError || !userData?.user) {
       return new Response(JSON.stringify({ error: "인증에 실패했습니다." }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
