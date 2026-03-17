@@ -2,6 +2,12 @@
 <html lang="ko" translate="no" class="notranslate">
   <head>
     <script>
+      // Canonical domain redirect: www → non-www
+      (function(){
+        if(location.hostname === 'www.rankit.today'){
+          location.replace('https://rankit.today' + location.pathname + location.search + location.hash);
+        }
+      })();
       // Always force light mode
       document.documentElement.classList.add('light');
       localStorage.setItem('theme', 'light');
