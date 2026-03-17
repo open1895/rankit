@@ -337,6 +337,11 @@ const Index = () => {
         path="/"
       />
 
+      {/* Live Banner */}
+      <div className="bg-gradient-to-r from-orange-500 via-red-500 to-purple-600 text-white py-3 text-center">
+        <h1 className="text-lg font-bold tracking-wide">🔥 Rankit LIVE 🚀</h1>
+      </div>
+
       {/* Push Notification Prompt */}
       <PushNotificationPrompt />
 
