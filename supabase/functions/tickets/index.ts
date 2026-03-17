@@ -25,6 +25,13 @@ Deno.serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
+    // Skip if token is the anon key (no user session)
+    if (token === anonKey) {
+      return new Response(JSON.stringify({ error: "로그인이 필요합니다." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });

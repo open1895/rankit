@@ -27,10 +27,10 @@ serve(async (req) => {
       }
     }
 
-    const { creator_id, mode } = await req.json();
-    // mode: "user" (personalized), "similar" (similar to a creator), "popular" (fallback)
-    // For "user" mode, use authenticated user's ID instead of accepting from request body
-    const user_id = user.id;
+    const { creator_id, mode: requestedMode } = await req.json();
+    // If user mode requested but no authenticated user, fall back to popular
+    const mode = (requestedMode === "user" && !user) ? "popular" : requestedMode;
+    const user_id = user?.id;
 
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
