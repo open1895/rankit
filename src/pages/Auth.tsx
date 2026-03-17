@@ -133,7 +133,12 @@ const Auth = () => {
         if (error) throw error;
       }
     } catch (err: any) {
-      toast.error(err?.message || "Google 로그인에 실패했습니다.");
+      const msg = err?.message || "";
+      if (msg.includes("validation_failed") || msg.includes("OAuth secret") || msg.includes("Unsupported provider")) {
+        toast.error("소셜 로그인 설정이 준비 중입니다. 이메일로 로그인해주세요.");
+      } else {
+        toast.error(msg || "Google 로그인에 실패했습니다.");
+      }
     } finally {
       setLoading(false);
     }
