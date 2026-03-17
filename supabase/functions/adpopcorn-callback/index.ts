@@ -15,13 +15,7 @@ const corsHeaders = {
 // adname   – ad name (optional)
 // campid   – campaign id (optional)
 
-function hexToBytes(hex: string): Uint8Array {
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < hex.length; i += 2) {
-    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
-  }
-  return bytes;
-}
+const DAILY_REWARD_CAP = 500; // Max tickets per user per day via adpopcorn
 
 async function verifyHash(
   params: URLSearchParams,
@@ -71,22 +65,25 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Hash key verification
+    // FIX 1: Fail hard when ADPOPCORN_HASH_KEY is not set
     const adpopcornHashKey = Deno.env.get("ADPOPCORN_HASH_KEY");
-    if (adpopcornHashKey) {
-      const valid = await verifyHash(params, adpopcornHashKey);
-      if (!valid) {
-        console.error("Adpopcorn hash verification failed");
-        return new Response(
-          JSON.stringify({ error: "invalid_hash" }),
-          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-    } else {
-      console.warn("ADPOPCORN_HASH_KEY not set — skipping hash verification (TEST MODE)");
+    if (!adpopcornHashKey) {
+      console.error("CRITICAL: ADPOPCORN_HASH_KEY not configured. Rejecting callback.");
+      return new Response(
+        JSON.stringify({ error: "server_misconfigured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Add tickets to user
+    const valid = await verifyHash(params, adpopcornHashKey);
+    if (!valid) {
+      console.error("Adpopcorn hash verification failed");
+      return new Response(
+        JSON.stringify({ error: "invalid_hash" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -106,6 +103,57 @@ Deno.serve(async (req) => {
       );
     }
 
+    // FIX 2: Deduplication via campid + adid
+    const campid = params.get("campid") || "unknown";
+    const adid = params.get("adid") || "";
+
+    const { error: dedupError } = await admin
+      .from("adpopcorn_callbacks")
+      .insert({
+        camp_id: campid,
+        ad_id: adid,
+        user_id: usertid,
+        reward: reward,
+      });
+
+    if (dedupError) {
+      // Unique constraint violation = duplicate callback
+      if (dedupError.code === "23505") {
+        console.warn(`Duplicate adpopcorn callback: campid=${campid}, adid=${adid}, user=${usertid}`);
+        // Return success to adpopcorn so it doesn't retry
+        return new Response("1", {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "text/plain" },
+        });
+      }
+      console.error("Dedup insert error:", dedupError);
+      return new Response(
+        JSON.stringify({ error: "server_error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // FIX 3: Daily reward cap per user
+    const todayStart = new Date();
+    todayStart.setUTCHours(0, 0, 0, 0);
+
+    const { data: todayCallbacks } = await admin
+      .from("adpopcorn_callbacks")
+      .select("reward")
+      .eq("user_id", usertid)
+      .gte("created_at", todayStart.toISOString());
+
+    const todayTotal = (todayCallbacks || []).reduce((sum, r) => sum + (r.reward || 0), 0);
+
+    if (todayTotal > DAILY_REWARD_CAP) {
+      console.warn(`Daily reward cap exceeded for user ${usertid}: ${todayTotal}/${DAILY_REWARD_CAP}`);
+      // Return success to adpopcorn but don't grant tickets
+      return new Response("1", {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "text/plain" },
+      });
+    }
+
     // Add tickets
     const { data: result } = await admin.rpc("add_tickets", {
       p_user_id: usertid,
@@ -121,7 +169,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Adpopcorn reward: ${reward} tickets to user ${usertid}`);
+    console.log(`Adpopcorn reward: ${reward} tickets to user ${usertid} (campid=${campid})`);
 
     // Adpopcorn expects "1" as success response
     return new Response("1", {
