@@ -1,32 +1,35 @@
 
-## CTA 배너 밝기 개선
 
-### 현재 문제
-- 배경 gradient 투명도가 너무 낮음: `neon-purple / 0.18`, `neon-cyan / 0.12`
-- 다크 배경(230 25% 7%)에서 거의 구별이 안 됨
-- 텍스트도 `gradient-text` + `text-neon-cyan` 인데 배경과 대비가 약함
+## Problem Analysis
 
-### 수정 방향
+The `400 validation_failed: missing OAuth secret` error occurs on **both** Google and Apple login. The code logic is:
+- **Lovable preview domain**: Uses `lovable.auth.signInWithOAuth()` (managed by Lovable Cloud)
+- **Custom domain (rankit.today)**: Uses `supabase.auth.signInWithOAuth()` directly
 
-**`src/pages/Index.tsx`** — 배너 div 스타일 변경
+The error indicates that OAuth provider secrets are not configured in the backend authentication settings. For Google on Lovable domains, the managed solution should handle this automatically, but it appears the configuration may need to be re-initialized or verified.
 
-1. **배경 opacity 대폭 상향**: `0.18` → `0.45`, `0.12` → `0.35`
-2. **border 강화**: `border-primary/30` → `border-primary/60`
-3. **glow 효과 추가**: `box-shadow`로 외곽에 보라/청록 glow 적용
-4. **텍스트 대비 강화**: "1초 만에 참여" 텍스트를 `font-bold` + 약간 더 큰 사이즈로
+## Plan
 
-```tsx
-// 변경 전
-style={{ background: "linear-gradient(135deg, hsl(var(--neon-purple) / 0.18), hsl(var(--neon-cyan) / 0.12))" }}
+### 1. Verify/Fix Cloud Authentication Configuration
+- Use the Configure Social Auth tool to ensure the Lovable Cloud managed Google OAuth is properly set up
+- This regenerates the necessary OAuth bridge configuration
 
-// 변경 후
-style={{
-  background: "linear-gradient(135deg, hsl(var(--neon-purple) / 0.45), hsl(var(--neon-cyan) / 0.35))",
-  boxShadow: "0 0 24px hsl(var(--neon-purple) / 0.25), 0 0 8px hsl(var(--neon-cyan) / 0.15)"
-}}
-```
+### 2. Hide Apple Login Button
+- Apple OAuth requires manual credential setup (Service ID, Team ID, Key ID, Private Key) which is not yet done
+- Remove or conditionally hide the Apple login button in `src/pages/Auth.tsx`
 
-추가로 border에도 neon 색상 직접 적용:
-```tsx
-className="... border-2 border-white/20"
-```
+### 3. Improve Error Handling in Auth Page
+- Catch the raw `400 validation_failed` JSON response in both `handleGoogleLogin` and `handleAppleLogin`
+- Display a user-friendly Korean error message like "소셜 로그인 설정이 준비 중입니다" instead of exposing the raw error
+
+### 4. Custom Domain OAuth Flow
+- The custom domain path uses `supabase.auth.signInWithOAuth()` directly, which also requires the provider to be enabled in the backend
+- Since Google is managed by Lovable Cloud, the same credentials should work for both paths once properly configured
+
+### Files to Modify
+- **`src/pages/Auth.tsx`**: Hide Apple button, improve error messages for OAuth failures
+
+### Backend Action Required
+- Re-run the Configure Social Auth tool to ensure Google provider is active in Lovable Cloud
+- User will need to open the backend dashboard to verify Google is enabled under Users → Authentication Settings → Sign In Methods
+
