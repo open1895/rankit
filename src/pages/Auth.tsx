@@ -106,13 +106,32 @@ const Auth = () => {
     }
   };
 
+  const isCustomDomain = () => {
+    const h = window.location.hostname;
+    return !h.includes("lovable.app") && !h.includes("lovableproject.com") && !h.includes("localhost");
+  };
+
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (error) throw error;
+      if (isCustomDomain()) {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: window.location.origin,
+            skipBrowserRedirect: true,
+          },
+        });
+        if (error) throw error;
+        if (data?.url) {
+          window.location.href = data.url;
+        }
+      } else {
+        const { error } = await lovable.auth.signInWithOAuth("google", {
+          redirect_uri: window.location.origin,
+        });
+        if (error) throw error;
+      }
     } catch (err: any) {
       toast.error(err?.message || "Google 로그인에 실패했습니다.");
     } finally {
@@ -123,10 +142,24 @@ const Auth = () => {
   const handleAppleLogin = async () => {
     setLoading(true);
     try {
-      const { error } = await lovable.auth.signInWithOAuth("apple", {
-        redirect_uri: window.location.origin,
-      });
-      if (error) throw error;
+      if (isCustomDomain()) {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "apple",
+          options: {
+            redirectTo: window.location.origin,
+            skipBrowserRedirect: true,
+          },
+        });
+        if (error) throw error;
+        if (data?.url) {
+          window.location.href = data.url;
+        }
+      } else {
+        const { error } = await lovable.auth.signInWithOAuth("apple", {
+          redirect_uri: window.location.origin,
+        });
+        if (error) throw error;
+      }
     } catch (err: any) {
       toast.error(err?.message || "Apple 로그인에 실패했습니다.");
     } finally {
