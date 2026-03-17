@@ -157,72 +157,77 @@ Return ONLY a valid JSON array with exactly 5 objects. Each object has:
 
 Focus on actionable, specific insights using actual numbers. Include insights about influence score changes, fan engagement comparisons, and growth predictions. Do NOT use generic statements.`;
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [{ role: "user", content: prompt }],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "return_insights",
-              description: "Return creator influence insights as structured data",
-              parameters: {
-                type: "object",
-                properties: {
-                  insights: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        icon: { type: "string", enum: ["trending_up", "clock", "users", "zap", "star"] },
-                        title: { type: "string" },
-                        description: { type: "string" },
-                        type: { type: "string", enum: ["positive", "neutral", "warning"] },
+    let insights: any[] = [];
+
+    try {
+      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${lovableApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [{ role: "user", content: prompt }],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "return_insights",
+                description: "Return creator influence insights as structured data",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    insights: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          icon: { type: "string", enum: ["trending_up", "clock", "users", "zap", "star"] },
+                          title: { type: "string" },
+                          description: { type: "string" },
+                          type: { type: "string", enum: ["positive", "neutral", "warning"] },
+                        },
+                        required: ["icon", "title", "description", "type"],
+                        additionalProperties: false,
                       },
-                      required: ["icon", "title", "description", "type"],
-                      additionalProperties: false,
                     },
                   },
+                  required: ["insights"],
+                  additionalProperties: false,
                 },
-                required: ["insights"],
-                additionalProperties: false,
               },
             },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "return_insights" } },
-      }),
-    });
+          ],
+          tool_choice: { type: "function", function: { name: "return_insights" } },
+        }),
+      });
 
-    if (!aiResponse.ok) {
-      if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded, please try again later." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      if (aiResponse.ok) {
+        const aiData = await aiResponse.json();
+        const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+        if (toolCall?.function?.arguments) {
+          const parsed = JSON.parse(toolCall.function.arguments);
+          insights = parsed.insights || [];
+        }
+      } else {
+        const errText = await aiResponse.text();
+        console.error("AI gateway error:", aiResponse.status, errText);
       }
-      if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "Payment required." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const errText = await aiResponse.text();
-      console.error("AI gateway error:", aiResponse.status, errText);
-      throw new Error("AI gateway error");
+    } catch (aiErr) {
+      console.error("AI call failed, using fallback insights:", aiErr);
     }
 
-    const aiData = await aiResponse.json();
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-    let insights = [];
-
-    if (toolCall?.function?.arguments) {
-      const parsed = JSON.parse(toolCall.function.arguments);
-      insights = parsed.insights || [];
+    // Fallback insights when AI is unavailable
+    if (insights.length === 0) {
+      const growthType = voteGrowthRate > 10 ? "positive" : voteGrowthRate < -10 ? "warning" : "neutral";
+      insights = [
+        { icon: "trending_up", title: "투표 추이", description: `최근 7일 ${totalRecent}표, 이전 대비 ${Math.round(voteGrowthRate)}% ${voteGrowthRate >= 0 ? '증가' : '감소'}`, type: growthType },
+        { icon: "star", title: "영향력 점수", description: `현재 영향력 ${influenceScore}점 (구독 ${breakdown.subscriber}, 투표 ${breakdown.voting})`, type: influenceScore > 50 ? "positive" : "neutral" },
+        { icon: "users", title: "카테고리 순위", description: `${creator.category} 분야 ${categoryRank}위 / ${categoryTotal}명`, type: categoryRank <= 3 ? "positive" : "neutral" },
+        { icon: "zap", title: "커뮤니티 활동", description: `최근 7일 댓글 ${recentComments}개, 게시글 ${recentPosts}개`, type: recentComments > 5 ? "positive" : "neutral" },
+        { icon: "clock", title: "피크 시간대", description: peakHour ? `오늘 투표가 가장 활발한 시간: ${peakHour.vote_hour}시` : "아직 오늘의 투표 데이터가 부족합니다", type: "neutral" },
+      ];
     }
 
     return new Response(JSON.stringify({
