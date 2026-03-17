@@ -107,57 +107,81 @@ const Auth = () => {
   };
 
   const isCustomDomain = !window.location.hostname.includes("lovable.app") &&
-    !window.location.hostname.includes("lovableproject.com");
+    !window.location.hostname.includes("lovableproject.com") &&
+    !window.location.hostname.includes("localhost");
+
+  const getRedirectUrl = () => {
+    // Always use the current origin for redirect
+    return window.location.origin;
+  };
 
   const handleGoogleLogin = async () => {
-    if (isCustomDomain) {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin,
-          skipBrowserRedirect: true,
-        },
-      });
-      if (error) {
-        toast.error("Google 로그인에 실패했습니다.");
-        return;
+    setLoading(true);
+    try {
+      if (isCustomDomain) {
+        // Bypass Lovable auth-bridge on custom domains to avoid 404
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: getRedirectUrl(),
+            skipBrowserRedirect: true,
+          },
+        });
+        if (error) throw error;
+        if (data?.url) {
+          // Validate redirect URL for security
+          const oauthUrl = new URL(data.url);
+          const allowedHosts = ["accounts.google.com", "jcaajxwdeqngihupjaaa.supabase.co"];
+          if (allowedHosts.some(host => oauthUrl.hostname.includes(host))) {
+            window.location.href = data.url;
+          } else {
+            throw new Error("Invalid OAuth redirect URL");
+          }
+        }
+      } else {
+        const { error } = await lovable.auth.signInWithOAuth("google", {
+          redirect_uri: getRedirectUrl(),
+        });
+        if (error) throw error;
       }
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } else {
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (error) {
-        toast.error("Google 로그인에 실패했습니다.");
-      }
+    } catch (err: any) {
+      toast.error(err?.message || "Google 로그인에 실패했습니다.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAppleLogin = async () => {
-    if (isCustomDomain) {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "apple",
-        options: {
-          redirectTo: window.location.origin,
-          skipBrowserRedirect: true,
-        },
-      });
-      if (error) {
-        toast.error("Apple 로그인에 실패했습니다.");
-        return;
+    setLoading(true);
+    try {
+      if (isCustomDomain) {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "apple",
+          options: {
+            redirectTo: getRedirectUrl(),
+            skipBrowserRedirect: true,
+          },
+        });
+        if (error) throw error;
+        if (data?.url) {
+          const oauthUrl = new URL(data.url);
+          const allowedHosts = ["appleid.apple.com", "jcaajxwdeqngihupjaaa.supabase.co"];
+          if (allowedHosts.some(host => oauthUrl.hostname.includes(host))) {
+            window.location.href = data.url;
+          } else {
+            throw new Error("Invalid OAuth redirect URL");
+          }
+        }
+      } else {
+        const { error } = await lovable.auth.signInWithOAuth("apple", {
+          redirect_uri: getRedirectUrl(),
+        });
+        if (error) throw error;
       }
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } else {
-      const { error } = await lovable.auth.signInWithOAuth("apple", {
-        redirect_uri: window.location.origin,
-      });
-      if (error) {
-        toast.error("Apple 로그인에 실패했습니다.");
-      }
+    } catch (err: any) {
+      toast.error(err?.message || "Apple 로그인에 실패했습니다.");
+    } finally {
+      setLoading(false);
     }
   };
 
