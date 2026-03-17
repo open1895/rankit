@@ -5,6 +5,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function xmlEscape(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -76,8 +85,8 @@ Deno.serve(async (req) => {
   <text x="120" y="185" font-family="system-ui, sans-serif" font-size="32" fill="white" text-anchor="middle" font-weight="900">${rankEmoji} ${creator.rank}위</text>
 
   <!-- Creator name -->
-  <text x="240" y="160" font-family="system-ui, sans-serif" font-size="52" fill="white" font-weight="900">${creator.name}</text>
-  <text x="240" y="195" font-family="system-ui, sans-serif" font-size="20" fill="#94a3b8">${creator.category || "크리에이터"}</text>
+  <text x="240" y="160" font-family="system-ui, sans-serif" font-size="52" fill="white" font-weight="900">${xmlEscape(creator.name)}</text>
+  <text x="240" y="195" font-family="system-ui, sans-serif" font-size="20" fill="#94a3b8">${xmlEscape(creator.category || "크리에이터")}</text>
 
   <!-- Stats cards -->
   <rect x="40" y="250" width="340" height="100" rx="16" fill="#ffffff08" stroke="#ffffff10" stroke-width="1"/>
@@ -90,7 +99,7 @@ Deno.serve(async (req) => {
 
   <rect x="800" y="250" width="360" height="100" rx="16" fill="#ffffff08" stroke="#ffffff10" stroke-width="1"/>
   <text x="980" y="290" font-family="system-ui, sans-serif" font-size="16" fill="#94a3b8" text-anchor="middle">카테고리</text>
-  <text x="980" y="330" font-family="system-ui, sans-serif" font-size="28" fill="white" text-anchor="middle" font-weight="700">${creator.category || "종합"}</text>
+  <text x="980" y="330" font-family="system-ui, sans-serif" font-size="28" fill="white" text-anchor="middle" font-weight="700">${xmlEscape(creator.category || "종합")}</text>
 
   <!-- CTA -->
   <rect x="40" y="400" width="1120" height="70" rx="16" fill="url(#purple)" opacity="0.9"/>
