@@ -345,16 +345,8 @@ const Index = () => {
       {/* Push Notification Prompt */}
       <PushNotificationPrompt />
 
-      {/* Landing page for non-logged-in users */}
-      {!user && !loading && (
-        <>
-          <LandingHero />
-          <Footer />
-        </>
-      )}
-
-      {/* Show full app only for logged-in users or during loading */}
-      {(user || loading) && (
+      {/* Show full app for all users */}
+      {!loading && (
       <>
 
       {/* Mobile Header */}
