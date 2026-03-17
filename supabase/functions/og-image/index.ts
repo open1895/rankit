@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
 
   <rect x="800" y="250" width="360" height="100" rx="16" fill="#ffffff08" stroke="#ffffff10" stroke-width="1"/>
   <text x="980" y="290" font-family="system-ui, sans-serif" font-size="16" fill="#94a3b8" text-anchor="middle">카테고리</text>
-  <text x="980" y="330" font-family="system-ui, sans-serif" font-size="28" fill="white" text-anchor="middle" font-weight="700">${creator.category || "종합"}</text>
+  <text x="980" y="330" font-family="system-ui, sans-serif" font-size="28" fill="white" text-anchor="middle" font-weight="700">${xmlEscape(creator.category || "종합")}</text>
 
   <!-- CTA -->
   <rect x="40" y="400" width="1120" height="70" rx="16" fill="url(#purple)" opacity="0.9"/>
