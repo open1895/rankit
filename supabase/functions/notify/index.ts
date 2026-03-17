@@ -41,15 +41,15 @@ Deno.serve(async (req) => {
     }
 
     if (action === "create") {
-      if (!user_id || !title || !message) {
-        return new Response(JSON.stringify({ error: "user_id, title, message required" }), {
+      if (!title || !message) {
+        return new Response(JSON.stringify({ error: "title, message required" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
       const { error } = await supabase.from("notifications").insert({
-        user_id,
+        user_id: targetUserId,
         type: type || "general",
         title,
         message,
