@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      adpopcorn_callbacks: {
+        Row: {
+          ad_id: string
+          camp_id: string
+          created_at: string
+          id: string
+          reward: number
+          user_id: string
+        }
+        Insert: {
+          ad_id?: string
+          camp_id: string
+          created_at?: string
+          id?: string
+          reward: number
+          user_id: string
+        }
+        Update: {
+          ad_id?: string
+          camp_id?: string
+          created_at?: string
+          id?: string
+          reward?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       battle_votes: {
         Row: {
           battle_id: string
