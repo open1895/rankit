@@ -1,2 +1,3 @@
 # Redirect www to non-www (canonical domain)
+http://www.rankit.today/* https://rankit.today/:splat 301!
 https://www.rankit.today/* https://rankit.today/:splat 301!
