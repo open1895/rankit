@@ -80,7 +80,7 @@ const ClaimCreatorModal = ({ creatorId, creatorName, onClose, onClaimed }: Claim
     setStep("verifying");
     try {
       const { data, error } = await supabase.functions.invoke("claim-creator", {
-        body: { action: "verify_claim", creator_id: creatorId, verification_code: verificationCode },
+        body: { action: "submit_code_claim", creator_id: creatorId, verification_code: verificationCode, verify_method: method },
       });
       if (error || data?.error) {
         setErrorMsg(data?.error || error?.message || "인증에 실패했습니다.");
@@ -88,7 +88,6 @@ const ClaimCreatorModal = ({ creatorId, creatorName, onClose, onClaimed }: Claim
         return;
       }
       setStep("success");
-      onClaimed();
     } catch {
       setErrorMsg("인증에 실패했습니다.");
       setStep("error");
