@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (existingCreator && action !== "generate_code" && action !== "verify_claim") {
+    if (existingCreator && action !== "generate_code" && action !== "submit_code_claim") {
       return new Response(
         JSON.stringify({ error: "이미 연동된 크리에이터가 있습니다.", existing_creator: existingCreator.name }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
