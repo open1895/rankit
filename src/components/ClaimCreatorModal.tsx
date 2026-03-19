@@ -80,7 +80,7 @@ const ClaimCreatorModal = ({ creatorId, creatorName, onClose, onClaimed }: Claim
     setStep("verifying");
     try {
       const { data, error } = await supabase.functions.invoke("claim-creator", {
-        body: { action: "verify_claim", creator_id: creatorId, verification_code: verificationCode },
+        body: { action: "submit_code_claim", creator_id: creatorId, verification_code: verificationCode, verify_method: method },
       });
       if (error || data?.error) {
         setErrorMsg(data?.error || error?.message || "인증에 실패했습니다.");
@@ -88,7 +88,6 @@ const ClaimCreatorModal = ({ creatorId, creatorName, onClose, onClaimed }: Claim
         return;
       }
       setStep("success");
-      onClaimed();
     } catch {
       setErrorMsg("인증에 실패했습니다.");
       setStep("error");
@@ -451,22 +450,22 @@ const ClaimCreatorModal = ({ creatorId, creatorName, onClose, onClaimed }: Claim
               {/* ── STEP: SUCCESS ── */}
               {step === "success" && (
                 <div className="space-y-4 text-center py-4">
-                  <div className="mx-auto w-20 h-20 rounded-full bg-green-500/10 flex items-center justify-center">
-                    <CheckCircle2 className="w-10 h-10 text-green-500" />
+                  <div className="mx-auto w-20 h-20 rounded-full bg-[hsl(var(--neon-purple)/0.1)] flex items-center justify-center">
+                    <CheckCircle2 className="w-10 h-10 text-[hsl(var(--neon-purple))]" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-foreground">인증 완료! 🎉</h3>
+                    <h3 className="text-lg font-bold text-foreground">인증 요청 완료! 📋</h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                      <strong className="text-foreground">{creatorName}</strong> 프로필이 성공적으로 인증되었습니다
+                      <strong className="text-foreground">{creatorName}</strong> 프로필 인증 요청이 접수되었습니다
                     </p>
                   </div>
                   <div className="space-y-2 text-left">
                     {[
-                      { icon: "✅", text: "Verified Creator 배지가 적용되었습니다" },
-                      { icon: "📊", text: "크리에이터 대시보드에 접근할 수 있습니다" },
-                      { icon: "✏️", text: "프로필을 직접 수정할 수 있습니다" },
+                      { icon: "📋", text: "관리자가 SNS/채널에서 코드를 확인합니다" },
+                      { icon: "⏰", text: "심사 결과는 알림으로 안내됩니다" },
+                      { icon: "✅", text: "승인 시 대시보드와 배지가 활성화됩니다" },
                     ].map((item, i) => (
-                      <div key={i} className="flex items-center gap-3 glass-sm p-3 rounded-xl border border-green-500/20">
+                      <div key={i} className="flex items-center gap-3 glass-sm p-3 rounded-xl border border-[hsl(var(--neon-purple)/0.2)]">
                         <span>{item.icon}</span>
                         <span className="text-xs font-medium text-foreground">{item.text}</span>
                       </div>

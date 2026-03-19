@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (existingCreator && action !== "generate_code" && action !== "verify_claim") {
+    if (existingCreator && action !== "generate_code" && action !== "submit_code_claim") {
       return new Response(
         JSON.stringify({ error: "이미 연동된 크리에이터가 있습니다.", existing_creator: existingCreator.name }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -184,9 +184,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    // === VERIFY AND CLAIM (instant code verification) ===
-    if (action === "verify_claim") {
-      const { verification_code } = body;
+    // === SUBMIT CODE-BASED CLAIM (goes to admin review) ===
+    if (action === "submit_code_claim") {
+      const { verification_code, verify_method } = body;
       if (!verification_code || typeof verification_code !== "string" || verification_code.length < 10) {
         return new Response(
           JSON.stringify({ error: "유효한 인증 코드가 필요합니다." }),
@@ -201,26 +201,57 @@ Deno.serve(async (req) => {
         );
       }
 
+      if (targetCreator.verification_status === "pending") {
+        return new Response(
+          JSON.stringify({ error: "이미 인증 심사가 진행 중입니다." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (targetCreator.verification_status === "verified") {
+        return new Response(
+          JSON.stringify({ error: "이미 인증된 크리에이터입니다." }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const methodLabel = verify_method === "social" ? "SNS 게시" : "채널 설명";
+
+      // Set to pending for admin review — do NOT auto-verify
       const { error: updateError } = await adminClient
         .from("creators")
-        .update({ 
-          user_id: userId, 
-          is_verified: true, 
-          claimed: true, 
-          claimed_at: new Date().toISOString(),
-          verification_status: "verified",
+        .update({
+          user_id: userId,
+          verification_status: "pending",
+          claim_message: `[코드 인증 - ${methodLabel}] 코드: ${verification_code.slice(0, 30)}`,
         })
         .eq("id", creator_id);
 
       if (updateError) {
         return new Response(
-          JSON.stringify({ error: "연동에 실패했습니다." }),
+          JSON.stringify({ error: "신청에 실패했습니다." }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
+      // Notify admins
+      const { data: adminRoles } = await adminClient
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      if (adminRoles && adminRoles.length > 0) {
+        const notifications = adminRoles.map((r: any) => ({
+          user_id: r.user_id,
+          type: "claim_request",
+          title: "🔔 크리에이터 코드 인증 요청",
+          message: `"${targetCreator.name}" 프로필에 대한 코드 인증(${methodLabel}) 요청이 접수되었습니다.`,
+          link: "/admin-panel",
+        }));
+        await adminClient.from("notifications").insert(notifications);
+      }
+
       return new Response(
-        JSON.stringify({ success: true, message: "크리에이터 프로필이 인증되었습니다! ✅", creator_name: targetCreator.name }),
+        JSON.stringify({ success: true, message: "인증 요청이 접수되었습니다! 관리자가 SNS/채널에서 코드를 확인 후 승인합니다." }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
