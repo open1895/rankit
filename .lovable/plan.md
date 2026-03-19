@@ -1,32 +1,32 @@
 
-## CTA 배너 밝기 개선
 
-### 현재 문제
-- 배경 gradient 투명도가 너무 낮음: `neon-purple / 0.18`, `neon-cyan / 0.12`
-- 다크 배경(230 25% 7%)에서 거의 구별이 안 됨
-- 텍스트도 `gradient-text` + `text-neon-cyan` 인데 배경과 대비가 약함
+## Auto-fetch YouTube Profile Pictures — Current State & Enhancement Options
 
-### 수정 방향
+### What Already Exists
+The edge function `fetch-creator-avatars` is fully implemented and functional. It:
+- Fetches YouTube channel thumbnails via the YouTube Data API
+- Updates the `avatar_url` field for creators with a `youtube_channel_id`
+- Requires admin authentication
+- Has rate limiting (100ms delay between API calls)
+- Supports filtering to only update missing avatars (`only_missing` flag)
 
-**`src/pages/Index.tsx`** — 배너 div 스타일 변경
+### Potential Enhancements
 
-1. **배경 opacity 대폭 상향**: `0.18` → `0.45`, `0.12` → `0.35`
-2. **border 강화**: `border-primary/30` → `border-primary/60`
-3. **glow 효과 추가**: `box-shadow`로 외곽에 보라/청록 glow 적용
-4. **텍스트 대비 강화**: "1초 만에 참여" 텍스트를 `font-bold` + 약간 더 큰 사이즈로
+**Option A: Add a button in the Admin Panel to trigger it**
+- Add a "Sync YouTube Avatars" button in the admin panel UI
+- Show results (how many updated, which failed)
 
-```tsx
-// 변경 전
-style={{ background: "linear-gradient(135deg, hsl(var(--neon-purple) / 0.18), hsl(var(--neon-cyan) / 0.12))" }}
+**Option B: Auto-run on creator creation/update**
+- When a new creator is added or their `youtube_channel_id` is updated, automatically fetch the avatar
+- Could be done via a database trigger + pg_net, or by calling the function from the frontend after creator save
 
-// 변경 후
-style={{
-  background: "linear-gradient(135deg, hsl(var(--neon-purple) / 0.45), hsl(var(--neon-cyan) / 0.35))",
-  boxShadow: "0 0 24px hsl(var(--neon-purple) / 0.25), 0 0 8px hsl(var(--neon-cyan) / 0.15)"
-}}
-```
+**Option C: Scheduled auto-sync (periodic refresh)**
+- Set up a cron-like mechanism (e.g., call the function weekly) to keep avatars fresh
+- Would require an external scheduler or a Supabase pg_cron extension
 
-추가로 border에도 neon 색상 직접 적용:
-```tsx
-className="... border-2 border-white/20"
-```
+### Technical Details
+- Edge function: `supabase/functions/fetch-creator-avatars/index.ts`
+- YouTube API key: Already configured as `YOUTUBE_API_KEY` secret
+- The function uses `snippet.thumbnails.high` (preferring high > medium > default quality)
+- Admin auth is enforced via JWT + `user_roles` table check
+
