@@ -107,6 +107,22 @@ const OvertakeShareCard = ({
   const [bonusInfo, setBonusInfo] = useState(getShareBonusInfo);
   const canGetBonus = !shared && bonusInfo.remaining > 0;
 
+  const grantShareBonus = useCallback(() => {
+    if (!shared && bonusInfo.remaining > 0) {
+      const granted = recordShareBonus();
+      if (granted) {
+        onShared();
+        onShareBonus();
+        setBonusInfo(getShareBonusInfo());
+        toast.success(`🎉 공유 완료! 추가 투표권 +1 지급! (오늘 ${getShareBonusInfo().used}/${DAILY_SHARE_LIMIT}회 사용)`);
+      } else {
+        toast.info("오늘 공유 보너스를 모두 사용했습니다. (최대 3회/일)");
+      }
+    } else if (bonusInfo.remaining <= 0) {
+      toast.info("오늘 공유 보너스를 모두 사용했습니다. (최대 3회/일)");
+    }
+  }, [shared, bonusInfo, onShared, onShareBonus]);
+
   const handleShare = async () => {
     // Attempt card capture but don't block sharing on failure
     let blob: Blob | null = null;
