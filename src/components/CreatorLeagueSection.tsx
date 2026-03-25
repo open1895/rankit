@@ -26,6 +26,7 @@ const LEAGUES = [
   { category: "댄스", emoji: "💃", label: "Dance League", gradient: "from-fuchsia-500 to-purple-600" },
   { category: "아트", emoji: "🎨", label: "Art League", gradient: "from-red-500 to-pink-600" },
   { category: "요리", emoji: "🍳", label: "Cooking League", gradient: "from-amber-500 to-yellow-600" },
+  { category: "반려동물", emoji: "🐾", label: "Pet League", gradient: "from-lime-500 to-green-600" },
 ];
 
 const MEDAL_COLORS = [
