@@ -544,7 +544,7 @@ const ShareCard = ({ creatorId, creatorName, rank, votesCount, avatarUrl, catego
           {/* SNS Sharing Grid */}
           <div className="space-y-2">
             <p className="text-xs font-semibold text-muted-foreground text-center">공유 채널 선택</p>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-5 gap-2">
               {snsButtons.map((btn, i) => (
                 <button
                   key={btn.key}
