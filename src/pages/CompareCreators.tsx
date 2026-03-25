@@ -44,7 +44,7 @@ const CompareCreators = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const { data } = await supabase.from("creators").select("*").order("rank", { ascending: true });
+      const { data } = await supabase.from("creators").select("id, name, category, avatar_url, votes_count, subscriber_count, rank, is_verified").order("rank", { ascending: true });
       setAllCreators(
         (data || []).map((c: any) => ({
           id: c.id, name: c.name, category: c.category, avatar_url: c.avatar_url,

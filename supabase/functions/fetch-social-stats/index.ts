@@ -70,10 +70,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check if this is a cron call (Authorization: Bearer <anon_key>)
+    // Check if this is a cron call (using dedicated CRON_SECRET)
     const authHeader = req.headers.get("Authorization");
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const isCronCall = authHeader === `Bearer ${anonKey}`;
+    const cronSecret = Deno.env.get("CRON_SECRET");
+    const isCronCall = cronSecret && authHeader === `Bearer ${cronSecret}`;
 
     if (!isCronCall) {
       // Manual call: require admin role
@@ -84,6 +84,7 @@ Deno.serve(async (req) => {
         });
       }
 
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
       const authClient = createClient(supabaseUrl, anonKey, {
         global: { headers: { Authorization: authHeader } },
       });
