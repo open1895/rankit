@@ -292,7 +292,7 @@ const ShareCard = ({ creatorId, creatorName, rank, votesCount, avatarUrl, catego
 
   const handleShareTwitter = () => {
     const text = encodeURIComponent(shareText);
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(shareUrl)}`, "_blank");
+    window.open(`https://x.com/intent/tweet?text=${text}&url=${encodeURIComponent(shareUrl)}`, "_blank");
     claimShareBonus();
   };
 

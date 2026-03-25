@@ -508,7 +508,7 @@ const OvertakeShareCard = ({
               </button>
               <button
                 onClick={() => {
-                  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTextSNS)}`;
+                  const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareTextSNS)}`;
                   window.open(twitterUrl, "_blank");
                   grantShareBonus();
                 }}
