@@ -3,6 +3,7 @@ import { Crown, Swords, Zap, Share2, X, Download, Loader2, Image } from "lucide-
 import { Creator } from "@/lib/data";
 import { toast } from "sonner";
 import { copyToClipboard } from "@/lib/clipboard";
+import { shareToKakao } from "@/lib/kakao";
 import { toPng } from "html-to-image";
 
 const DAILY_SHARE_LIMIT = 3;
