@@ -51,7 +51,7 @@ const CATEGORY_TABS = [
 
 const PAGE_SIZE = 20;
 
-const NOMINATION_CATEGORIES = ["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크", "아트", "교육", "댄스"];
+const NOMINATION_CATEGORIES = ["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크", "아트", "교육", "댄스", "요리"];
 
 const NominationSection = ({ externalOpen, onOpenChange }: { externalOpen?: boolean; onOpenChange?: (v: boolean) => void }) => {
   const [internalOpen, setInternalOpen] = useState(false);
