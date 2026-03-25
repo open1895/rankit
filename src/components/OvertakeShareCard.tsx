@@ -3,6 +3,7 @@ import { Crown, Swords, Zap, Share2, X, Download, Loader2, Image } from "lucide-
 import { Creator } from "@/lib/data";
 import { toast } from "sonner";
 import { copyToClipboard } from "@/lib/clipboard";
+import { shareToKakao } from "@/lib/kakao";
 import { toPng } from "html-to-image";
 
 const DAILY_SHARE_LIMIT = 3;
@@ -105,6 +106,22 @@ const OvertakeShareCard = ({
 
   const [bonusInfo, setBonusInfo] = useState(getShareBonusInfo);
   const canGetBonus = !shared && bonusInfo.remaining > 0;
+
+  const grantShareBonus = useCallback(() => {
+    if (!shared && bonusInfo.remaining > 0) {
+      const granted = recordShareBonus();
+      if (granted) {
+        onShared();
+        onShareBonus();
+        setBonusInfo(getShareBonusInfo());
+        toast.success(`🎉 공유 완료! 추가 투표권 +1 지급! (오늘 ${getShareBonusInfo().used}/${DAILY_SHARE_LIMIT}회 사용)`);
+      } else {
+        toast.info("오늘 공유 보너스를 모두 사용했습니다. (최대 3회/일)");
+      }
+    } else if (bonusInfo.remaining <= 0) {
+      toast.info("오늘 공유 보너스를 모두 사용했습니다. (최대 3회/일)");
+    }
+  }, [shared, bonusInfo, onShared, onShareBonus]);
 
   const handleShare = async () => {
     // Attempt card capture but don't block sharing on failure
@@ -443,16 +460,62 @@ const OvertakeShareCard = ({
             )}
           </button>
 
-          {/* Share destination explanation */}
-          <div className="text-center space-y-1 py-0.5">
+          {/* Share destination buttons */}
+          <div className="text-center space-y-1.5 py-0.5">
             <p className="text-[10px] text-muted-foreground">
               📲 버튼을 누르면 <span className="font-semibold text-foreground">기기의 공유 메뉴</span>가 열립니다
             </p>
             <div className="flex items-center justify-center gap-1.5 flex-wrap">
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground">📱 카카오톡</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground">📸 인스타</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground">💬 문자</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground">🐦 X(트위터)</span>
+              <button
+                onClick={() => {
+                  shareToKakao({
+                    title: isFirst ? `👑 ${creator.name} - 1위 수성 중!` : `🚨 역전까지 단 ${gap}표! ${creator.name}`,
+                    description: isFirst ? "지금 투표하고 함께 지켜주세요! 🔥" : "지원군이 필요합니다! 투표하러 가기 🔥",
+                    webUrl: siteUrl,
+                    mobileWebUrl: siteUrl,
+                    buttonTitle: "투표하러 가기",
+                  });
+                  grantShareBonus();
+                }}
+                className="text-[10px] px-3 py-1 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground hover:border-yellow-500/50 hover:text-foreground transition-all active:scale-95 cursor-pointer"
+              >
+                📱 카카오톡
+              </button>
+              <button
+                onClick={() => {
+                  const instagramUrl = `https://www.instagram.com/`;
+                  copyToClipboard(shareTextSNS).then((ok) => {
+                    if (ok) {
+                      toast.success("공유 텍스트가 복사되었습니다! 인스타그램에 붙여넣기 해주세요.");
+                      window.open(instagramUrl, "_blank");
+                    }
+                  });
+                  grantShareBonus();
+                }}
+                className="text-[10px] px-3 py-1 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground hover:border-pink-500/50 hover:text-foreground transition-all active:scale-95 cursor-pointer"
+              >
+                📸 인스타
+              </button>
+              <button
+                onClick={() => {
+                  const smsUrl = `sms:?body=${encodeURIComponent(shareTextSNS)}`;
+                  window.location.href = smsUrl;
+                  grantShareBonus();
+                }}
+                className="text-[10px] px-3 py-1 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground hover:border-green-500/50 hover:text-foreground transition-all active:scale-95 cursor-pointer"
+              >
+                💬 문자
+              </button>
+              <button
+                onClick={() => {
+                  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTextSNS)}`;
+                  window.open(twitterUrl, "_blank");
+                  grantShareBonus();
+                }}
+                className="text-[10px] px-3 py-1 rounded-full bg-[hsl(var(--glass))] border border-[hsl(var(--glass-border))] text-muted-foreground hover:border-blue-400/50 hover:text-foreground transition-all active:scale-95 cursor-pointer"
+              >
+                🐦 X(트위터)
+              </button>
             </div>
             <p className="text-[9px] text-muted-foreground/60">
               PC에서는 공유 텍스트가 클립보드에 복사됩니다
