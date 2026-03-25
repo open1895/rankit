@@ -265,10 +265,17 @@ const CreatorProfile = () => {
     setShowRankUpHint(true);
     setTimeout(() => setShowRankUpHint(false), 3000);
     const { data, error } = await supabase.functions.invoke("vote", { body: { creator_id: id, use_super: useSuperVote } });
+    
+    // Handle error responses - supabase puts non-2xx body in error, data may be null
+    const errorBody = data?.error || (error && typeof error === 'object' && 'context' in error ? await (error as any).context?.json?.().catch(() => null) : null);
+    const isAlreadyVoted = data?.error === "already_voted" || 
+      (error?.message && error.message.includes("already_voted")) ||
+      errorBody?.error === "already_voted";
+    
     if (error || data?.error) {
       setShowRankUpHint(false);
-      if (data?.error === "already_voted") { toast.error("오늘 이미 이 크리에이터에게 투표하셨습니다."); setHasVotedToday(true); }
-      else { toast.error(data?.message || error?.message || "투표에 실패했습니다."); }
+      if (isAlreadyVoted) { toast.error("오늘 이미 이 크리에이터에게 투표하셨습니다."); setHasVotedToday(true); }
+      else { toast.error(data?.message || errorBody?.message || error?.message || "투표에 실패했습니다."); }
       return;
     }
     setHasVotedToday(true); setShowRankUpHint(false);
