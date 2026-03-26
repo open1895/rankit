@@ -125,6 +125,10 @@ const Auth = () => {
   };
 
   const handleGoogleLogin = async () => {
+    if (isWebView) {
+      toast.error("인앱 브라우저에서는 Google 로그인이 제한됩니다. Safari 또는 Chrome에서 열어주세요.");
+      return;
+    }
     setLoading(true);
     try {
       const { error } = await lovable.auth.signInWithOAuth("google", {
@@ -141,6 +145,22 @@ const Auth = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("주소가 복사되었습니다. 브라우저에 붙여넣기 해주세요! 📋");
+    } catch {
+      toast.error("복사에 실패했습니다. 주소를 직접 복사해주세요.");
+    }
+  };
+
+  const handleOpenExternal = () => {
+    const opened = openInExternalBrowser(window.location.href);
+    if (!opened) {
+      handleCopyUrl();
     }
   };
 
