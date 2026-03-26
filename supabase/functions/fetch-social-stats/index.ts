@@ -70,12 +70,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check if this is a cron call (using dedicated CRON_SECRET)
+    // Check if this is a cron call
     const authHeader = req.headers.get("Authorization");
     const cronSecret = Deno.env.get("CRON_SECRET");
     const isCronCall = cronSecret && authHeader === `Bearer ${cronSecret}`;
 
-    if (!isCronCall) {
+    // Allow internal pg_net cron calls (no auth, body has cron flag)
+    let bodyText = "";
+    try { bodyText = await req.text(); } catch { /* empty */ }
+    let parsedBody: any = {};
+    try { parsedBody = bodyText ? JSON.parse(bodyText) : {}; } catch { /* empty */ }
+    const isInternalCron = parsedBody.cron === true && !authHeader;
+
+    if (!isCronCall && !isInternalCron) {
       // Manual call: require admin role
       if (!authHeader) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
