@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.fetch-creator-avatars]
 verify_jwt = false
+
+[functions.auto-add-creators]
+verify_jwt = false
