@@ -143,7 +143,9 @@ const OvertakeShareCard = ({
         // Try sharing with image if available
         if (blob && navigator.canShare) {
           const file = new File([blob], `rankit-${creator.name}-share.png`, { type: "image/png" });
-          const withFiles = { ...shareData, files: [file] };
+          // When sharing files, some apps ignore the url field, so embed URL in text
+          const textWithUrl = `${shareTextSNS}\n\n👉 투표하러 가기: ${siteUrl}`;
+          const withFiles = { ...shareData, text: textWithUrl, files: [file] };
           if (navigator.canShare(withFiles)) {
             await navigator.share(withFiles);
           } else {
