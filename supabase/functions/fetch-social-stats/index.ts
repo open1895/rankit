@@ -119,14 +119,16 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`fetch-social-stats called (cron: ${isCronCall})`);
+    console.log(`fetch-social-stats called (cron: ${isCronCall || isInternalCron})`);
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Fetch all creators with channel IDs
+    // Fetch 50 oldest-updated creators to stay within YouTube API quota
     const { data: creators, error: fetchError } = await supabase
       .from("creators")
-      .select("id, youtube_channel_id, chzzk_channel_id, youtube_subscribers, chzzk_followers, instagram_followers, tiktok_followers");
+      .select("id, youtube_channel_id, chzzk_channel_id, youtube_subscribers, chzzk_followers, instagram_followers, tiktok_followers")
+      .order("last_stats_updated", { ascending: true, nullsFirst: true })
+      .limit(50);
 
     if (fetchError) throw fetchError;
     if (!creators || creators.length === 0) {
