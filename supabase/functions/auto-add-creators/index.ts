@@ -91,11 +91,24 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Auth: CRON_SECRET or admin role
+    // Auth: CRON_SECRET header or admin role
     const authHeader = req.headers.get("Authorization");
     const isCronCall = cronSecret && authHeader === `Bearer ${cronSecret}`;
 
-    if (!isCronCall) {
+    // Also allow internal pg_net calls (no auth header, request from internal network)
+    let bodyText = "";
+    try {
+      bodyText = await req.text();
+    } catch { /* empty */ }
+
+    let parsedBody: any = {};
+    try {
+      parsedBody = bodyText ? JSON.parse(bodyText) : {};
+    } catch { /* empty */ }
+
+    const isInternalCron = parsedBody.cron === true && !authHeader;
+
+    if (!isCronCall && !isInternalCron) {
       if (!authHeader) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
