@@ -146,15 +146,10 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Parse optional category filter from request body
+    // Use already-parsed body for category filter
     let targetCategories = CATEGORIES;
-    try {
-      const body = await req.json();
-      if (body.category) {
-        targetCategories = CATEGORIES.filter(c => c.name === body.category);
-      }
-    } catch {
-      // No body or invalid JSON - process all categories
+    if (parsedBody.category) {
+      targetCategories = CATEGORIES.filter(c => c.name === parsedBody.category);
     }
 
     // Pick one random category per cron call to conserve API quota
