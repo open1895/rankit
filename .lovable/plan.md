@@ -1,34 +1,40 @@
 
 
-## 카테고리별 크리에이터 10명씩 추가 계획
+## 인앱 브라우저 구글 로그인 차단 대응
 
-### 개요
-12개 카테고리 × 10명 = **총 120명**의 실제 한국 유튜버(구독자 20만 이하)를 DB에 추가합니다.
+### 문제
+네이버, 카카오톡, Instagram 등 앱 내장 브라우저(WebView)에서 Google OAuth 시도 시 `403: disallowed_useragent` 에러 발생. Google 정책상 WebView에서의 OAuth가 차단됨.
 
-### 카테고리 목록
-게임, 먹방, 뷰티, 음악, 운동, 여행, 테크, 교육, 댄스, 아트, 요리, 반려동물
+### 해결 방안
 
-### 실행 방법
+**1. WebView 감지 유틸리티 함수 생성** (`src/lib/browser.ts`)
+- User-Agent 문자열을 분석하여 인앱 브라우저 여부를 판별
+- 감지 대상: NAVER, KakaoTalk, Instagram, Facebook, Line, Twitter 등 한국에서 주로 사용되는 앱
 
-#### 1단계: 크리에이터 리서치
-- YouTube Data API를 활용하여 카테고리별 한국 크리에이터를 검색
-- 구독자 20만 이하 필터링
-- 유효한 `youtube_channel_id` 확보
-- 채널명, 구독자 수, 프로필 이미지 URL 수집
+**2. Auth 페이지에서 WebView 감지 시 안내 표시** (`src/pages/Auth.tsx`)
+- 인앱 브라우저 감지 시 Google 로그인 버튼 위에 경고 배너 표시
+- 안내 메시지: "인앱 브라우저에서는 Google 로그인이 제한됩니다. Safari/Chrome에서 열어주세요."
+- "외부 브라우저로 열기" 버튼 제공 → 현재 URL을 외부 브라우저로 오픈 시도
+- Google 버튼 클릭 시에도 WebView면 toast로 안내 후 차단
 
-#### 2단계: DB 삽입
-- `creators` 테이블에 INSERT (insert 도구 사용)
-- 필수 필드: `name`, `category`, `youtube_channel_id`, `youtube_subscribers`, `avatar_url`, `channel_link`
-- `rank`는 0으로 초기 설정
+### 기술 상세
 
-#### 3단계: 랭킹 재계산
-- `batch_recalculate_ranks()` RPC 호출로 전체 순위 재정렬
+```text
+WebView 감지 로직 (User-Agent 기반):
+- NAVER: "NAVER" 포함
+- KakaoTalk: "KAKAOTALK" 포함  
+- Instagram: "Instagram" 포함
+- Facebook: "FBAN" 또는 "FBAV" 포함
+- Line: "Line/" 포함
+- 기타: "wv" (Android WebView), "WebView" 등
+```
 
-### 주의사항
-- YouTube API 할당량 제한이 있으므로 검색을 효율적으로 수행 (카테고리당 1-2회 호출)
-- 이미 DB에 존재하는 크리에이터는 중복 추가 방지
-- 모든 크리에이터는 실제 활동 중인 채널이어야 함
+**외부 브라우저 열기 방법:**
+- Android: `intent://` scheme 사용
+- iOS: 직접 열기 어려우므로 URL 복사 안내
+- Fallback: URL 복사 버튼 + "복사한 주소를 브라우저에 붙여넣기 해주세요" 안내
 
-### 예상 소요
-- API 호출 및 데이터 수집 후 일괄 INSERT 실행
+### 변경 파일
+- `src/lib/browser.ts` — 신규: WebView 감지 유틸리티
+- `src/pages/Auth.tsx` — 수정: WebView 감지 배너 및 Google 버튼 분기 처리
 
