@@ -227,6 +227,42 @@ const Auth = () => {
             </form>
           ) : (
             <>
+              {/* WebView Warning Banner */}
+              {isWebView && (
+                <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/30 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-destructive">
+                        {webViewName ? `${webViewName} 앱` : "인앱 브라우저"}에서는 Google 로그인이 제한됩니다
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Safari, Chrome 등 외부 브라우저에서 열어주세요.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleOpenExternal}
+                      size="sm"
+                      className="flex-1 gap-1.5 gradient-primary text-primary-foreground"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      외부 브라우저로 열기
+                    </Button>
+                    <Button
+                      onClick={handleCopyUrl}
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                    >
+                      <Copy className="w-4 h-4" />
+                      URL 복사
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Google Login */}
               <Button
                 onClick={handleGoogleLogin}
