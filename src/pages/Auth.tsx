@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
-import { Crown, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { Crown, Mail, Lock, User, ArrowLeft, ExternalLink, Copy, AlertTriangle } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { PrivacyPolicyModal, TermsOfServiceModal } from "@/components/LegalModals";
+import { isInAppBrowser, getInAppBrowserName, openInExternalBrowser } from "@/lib/browser";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -24,6 +25,14 @@ const Auth = () => {
   const [agreedPrivacy, setAgreedPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [isWebView, setIsWebView] = useState(false);
+  const [webViewName, setWebViewName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const inApp = isInAppBrowser();
+    setIsWebView(inApp);
+    if (inApp) setWebViewName(getInAppBrowserName());
+  }, []);
 
   useEffect(() => {
     if (user) navigate("/");
@@ -116,6 +125,10 @@ const Auth = () => {
   };
 
   const handleGoogleLogin = async () => {
+    if (isWebView) {
+      toast.error("인앱 브라우저에서는 Google 로그인이 제한됩니다. Safari 또는 Chrome에서 열어주세요.");
+      return;
+    }
     setLoading(true);
     try {
       const { error } = await lovable.auth.signInWithOAuth("google", {
@@ -132,6 +145,22 @@ const Auth = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("주소가 복사되었습니다. 브라우저에 붙여넣기 해주세요! 📋");
+    } catch {
+      toast.error("복사에 실패했습니다. 주소를 직접 복사해주세요.");
+    }
+  };
+
+  const handleOpenExternal = () => {
+    const opened = openInExternalBrowser(window.location.href);
+    if (!opened) {
+      handleCopyUrl();
     }
   };
 
@@ -198,6 +227,42 @@ const Auth = () => {
             </form>
           ) : (
             <>
+              {/* WebView Warning Banner */}
+              {isWebView && (
+                <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/30 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-destructive">
+                        {webViewName ? `${webViewName} 앱` : "인앱 브라우저"}에서는 Google 로그인이 제한됩니다
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Safari, Chrome 등 외부 브라우저에서 열어주세요.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleOpenExternal}
+                      size="sm"
+                      className="flex-1 gap-1.5 gradient-primary text-primary-foreground"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      외부 브라우저로 열기
+                    </Button>
+                    <Button
+                      onClick={handleCopyUrl}
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                    >
+                      <Copy className="w-4 h-4" />
+                      URL 복사
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Google Login */}
               <Button
                 onClick={handleGoogleLogin}
