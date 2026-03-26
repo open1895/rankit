@@ -25,6 +25,14 @@ const Auth = () => {
   const [agreedPrivacy, setAgreedPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [isWebView, setIsWebView] = useState(false);
+  const [webViewName, setWebViewName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const inApp = isInAppBrowser();
+    setIsWebView(inApp);
+    if (inApp) setWebViewName(getInAppBrowserName());
+  }, []);
 
   useEffect(() => {
     if (user) navigate("/");
