@@ -33,18 +33,45 @@ export function getInAppBrowserName(): string | null {
 
 export function openInExternalBrowser(url: string): boolean {
   const ua = navigator.userAgent;
+  const cleanUrl = url.replace(/^https?:\/\//, "");
 
-  // Android intent scheme
+  // Android intent scheme – specify browser category so OS shows browser picker
   if (/android/i.test(ua)) {
-    const intentUrl = `intent://${url.replace(/^https?:\/\//, "")}#Intent;scheme=https;end`;
-    window.location.href = intentUrl;
+    // Try Chrome first if available
+    const chromeIntent = `intent://${cleanUrl}#Intent;scheme=https;package=com.android.chrome;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+    
+    // Generic browser intent as fallback
+    const genericIntent = `intent://${cleanUrl}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+
+    // For Naver app, use the generic intent (Chrome-specific may fail)
+    if (/NAVER/i.test(ua)) {
+      window.location.href = genericIntent;
+    } else {
+      window.location.href = chromeIntent;
+    }
+    
+    // Fallback: if intent didn't work after 1s, try generic
+    setTimeout(() => {
+      window.location.href = genericIntent;
+    }, 1000);
+    
     return true;
   }
 
-  // iOS – try window.open (works in some apps), fallback handled by caller
+  // iOS – Safari universal link approach
   if (/iPhone|iPad|iPod/i.test(ua)) {
-    const w = window.open(url, "_blank");
-    return !!w;
+    // Try Safari scheme
+    const safariUrl = `x-safari-https://${cleanUrl}`;
+    window.location.href = safariUrl;
+    
+    // Fallback to window.open
+    setTimeout(() => {
+      const w = window.open(url, "_blank");
+      if (!w) {
+        // Last resort: copy URL approach handled by caller
+      }
+    }, 500);
+    return true;
   }
 
   window.open(url, "_blank");
