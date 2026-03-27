@@ -124,39 +124,20 @@ const OvertakeShareCard = ({
   }, [shared, bonusInfo, onShared, onShareBonus]);
 
   const handleShare = async () => {
-    // Attempt card capture but don't block sharing on failure
-    let blob: Blob | null = null;
-    try {
-      blob = await captureCard();
-    } catch (err) {
-      console.warn("Card capture failed, proceeding with text share:", err);
-    }
+    // Keep this synchronous with click as much as possible.
+    // Some mobile browsers/webviews block navigator.share when delayed by async work.
+    const textWithUrl = `${shareTextSNS}\n\n👉 투표하러 가기: ${siteUrl}`;
+    const shareData: ShareData = {
+      title: "Rank It - 역전 임박!",
+      text: textWithUrl,
+      url: siteUrl,
+    };
 
     try {
       if (navigator.share) {
-        const shareData: ShareData = {
-          title: "Rank It - 역전 임박!",
-          text: shareTextSNS,
-          url: siteUrl,
-        };
-
-        // Try sharing with image if available
-        if (blob && navigator.canShare) {
-          const file = new File([blob], `rankit-${creator.name}-share.png`, { type: "image/png" });
-          // When sharing files, some apps ignore the url field, so embed URL in text
-          const textWithUrl = `${shareTextSNS}\n\n👉 투표하러 가기: ${siteUrl}`;
-          const withFiles = { ...shareData, text: textWithUrl, files: [file] };
-          if (navigator.canShare(withFiles)) {
-            await navigator.share(withFiles);
-          } else {
-            await navigator.share(shareData);
-          }
-        } else {
-          await navigator.share(shareData);
-        }
+        await navigator.share(shareData);
       } else {
-        // Fallback: copy to clipboard
-        const ok = await copyToClipboard(shareTextSNS);
+        const ok = await copyToClipboard(textWithUrl);
         if (ok) {
           toast.success("공유 텍스트가 복사되었습니다!");
         } else {
@@ -164,33 +145,18 @@ const OvertakeShareCard = ({
         }
       }
 
-      // Grant bonus with daily limit check
-      if (!shared && bonusInfo.remaining > 0) {
-        const granted = recordShareBonus();
-        if (granted) {
-          onShared();
-          onShareBonus();
-          setBonusInfo(getShareBonusInfo());
-          toast.success(`🎉 공유 완료! 추가 투표권 +1 지급! (오늘 ${getShareBonusInfo().used}/${DAILY_SHARE_LIMIT}회 사용)`);
-        } else {
-          toast.info("오늘 공유 보너스를 모두 사용했습니다. (최대 3회/일)");
-        }
-      } else if (bonusInfo.remaining <= 0) {
-        toast.info("오늘 공유 보너스를 모두 사용했습니다. (최대 3회/일)");
-      }
+      grantShareBonus();
     } catch (err: any) {
-      // Only suppress AbortError (user cancelled share dialog)
       if (err?.name === "AbortError") return;
       console.error("Share failed:", err);
-      // Still grant bonus if user attempted to share
-      if (!shared && bonusInfo.remaining > 0) {
-        const granted = recordShareBonus();
-        if (granted) {
-          onShared();
-          onShareBonus();
-          setBonusInfo(getShareBonusInfo());
-          toast.success("🎉 공유 보너스 투표권 +1 지급!");
-        }
+
+      // Final fallback: copy share text so user can still paste/share manually
+      const ok = await copyToClipboard(textWithUrl);
+      if (ok) {
+        toast.success("공유 문구가 복사되었습니다. 원하는 SNS에 붙여넣어 주세요.");
+        grantShareBonus();
+      } else {
+        toast.error("공유를 열지 못했습니다. 카카오톡/문자 버튼을 이용해주세요.");
       }
     }
   };
