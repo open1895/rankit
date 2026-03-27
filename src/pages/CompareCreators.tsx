@@ -44,13 +44,16 @@ const CompareCreators = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const { data } = await supabase.from("creators").select("id, name, category, avatar_url, votes_count, subscriber_count, rank, is_verified").order("rank", { ascending: true });
+      const { data } = await supabase.from("creators").select("id, name, category, avatar_url, votes_count, subscriber_count, youtube_subscribers, chzzk_followers, instagram_followers, tiktok_followers, rank, is_verified").order("rank", { ascending: true });
       setAllCreators(
-        (data || []).map((c: any) => ({
-          id: c.id, name: c.name, category: c.category, avatar_url: c.avatar_url,
-          votes_count: c.votes_count, subscriber_count: c.subscriber_count,
-          rank: c.rank, is_verified: c.is_verified,
-        }))
+        (data || []).map((c: any) => {
+          const totalFollowers = (c.youtube_subscribers || 0) + (c.chzzk_followers || 0) + (c.instagram_followers || 0) + (c.tiktok_followers || 0);
+          return {
+            id: c.id, name: c.name, category: c.category, avatar_url: c.avatar_url,
+            votes_count: c.votes_count, subscriber_count: totalFollowers || c.subscriber_count || 0,
+            rank: c.rank, is_verified: c.is_verified,
+          };
+        })
       );
       setLoading(false);
     };
