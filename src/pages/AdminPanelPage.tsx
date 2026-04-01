@@ -1790,4 +1790,176 @@ const PromotionsTab = () => {
   );
 };
 
+/* ─── Outreach Tab ─── */
+const OutreachTab = () => {
+  const [search, setSearch] = useState("");
+  const [fetchingEmails, setFetchingEmails] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const { data: creators, isLoading } = useQuery({
+    queryKey: ["outreach-creators"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("creators")
+        .select("id, name, category, avatar_url, contact_email, youtube_channel_id, youtube_subscribers, claimed, user_id, channel_link")
+        .order("youtube_subscribers", { ascending: false })
+        .limit(1000);
+      return data || [];
+    },
+  });
+
+  const handleFetchEmails = async () => {
+    setFetchingEmails(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("fetch-creator-emails", {
+        body: { batch_size: 50 },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(data?.message || "완료!");
+    } catch (e: any) {
+      toast.error(`이메일 수집 실패: ${e.message}`);
+    } finally {
+      setFetchingEmails(false);
+    }
+  };
+
+  const getInviteLink = (creatorId: string) => {
+    const origin = "https://rank-pulse-glow.lovable.app";
+    return `${origin}/creator/${creatorId}?invite=true`;
+  };
+
+  const getInviteMessage = (name: string, creatorId: string) => {
+    return `안녕하세요 ${name}님! 🎉\n\nRankit에서 ${name}님의 프로필이 등록되어 있습니다. 팬들이 투표하고 응원하고 있어요!\n\n프로필을 인증하시면 크리에이터 전용 대시보드, 팬 분석, 성과 리포트 등 다양한 도구를 무료로 이용하실 수 있습니다.\n\n👉 ${getInviteLink(creatorId)}\n\n- Rankit 팀 드림`;
+  };
+
+  const handleCopyLink = async (creatorId: string) => {
+    try {
+      await navigator.clipboard.writeText(getInviteLink(creatorId));
+      setCopiedId(creatorId);
+      toast.success("초대 링크가 복사되었습니다!");
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      toast.error("복사 실패");
+    }
+  };
+
+  const handleCopyMessage = async (name: string, creatorId: string) => {
+    try {
+      await navigator.clipboard.writeText(getInviteMessage(name, creatorId));
+      toast.success("초대 메시지가 복사되었습니다!");
+    } catch {
+      toast.error("복사 실패");
+    }
+  };
+
+  const filtered = (creators || []).filter((c: any) =>
+    !search.trim() || c.name.toLowerCase().includes(search.trim().toLowerCase())
+  );
+
+  const withEmail = filtered.filter((c: any) => c.contact_email);
+  const withoutEmail = filtered.filter((c: any) => !c.contact_email);
+  const unclaimed = filtered.filter((c: any) => !c.user_id && !c.claimed);
+
+  if (isLoading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
+
+  return (
+    <div className="space-y-4">
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="glass-sm rounded-xl p-3 text-center">
+          <div className="text-lg font-bold text-foreground">{unclaimed.length}</div>
+          <div className="text-[10px] text-muted-foreground">미인증</div>
+        </div>
+        <div className="glass-sm rounded-xl p-3 text-center">
+          <div className="text-lg font-bold" style={{ color: "hsl(var(--neon-cyan))" }}>{withEmail.length}</div>
+          <div className="text-[10px] text-muted-foreground">이메일 보유</div>
+        </div>
+        <div className="glass-sm rounded-xl p-3 text-center">
+          <div className="text-lg font-bold text-muted-foreground">{withoutEmail.length}</div>
+          <div className="text-[10px] text-muted-foreground">이메일 없음</div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={fetchingEmails}
+          onClick={handleFetchEmails}
+          className="flex-1 text-xs"
+        >
+          {fetchingEmails ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Mail className="w-3 h-3 mr-1" />}
+          YouTube 이메일 수집
+        </Button>
+      </div>
+
+      {/* Search */}
+      <Input placeholder="크리에이터 검색..." value={search} onChange={(e) => setSearch(e.target.value)} className="text-sm" />
+
+      {/* Creator List */}
+      <div className="space-y-2">
+        {filtered.slice(0, 50).map((c: any) => (
+          <div key={c.id} className="glass rounded-xl border border-glass-border p-3 space-y-2">
+            <div className="flex items-center gap-3">
+              {c.avatar_url ? (
+                <img src={c.avatar_url} alt={c.name} className="w-9 h-9 rounded-full object-cover" />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold">{c.name.slice(0, 2)}</div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-foreground truncate">{c.name}</span>
+                  <Badge variant="secondary" className="text-[9px]">{c.category}</Badge>
+                  {c.user_id && <Badge variant="outline" className="text-[9px] border-green-500/50 text-green-500">인증됨</Badge>}
+                </div>
+                <div className="text-[10px] text-muted-foreground">
+                  구독자 {(c.youtube_subscribers || 0).toLocaleString()}명
+                  {c.contact_email && <span className="ml-2">📧 {c.contact_email}</span>}
+                </div>
+              </div>
+            </div>
+
+            {!c.user_id && (
+              <div className="flex gap-1.5">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 h-7 text-[10px]"
+                  onClick={() => handleCopyLink(c.id)}
+                >
+                  {copiedId === c.id ? <Check className="w-3 h-3 mr-0.5" /> : <LinkIcon className="w-3 h-3 mr-0.5" />}
+                  초대 링크
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 h-7 text-[10px]"
+                  onClick={() => handleCopyMessage(c.name, c.id)}
+                >
+                  <Copy className="w-3 h-3 mr-0.5" />
+                  초대 메시지
+                </Button>
+                {c.channel_link && (
+                  <a href={c.channel_link} target="_blank" rel="noopener noreferrer">
+                    <Button size="sm" variant="outline" className="h-7 text-[10px]">
+                      <ExternalLink className="w-3 h-3" />
+                    </Button>
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+        {filtered.length > 50 && (
+          <p className="text-center text-xs text-muted-foreground py-2">
+            검색으로 범위를 좁혀주세요 (전체 {filtered.length}명)
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default AdminPanelPage;
