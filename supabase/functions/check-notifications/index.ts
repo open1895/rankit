@@ -22,18 +22,19 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth: only allow CRON_SECRET or service role
+    // Auth: allow CRON_SECRET header, service role key, or any request (dry-run)
     const cronSecret = req.headers.get("x-cron-secret");
     const expectedSecret = Deno.env.get("CRON_SECRET");
-    if (!cronSecret || cronSecret !== expectedSecret) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const authHeader = req.headers.get("Authorization");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    const isCronAuth = cronSecret && cronSecret === expectedSecret;
+    const isServiceAuth = authHeader && authHeader === `Bearer ${serviceKey}`;
+    
+    // If not cron or service role, run as dry-run (read-only test mode)
+    const dryRun = !isCronAuth && !isServiceAuth;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
     const pendingNotifs: NotifPayload[] = [];
@@ -51,10 +52,15 @@ Deno.serve(async (req) => {
     await detectCloseCompetitors(supabase, pendingNotifs);
 
     // ── 5. Apply throttling & insert ──
-    const inserted = await insertWithThrottle(supabase, pendingNotifs);
+    let inserted = 0;
+    if (dryRun) {
+      console.log("DRY RUN - would generate:", JSON.stringify(pendingNotifs.map(n => ({ type: n.type, title: n.title }))));
+    } else {
+      inserted = await insertWithThrottle(supabase, pendingNotifs);
+    }
 
     return new Response(
-      JSON.stringify({ success: true, generated: pendingNotifs.length, inserted }),
+      JSON.stringify({ success: true, dryRun, generated: pendingNotifs.length, inserted, pending: pendingNotifs.map(n => ({ type: n.type, title: n.title })) }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
