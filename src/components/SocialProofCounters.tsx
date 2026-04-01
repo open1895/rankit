@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, Vote, UserCheck } from "lucide-react";
 
@@ -41,24 +41,53 @@ const AnimatedNumber = ({ value, suffix = "" }: { value: number; suffix?: string
 const SocialProofCounters = () => {
   const [data, setData] = useState<CounterData>({ creators: 0, votes: 0, users: 0 });
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      const [creatorsRes, profilesRes] = await Promise.all([
-        supabase.from("creators").select("id, votes_count"),
-        supabase.from("profiles").select("id", { count: "exact", head: true }),
-      ]);
+  const fetchStats = useCallback(async () => {
+    const [creatorsCountRes, profilesRes] = await Promise.all([
+      supabase.from("creators").select("id", { count: "exact", head: true }),
+      supabase.from("profiles").select("id", { count: "exact", head: true }),
+    ]);
 
-      const creators = creatorsRes.data || [];
-      const totalVotes = creators.reduce((sum, c) => sum + (c.votes_count || 0), 0);
+    // For total votes, paginate to get all votes_count values
+    let totalVotes = 0;
+    let page = 0;
+    const pageSize = 1000;
+    let hasMore = true;
+    while (hasMore) {
+      const { data: chunk } = await supabase
+        .from("creators")
+        .select("votes_count")
+        .range(page * pageSize, (page + 1) * pageSize - 1);
+      if (chunk && chunk.length > 0) {
+        totalVotes += chunk.reduce((sum, c) => sum + (c.votes_count || 0), 0);
+        hasMore = chunk.length === pageSize;
+        page++;
+      } else {
+        hasMore = false;
+      }
+    }
 
-      setData({
-        creators: creators.length,
-        votes: totalVotes,
-        users: profilesRes.count || 0,
-      });
-    };
-    fetchStats();
+    setData({
+      creators: creatorsCountRes.count || 0,
+      votes: totalVotes,
+      users: profilesRes.count || 0,
+    });
   }, []);
+
+  useEffect(() => {
+    fetchStats();
+
+    // Re-fetch when creators table changes (new creators added or votes updated)
+    const channel = supabase
+      .channel("social-proof-counters")
+      .on("postgres_changes", { event: "*", schema: "public", table: "creators" }, () => {
+        fetchStats();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchStats]);
 
   const stats = [
     {
