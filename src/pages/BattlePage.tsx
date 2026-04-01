@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Swords, Vote, Zap, GitCompareArrows, Share2, Users, TrendingUp, Star, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import BoostVoteButton from "@/components/BoostVoteButton";
 
 interface BattleCreator {
   id: string;
@@ -191,19 +192,40 @@ const BattlePage = () => {
 
           {/* Actions */}
           {!isCompleted ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <Button size="sm" className="text-xs gradient-primary text-primary-foreground" onClick={() => handleVote(battle.id, battle.creator_a_id)} disabled={votingId === battle.id}>
-                <Vote className="w-3 h-3 mr-1" />{a?.name?.split(" ")[0]}
-              </Button>
-              <Button size="sm" className="text-xs gradient-primary text-primary-foreground" onClick={() => handleVote(battle.id, battle.creator_b_id)} disabled={votingId === battle.id}>
-                <Vote className="w-3 h-3 mr-1" />{b?.name?.split(" ")[0]}
-              </Button>
-              <Link to={`/compare?a=${a?.id}&b=${b?.id}`}>
-                <Button variant="outline" size="sm" className="w-full text-xs"><GitCompareArrows className="w-3 h-3 mr-1" />비교</Button>
-              </Link>
-              <Button variant="outline" size="sm" className="text-xs" onClick={() => handleShare(battle)}>
-                <Share2 className="w-3 h-3 mr-1" />공유
-              </Button>
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <Button size="sm" className="text-xs gradient-primary text-primary-foreground" onClick={() => handleVote(battle.id, battle.creator_a_id)} disabled={votingId === battle.id}>
+                  <Vote className="w-3 h-3 mr-1" />{a?.name?.split(" ")[0]}
+                </Button>
+                <Button size="sm" className="text-xs gradient-primary text-primary-foreground" onClick={() => handleVote(battle.id, battle.creator_b_id)} disabled={votingId === battle.id}>
+                  <Vote className="w-3 h-3 mr-1" />{b?.name?.split(" ")[0]}
+                </Button>
+                <Link to={`/compare?a=${a?.id}&b=${b?.id}`}>
+                  <Button variant="outline" size="sm" className="w-full text-xs"><GitCompareArrows className="w-3 h-3 mr-1" />비교</Button>
+                </Link>
+                <Button variant="outline" size="sm" className="text-xs" onClick={() => handleShare(battle)}>
+                  <Share2 className="w-3 h-3 mr-1" />공유
+                </Button>
+              </div>
+              {user && (
+                <div className="flex items-center gap-2 justify-center">
+                  <span className="text-[10px] text-muted-foreground">부스트:</span>
+                  <BoostVoteButton
+                    creatorId={battle.creator_a_id}
+                    creatorName={a?.name || ""}
+                    votesUntilNext={Math.abs(battle.votes_a - battle.votes_b)}
+                    context="battle"
+                    onBoostComplete={() => {}}
+                  />
+                  <BoostVoteButton
+                    creatorId={battle.creator_b_id}
+                    creatorName={b?.name || ""}
+                    votesUntilNext={Math.abs(battle.votes_a - battle.votes_b)}
+                    context="battle"
+                    onBoostComplete={() => {}}
+                  />
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex gap-2">

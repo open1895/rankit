@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import CommentInput from "./CommentInput";
 import MiniInfluenceChart from "./MiniInfluenceChart";
 import VoteResultModal from "./VoteResultModal";
+import BoostVoteButton from "./BoostVoteButton";
 import CelebrationEffect from "./CelebrationEffect";
 import { toast } from "sonner";
 
@@ -288,6 +289,18 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
               <Flame className="w-3 h-3" />
               {isFireVoting ? "..." : "불꽃×5"}
             </button>
+          )}
+          {user && (
+            <BoostVoteButton
+              creatorId={creator.id}
+              creatorName={creator.name}
+              votesUntilNext={votesUntilNext}
+              context="ranking"
+              onBoostComplete={() => {
+                setIsShaking(true);
+                setTimeout(() => setIsShaking(false), 500);
+              }}
+            />
           )}
         </div>
 
