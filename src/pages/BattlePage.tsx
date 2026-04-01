@@ -215,14 +215,14 @@ const BattlePage = () => {
                     creatorName={a?.name || ""}
                     votesUntilNext={Math.abs(battle.votes_a - battle.votes_b)}
                     context="battle"
-                    onBoostComplete={() => fetchBattles()}
+                    onBoostComplete={() => {}}
                   />
                   <BoostVoteButton
                     creatorId={battle.creator_b_id}
                     creatorName={b?.name || ""}
                     votesUntilNext={Math.abs(battle.votes_a - battle.votes_b)}
                     context="battle"
-                    onBoostComplete={() => fetchBattles()}
+                    onBoostComplete={() => {}}
                   />
                 </div>
               )}
