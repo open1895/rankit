@@ -16,7 +16,9 @@ const FanLevelProgress = ({ activity }: FanLevelProgressProps) => {
           <span className="text-lg">{current.emoji}</span>
           <div>
             <div className="text-sm font-bold">Lv.{current.level} {current.label}</div>
-            <div className="text-[10px] text-muted-foreground">{points}pt 달성</div>
+            <div className="text-[10px] text-muted-foreground">
+              {points}pt · RP {current.rpMultiplier}x 배율
+            </div>
           </div>
         </div>
         {next && (

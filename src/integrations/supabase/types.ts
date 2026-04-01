@@ -1856,6 +1856,13 @@ export type Database = {
           yesterday_count: number
         }[]
       }
+      get_fan_level_multiplier: {
+        Args: { p_user_id: string }
+        Returns: {
+          fan_level: number
+          rp_multiplier: number
+        }[]
+      }
       get_prediction_event_stats: {
         Args: never
         Returns: {

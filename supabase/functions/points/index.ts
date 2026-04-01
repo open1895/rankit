@@ -52,8 +52,21 @@ Deno.serve(async (req) => {
       await supabaseAdmin.from("user_points").insert({ user_id: user.id, balance: 0, total_earned: 0 });
     }
 
+    // ─── Get fan level multiplier ─────────────────────────────────
+    let rpMultiplier = 1.0;
+    let fanLevel = 1;
+    try {
+      const { data: levelData } = await supabaseAdmin.rpc("get_fan_level_multiplier", { p_user_id: user.id });
+      if (levelData && levelData.length > 0) {
+        rpMultiplier = Number(levelData[0].rp_multiplier) || 1.0;
+        fanLevel = levelData[0].fan_level || 1;
+      }
+    } catch (e) { console.error("Fan level check error:", e); }
+
     // ─── Helper: add RP + record transaction + send notification ───
-    async function grantRP(amount: number, type: string, description: string, notifTitle?: string) {
+    async function grantRP(baseAmount: number, type: string, description: string, notifTitle?: string, applyMultiplier = true) {
+      const amount = applyMultiplier ? Math.round(baseAmount * rpMultiplier) : baseAmount;
+      const bonusText = applyMultiplier && rpMultiplier > 1 ? ` (Lv${fanLevel} ${rpMultiplier}x)` : "";
       const currentBalance = existing?.balance || 0;
       const currentEarned = existing?.total_earned || 0;
 
@@ -69,7 +82,7 @@ Deno.serve(async (req) => {
         user_id: user!.id,
         amount,
         type,
-        description,
+        description: description + bonusText,
       });
 
       // Send notification
@@ -77,8 +90,8 @@ Deno.serve(async (req) => {
         await supabaseAdmin.from("notifications").insert({
           user_id: user!.id,
           type: "reward",
-          title: notifTitle,
-          message: description,
+          title: notifTitle + bonusText,
+          message: description + bonusText,
           link: "/my",
         });
       }

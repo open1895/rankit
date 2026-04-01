@@ -4,13 +4,14 @@ export interface FanLevel {
   emoji: string;
   minPoints: number;
   color: string; // tailwind classes
+  rpMultiplier: number;
 }
 
 export const FAN_LEVELS: FanLevel[] = [
-  { level: 1, label: "New Fan", emoji: "🌱", minPoints: 0, color: "bg-green-500/20 text-green-400 border-green-500/30" },
-  { level: 2, label: "Active Fan", emoji: "⚡", minPoints: 50, color: "bg-blue-500/20 text-blue-400 border-blue-500/30" },
-  { level: 3, label: "Super Fan", emoji: "🔥", minPoints: 200, color: "bg-purple-500/20 text-purple-400 border-purple-500/30" },
-  { level: 4, label: "Legend Fan", emoji: "👑", minPoints: 500, color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" },
+  { level: 1, label: "New Fan", emoji: "🌱", minPoints: 0, color: "bg-green-500/20 text-green-400 border-green-500/30", rpMultiplier: 1.0 },
+  { level: 2, label: "Active Fan", emoji: "⚡", minPoints: 50, color: "bg-blue-500/20 text-blue-400 border-blue-500/30", rpMultiplier: 1.2 },
+  { level: 3, label: "Super Fan", emoji: "🔥", minPoints: 200, color: "bg-purple-500/20 text-purple-400 border-purple-500/30", rpMultiplier: 1.5 },
+  { level: 4, label: "Legend Fan", emoji: "👑", minPoints: 500, color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30", rpMultiplier: 2.0 },
 ];
 
 export interface FanActivityPoints {

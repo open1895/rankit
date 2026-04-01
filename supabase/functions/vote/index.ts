@@ -214,7 +214,20 @@ Deno.serve(async (req) => {
         const todayEarned = (todayTx || []).reduce((sum: number, t: any) => sum + (t.amount > 0 ? t.amount : 0), 0);
 
         if (todayEarned < 50) {
-          const rpAmount = 1;
+          // Get fan level multiplier
+          let rpMultiplier = 1.0;
+          let fanLevel = 1;
+          try {
+            const { data: levelData } = await supabase.rpc("get_fan_level_multiplier", { p_user_id: userId });
+            if (levelData && levelData.length > 0) {
+              rpMultiplier = Number(levelData[0].rp_multiplier) || 1.0;
+              fanLevel = levelData[0].fan_level || 1;
+            }
+          } catch (e) { console.error("Fan level check error:", e); }
+
+          const baseRp = 1;
+          const rpAmount = Math.round(baseRp * rpMultiplier);
+
           // Ensure user_points row exists
           const { data: existingPts } = await supabase
             .from("user_points")
@@ -234,11 +247,12 @@ Deno.serve(async (req) => {
               .eq("user_id", userId);
           }
 
+          const bonusText = rpMultiplier > 1 ? ` (Lv${fanLevel} ${rpMultiplier}x 보너스)` : "";
           await supabase.from("point_transactions").insert({
             user_id: userId,
             amount: rpAmount,
             type: "vote_reward",
-            description: "투표 참여 보상 +1 RP",
+            description: `투표 참여 보상 +${rpAmount} RP${bonusText}`,
           });
           rpEarned = rpAmount;
 
@@ -246,8 +260,8 @@ Deno.serve(async (req) => {
           await supabase.from("notifications").insert({
             user_id: userId,
             type: "reward",
-            title: "🎯 투표 보상 +1 RP",
-            message: "투표 참여 보상으로 1 RP를 획득했습니다!",
+            title: `🎯 투표 보상 +${rpAmount} RP`,
+            message: `투표 참여 보상으로 ${rpAmount} RP를 획득했습니다!${bonusText}`,
             link: "/my",
           });
         }
