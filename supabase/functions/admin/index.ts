@@ -506,6 +506,34 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
 
+    // ─── APPROVE TOURNAMENT (draft → active) ─────────────
+    if (action === "approve_tournament") {
+      const { tournament_id } = body;
+      if (!tournament_id) return new Response(JSON.stringify({ error: "tournament_id required" }), { status: 400, headers: corsHeaders });
+      
+      const { data: t } = await adminClient.from("tournaments").select("id, is_active, title").eq("id", tournament_id).single();
+      if (!t) return new Response(JSON.stringify({ error: "Tournament not found" }), { status: 404, headers: corsHeaders });
+      if (t.is_active) return new Response(JSON.stringify({ error: "이미 활성화된 토너먼트입니다." }), { status: 400, headers: corsHeaders });
+
+      const { error } = await adminClient.from("tournaments").update({ is_active: true }).eq("id", tournament_id);
+      if (error) throw error;
+      return new Response(JSON.stringify({ success: true, message: `"${t.title}" 토너먼트가 승인되어 활성화되었습니다.` }), { headers: corsHeaders });
+    }
+
+    // ─── GENERATE WEEKLY TOURNAMENTS (manual trigger) ────
+    if (action === "generate_weekly_tournaments") {
+      const funcUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-weekly-tournaments`;
+      const resp = await fetch(funcUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const result = await resp.json();
+      return new Response(JSON.stringify(result), { headers: corsHeaders });
+    }
+
     // ─── END TOURNAMENT ──────────────────────────────────
     if (action === "end_tournament") {
       const { tournament_id } = body;

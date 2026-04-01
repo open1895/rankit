@@ -1117,6 +1117,7 @@ const TournamentsTab = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [generating, setGenerating] = useState(false);
 
   const { data: tournaments, isLoading } = useQuery({
     queryKey: ["admin-tournaments"],
@@ -1143,6 +1144,22 @@ const TournamentsTab = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-tournaments"] });
     },
     onError: (e: any) => toast.error(`생성 실패: ${e.message}`),
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async (tournament_id: string) => {
+      const { data, error } = await supabase.functions.invoke("admin", {
+        body: { action: "approve_tournament", tournament_id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(data?.message || "토너먼트 승인 완료!");
+      queryClient.invalidateQueries({ queryKey: ["admin-tournaments"] });
+    },
+    onError: (e: any) => toast.error(`승인 실패: ${e.message}`),
   });
 
   const endMutation = useMutation({
@@ -1174,44 +1191,125 @@ const TournamentsTab = () => {
     onError: (e: any) => toast.error(`삭제 실패: ${e.message}`),
   });
 
+  const handleGenerateWeekly = async () => {
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin", {
+        body: { action: "generate_weekly_tournaments" },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.message || data.error);
+      toast.success(`주간 토너먼트 ${data?.generated || 0}개 생성 완료! (${data?.skipped || 0}개 카테고리 건너뜀)`);
+      queryClient.invalidateQueries({ queryKey: ["admin-tournaments"] });
+    } catch (e: any) {
+      toast.error(`생성 실패: ${e.message}`);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const drafts = (tournaments || []).filter((t: any) => !t.is_active && !t.ended_at);
+  const active = (tournaments || []).filter((t: any) => t.is_active);
+  const ended = (tournaments || []).filter((t: any) => !t.is_active && t.ended_at);
+
   if (isLoading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
 
   return (
     <>
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <Badge variant="outline" className="text-xs">{(tournaments || []).length}건</Badge>
-          <Button size="sm" onClick={() => setCreateOpen(true)} className="h-8 text-xs">
-            <Plus className="w-3.5 h-3.5 mr-1" />새 토너먼트
-          </Button>
+          <div className="flex gap-1.5">
+            <Button size="sm" variant="outline" onClick={handleGenerateWeekly} disabled={generating} className="h-8 text-xs">
+              {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Trophy className="w-3.5 h-3.5 mr-1" />}
+              주간 자동생성
+            </Button>
+            <Button size="sm" onClick={() => setCreateOpen(true)} className="h-8 text-xs">
+              <Plus className="w-3.5 h-3.5 mr-1" />수동 생성
+            </Button>
+          </div>
         </div>
 
-        {(tournaments || []).map((t: any) => (
-          <div key={t.id} className="glass rounded-xl border border-glass-border p-3 space-y-2">
-            <div className="flex items-center gap-2">
-              <Badge className={`text-[10px] ${t.is_active ? "bg-primary/20 text-primary border-primary/30" : "bg-muted text-muted-foreground"}`}>
-                {t.is_active ? "진행 중" : "종료"}
-              </Badge>
-              <span className="text-sm font-bold text-foreground flex-1 truncate">{t.title}</span>
-            </div>
-            {t.description && <p className="text-xs text-muted-foreground line-clamp-1">{t.description}</p>}
-            <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-              <span>라운드: {t.round === 16 ? "16강" : t.round === 8 ? "8강" : t.round === 4 ? "4강" : t.round === 2 ? "결승" : `${t.round}`}</span>
-              <span>매치: {t.match_completed || 0}/{t.match_total || 0}</span>
-              <span>{new Date(t.created_at).toLocaleDateString("ko-KR")}</span>
-            </div>
-            <div className="flex gap-1">
-              {t.is_active && (
-                <Button size="sm" variant="outline" onClick={() => endMutation.mutate(t.id)} disabled={endMutation.isPending} className="h-7 text-[11px]">
-                  {endMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}종료
-                </Button>
-              )}
-              <button onClick={() => setDeleteTarget(t)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
+        {/* Draft tournaments awaiting approval */}
+        {drafts.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-bold text-amber-500 flex items-center gap-1">⏳ 승인 대기 ({drafts.length}건)</p>
+            {drafts.map((t: any) => (
+              <div key={t.id} className="glass rounded-xl border border-amber-500/30 p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Badge className="text-[10px] bg-amber-500/20 text-amber-500 border-amber-500/30">대기</Badge>
+                  <span className="text-sm font-bold text-foreground flex-1 truncate">{t.title}</span>
+                </div>
+                {t.description && <p className="text-xs text-muted-foreground line-clamp-2">{t.description}</p>}
+                <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                  <span>라운드: {t.round === 16 ? "16강" : t.round === 8 ? "8강" : t.round === 4 ? "4강" : t.round === 2 ? "결승" : `${t.round}`}</span>
+                  <span>매치: {t.match_total || 0}개</span>
+                  <span>{new Date(t.created_at).toLocaleDateString("ko-KR")}</span>
+                </div>
+                <div className="flex gap-1.5">
+                  <Button size="sm" onClick={() => approveMutation.mutate(t.id)} disabled={approveMutation.isPending} className="h-7 text-[11px] flex-1">
+                    {approveMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Check className="w-3 h-3 mr-1" />}
+                    승인 (활성화)
+                  </Button>
+                  <button onClick={() => setDeleteTarget(t)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
+
+        {/* Active tournaments */}
+        {active.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-bold text-primary flex items-center gap-1">🏆 진행 중 ({active.length}건)</p>
+            {active.map((t: any) => (
+              <div key={t.id} className="glass rounded-xl border border-primary/30 p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Badge className="text-[10px] bg-primary/20 text-primary border-primary/30">진행 중</Badge>
+                  <span className="text-sm font-bold text-foreground flex-1 truncate">{t.title}</span>
+                </div>
+                {t.description && <p className="text-xs text-muted-foreground line-clamp-1">{t.description}</p>}
+                <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                  <span>라운드: {t.round === 16 ? "16강" : t.round === 8 ? "8강" : t.round === 4 ? "4강" : t.round === 2 ? "결승" : `${t.round}`}</span>
+                  <span>매치: {t.match_completed || 0}/{t.match_total || 0}</span>
+                  <span>{new Date(t.created_at).toLocaleDateString("ko-KR")}</span>
+                </div>
+                <div className="flex gap-1">
+                  <Button size="sm" variant="outline" onClick={() => endMutation.mutate(t.id)} disabled={endMutation.isPending} className="h-7 text-[11px]">
+                    {endMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}종료
+                  </Button>
+                  <button onClick={() => setDeleteTarget(t)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Ended tournaments */}
+        {ended.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-bold text-muted-foreground flex items-center gap-1">📋 종료됨 ({ended.length}건)</p>
+            {ended.map((t: any) => (
+              <div key={t.id} className="glass rounded-xl border border-glass-border p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Badge className="text-[10px] bg-muted text-muted-foreground">종료</Badge>
+                  <span className="text-sm font-bold text-foreground flex-1 truncate">{t.title}</span>
+                </div>
+                <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                  <span>매치: {t.match_completed || 0}/{t.match_total || 0}</span>
+                  <span>{new Date(t.created_at).toLocaleDateString("ko-KR")}</span>
+                </div>
+                <button onClick={() => setDeleteTarget(t)} className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         {(tournaments || []).length === 0 && (
           <div className="text-center py-16 text-muted-foreground text-sm">아직 토너먼트가 없습니다.</div>
@@ -1221,7 +1319,7 @@ const TournamentsTab = () => {
       {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="max-w-[90vw] sm:max-w-md rounded-2xl">
-          <DialogHeader><DialogTitle className="text-base font-bold">새 토너먼트 생성</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-base font-bold">수동 토너먼트 생성</DialogTitle></DialogHeader>
           <div className="space-y-3 pt-1">
             <div className="glass-sm rounded-xl p-3 space-y-1">
               <p className="text-xs font-bold text-primary">🏆 자동 배정 시스템</p>
