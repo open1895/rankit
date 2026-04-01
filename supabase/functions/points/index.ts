@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
         user_id: user!.id,
         amount,
         type,
-        description,
+        description: description + bonusText,
       });
 
       // Send notification
@@ -90,8 +90,8 @@ Deno.serve(async (req) => {
         await supabaseAdmin.from("notifications").insert({
           user_id: user!.id,
           type: "reward",
-          title: notifTitle,
-          message: description,
+          title: notifTitle + bonusText,
+          message: description + bonusText,
           link: "/my",
         });
       }
