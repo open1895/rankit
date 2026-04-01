@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import { TrendingUp, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, useReducedMotion } from "framer-motion";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const FloatingParticles = () => {
   const particles = useMemo(() =>
@@ -59,7 +60,14 @@ const fadeUp = {
 
 const HomepageHero = () => {
   const prefersReduced = useReducedMotion();
+  const [creatorCount, setCreatorCount] = useState(0);
 
+  useEffect(() => {
+    supabase
+      .from("creators")
+      .select("id", { count: "exact", head: true })
+      .then(({ count }) => setCreatorCount(count || 0));
+  }, []);
   return (
     <section className="relative overflow-hidden">
       {/* Background gradient */}
@@ -164,7 +172,7 @@ const HomepageHero = () => {
         {/* Stats row */}
         <motion.div variants={fadeUp} className="flex items-center justify-center gap-6 sm:gap-10 pt-4 text-center">
           {[
-            { label: "등록 크리에이터", value: "90+" },
+            { label: "등록 크리에이터", value: `${creatorCount.toLocaleString()}+` },
             { label: "실시간 투표", value: "24/7" },
             { label: "팬 참여 기반", value: "100%" },
           ].map((stat) => (
