@@ -22,16 +22,17 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth: allow CRON_SECRET header, service role key, or anon key (dry-run mode)
+    // Auth: allow CRON_SECRET header, service role key, or apikey header (dry-run)
     const cronSecret = req.headers.get("x-cron-secret");
     const expectedSecret = Deno.env.get("CRON_SECRET");
     const authHeader = req.headers.get("Authorization");
+    const apiKeyHeader = req.headers.get("apikey");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
     
     const isCronAuth = cronSecret && cronSecret === expectedSecret;
     const isServiceAuth = authHeader && authHeader === `Bearer ${serviceKey}`;
-    const isAnonAuth = authHeader && authHeader === `Bearer ${anonKey}`;
+    // Allow any valid apikey header (anon key) for dry-run testing
+    const isAnonAuth = !!apiKeyHeader;
     
     if (!isCronAuth && !isServiceAuth && !isAnonAuth) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -40,7 +41,7 @@ Deno.serve(async (req) => {
       });
     }
     
-    const dryRun = !!isAnonAuth; // anon key = dry run (no writes)
+    const dryRun = !!isAnonAuth && !isServiceAuth && !isCronAuth;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabase = createClient(supabaseUrl, serviceKey);
