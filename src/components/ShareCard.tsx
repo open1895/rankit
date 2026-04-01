@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useShareReward } from "@/hooks/useShareReward";
 import { Share2, Download, Copy, X, Loader2, Sparkles, Trophy, ExternalLink, MessageCircle } from "lucide-react";
 import { copyToClipboard, getPublishedOrigin, getPublishedUrl } from "@/lib/clipboard";
 import { shareToKakao, initKakao } from "@/lib/kakao";
