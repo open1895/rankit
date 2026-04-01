@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import CommentInput from "./CommentInput";
 import MiniInfluenceChart from "./MiniInfluenceChart";
 import VoteResultModal from "./VoteResultModal";
+import BoostVoteButton from "./BoostVoteButton";
 import CelebrationEffect from "./CelebrationEffect";
 import { toast } from "sonner";
 
