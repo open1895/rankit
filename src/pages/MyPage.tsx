@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
+import { useLoginStreak } from "@/hooks/useLoginStreak";
 
 import SEOHead from "@/components/SEOHead";
 import EarlyAdopterBadge from "@/components/EarlyAdopterBadge";
