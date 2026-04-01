@@ -309,6 +309,7 @@ Deno.serve(async (req) => {
         combo_bonus: comboBonus,
         vote_weight: voteWeight,
         used_super: usedSuper,
+        rp_earned: rpEarned,
       }),
       {
         status: 200,
