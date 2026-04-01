@@ -41,7 +41,7 @@ const SectionCard = ({ to, icon, title, description, accentColor, borderColor }:
 const HomepageSections = () => {
   const sections: SectionCardProps[] = [
     {
-      to: "/#ranking-section",
+      to: "/#trending-section",
       icon: <Flame className="w-5 h-5 text-primary-foreground" />,
       title: "🔥 트렌딩 크리에이터",
       description: "24시간 투표 급상승 크리에이터를 확인하세요",
@@ -49,7 +49,7 @@ const HomepageSections = () => {
       borderColor: "hsl(var(--neon-purple) / 0.2)",
     },
     {
-      to: "/#ranking-section",
+      to: "/rising",
       icon: <Rocket className="w-5 h-5 text-primary-foreground" />,
       title: "🚀 라이징 크리에이터",
       description: "이번 주 성장률이 가장 높은 크리에이터",

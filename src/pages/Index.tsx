@@ -515,7 +515,9 @@ const Index = () => {
       <HomepageSections />
 
       {/* 2.5. Trending Now - 급상승 크리에이터 */}
-      <TrendingNowSection />
+      <div id="trending-section">
+        <TrendingNowSection />
+      </div>
 
       {/* 2.6. Creator League */}
       <CreatorLeagueSection />
