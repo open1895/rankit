@@ -60,10 +60,15 @@ Deno.serve(async (req) => {
     await detectCloseCompetitors(supabase, pendingNotifs);
 
     // ── 5. Apply throttling & insert ──
-    const inserted = await insertWithThrottle(supabase, pendingNotifs);
+    let inserted = 0;
+    if (dryRun) {
+      console.log("DRY RUN - would generate:", JSON.stringify(pendingNotifs.map(n => ({ type: n.type, title: n.title }))));
+    } else {
+      inserted = await insertWithThrottle(supabase, pendingNotifs);
+    }
 
     return new Response(
-      JSON.stringify({ success: true, generated: pendingNotifs.length, inserted }),
+      JSON.stringify({ success: true, dryRun, generated: pendingNotifs.length, inserted, pending: pendingNotifs.map(n => ({ type: n.type, title: n.title })) }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
