@@ -342,6 +342,47 @@ export type Database = {
           },
         ]
       }
+      boost_usages: {
+        Row: {
+          context: string
+          created_at: string
+          creator_id: string
+          id: string
+          multiplier: number
+          rp_cost: number
+          user_id: string
+          votes_added: number
+        }
+        Insert: {
+          context?: string
+          created_at?: string
+          creator_id: string
+          id?: string
+          multiplier?: number
+          rp_cost: number
+          user_id: string
+          votes_added: number
+        }
+        Update: {
+          context?: string
+          created_at?: string
+          creator_id?: string
+          id?: string
+          multiplier?: number
+          rp_cost?: number
+          user_id?: string
+          votes_added?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boost_usages_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           created_at: string
