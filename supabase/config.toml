@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.check-notifications]
 verify_jwt = false
+
+[functions.generate-weekly-tournaments]
+verify_jwt = false
