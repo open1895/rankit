@@ -750,7 +750,7 @@ const MyPage = () => {
                 {pointBalance.toLocaleString()} <span className="text-base font-bold text-muted-foreground">RP</span>
               </div>
               <div className="text-[10px] text-muted-foreground">
-                🔥 투표 5RP · 🎯 예측 10RP · ⚔️ 배틀 부스트 20RP
+                🗳️ 투표 +1RP · 🏆 토너먼트 +2RP · 🎯 예측 +5~10RP
               </div>
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <div className="glass-sm p-2 text-center">
