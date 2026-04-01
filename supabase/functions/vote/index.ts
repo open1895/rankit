@@ -241,6 +241,15 @@ Deno.serve(async (req) => {
             description: "투표 참여 보상 +1 RP",
           });
           rpEarned = rpAmount;
+
+          // Send reward notification
+          await supabase.from("notifications").insert({
+            user_id: userId,
+            type: "reward",
+            title: "🎯 투표 보상 +1 RP",
+            message: "투표 참여 보상으로 1 RP를 획득했습니다!",
+            link: "/my",
+          });
         }
       } catch (e) { console.error("RP reward error:", e); }
     }

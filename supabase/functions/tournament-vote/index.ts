@@ -235,6 +235,15 @@ Deno.serve(async (req) => {
           description: "토너먼트 투표 참여 보상 +2 RP",
         });
         rpEarned = rpAmount;
+
+        // Send reward notification
+        await supabase.from("notifications").insert({
+          user_id: userId,
+          type: "reward",
+          title: "⚔️ 토너먼트 보상 +2 RP",
+          message: "토너먼트 투표 참여 보상으로 2 RP를 획득했습니다!",
+          link: "/my",
+        });
       }
     } catch (e) { console.error("RP reward error:", e); }
 
