@@ -29,9 +29,10 @@ Deno.serve(async (req) => {
     const apiKeyHeader = req.headers.get("apikey");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
+    console.log("Auth debug:", { hasCron: !!cronSecret, hasAuth: !!authHeader, hasApiKey: !!apiKeyHeader });
+    
     const isCronAuth = cronSecret && cronSecret === expectedSecret;
     const isServiceAuth = authHeader && authHeader === `Bearer ${serviceKey}`;
-    // Allow any valid apikey header (anon key) for dry-run testing
     const isAnonAuth = !!apiKeyHeader;
     
     if (!isCronAuth && !isServiceAuth && !isAnonAuth) {
