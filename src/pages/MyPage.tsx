@@ -88,6 +88,7 @@ const MyPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
   const { tickets } = useTickets();
+  const { streak, claimedToday, claimStreak } = useLoginStreak();
   const [ticketHistory, setTicketHistory] = useState<any[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [votes, setVotes] = useState<VoteRecord[]>([]);
