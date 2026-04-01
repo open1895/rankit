@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Swords, Vote, Zap, GitCompareArrows, Share2, Users, TrendingUp, Star, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import BoostVoteButton from "@/components/BoostVoteButton";
 
 interface BattleCreator {
   id: string;
