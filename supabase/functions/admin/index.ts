@@ -355,6 +355,28 @@ serve(async (req) => {
         : 2;
       const displayMultiplier = Math.round(dynamicMultiplier * 10) / 10;
 
+      // Calculate difficulty tier based on winner bet ratio
+      const winnerBetCount = (allBets || []).filter(b => b.predicted_creator_id === winner_id).length;
+      const totalBetCount = (allBets || []).length;
+      const winnerRatio = totalBetCount > 0 ? winnerBetCount / totalBetCount : 0.5;
+
+      // Difficulty tiers: lower ratio = harder prediction = more RP
+      let difficultyLabel = "";
+      let rpBonus = 5; // base RP for prediction win
+      if (winnerRatio <= 0.2) {
+        difficultyLabel = "🔥 전설급 예측";
+        rpBonus = 30;
+      } else if (winnerRatio <= 0.35) {
+        difficultyLabel = "⚡ 고난도 예측";
+        rpBonus = 20;
+      } else if (winnerRatio <= 0.5) {
+        difficultyLabel = "🎯 역배 예측";
+        rpBonus = 10;
+      } else {
+        difficultyLabel = "✅ 예측 적중";
+        rpBonus = 5;
+      }
+
       // Distribute rewards
       const winnerBets = (allBets || []).filter(b => b.predicted_creator_id === winner_id);
       let totalRewarded = 0;
@@ -363,11 +385,36 @@ serve(async (req) => {
         totalRewarded += reward;
         await adminClient.from("prediction_bets").update({ reward_amount: reward }).eq("id", bet.id);
         await adminClient.rpc("add_tickets", { p_user_id: bet.user_id, p_amount: reward, p_type: "prediction_win", p_description: `예측 적중 보상 (${displayMultiplier}배)` });
+
+        // Grant difficulty-based RP bonus
+        const { data: levelData } = await adminClient.rpc("get_fan_level_multiplier", { p_user_id: bet.user_id });
+        const rpMultiplier = levelData?.[0]?.rp_multiplier || 1;
+        const finalRP = Math.round(rpBonus * Number(rpMultiplier));
+
+        await adminClient.from("point_transactions").insert({
+          user_id: bet.user_id,
+          amount: finalRP,
+          type: "prediction_difficulty_bonus",
+          description: `${difficultyLabel} +${finalRP} RP (난이도 보너스)`,
+        });
+        await adminClient.from("user_points").upsert(
+          { user_id: bet.user_id, balance: finalRP, total_earned: finalRP },
+          { onConflict: "user_id" }
+        );
+        // Actually increment existing balance
+        const { data: existingPt } = await adminClient.from("user_points").select("balance, total_earned").eq("user_id", bet.user_id).single();
+        if (existingPt) {
+          await adminClient.from("user_points").update({
+            balance: existingPt.balance + finalRP,
+            total_earned: existingPt.total_earned + finalRP,
+          }).eq("user_id", bet.user_id);
+        }
+
         await adminClient.from("notifications").insert({
           user_id: bet.user_id,
           type: "prediction_win",
-          title: "🎉 예측 성공!",
-          message: `축하합니다! 역배당 ${displayMultiplier}배 적용! 티켓 ${reward}장이 지급되었습니다! 🔥`,
+          title: `${difficultyLabel} 성공!`,
+          message: `축하합니다! 역배당 ${displayMultiplier}배 → 티켓 ${reward}장 + 난이도 보너스 ${finalRP} RP 획득! 🔥`,
           link: "/predictions",
         });
       }
