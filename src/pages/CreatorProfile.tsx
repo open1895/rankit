@@ -22,6 +22,7 @@ import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
 import VoteTrendChart from "@/components/VoteTrendChart";
 import VoteHeatmapChart from "@/components/VoteHeatmapChart";
 import CreatorRewards from "@/components/CreatorRewards";
+import CreatorPerformanceBadge from "@/components/CreatorPerformanceBadge";
 import CreatorOfficialFeed from "@/components/CreatorOfficialFeed";
 import AICreatorInsights from "@/components/AICreatorInsights";
 import { isCreatorRising } from "@/components/RisingInfluenceCreators";
