@@ -52,8 +52,157 @@ Deno.serve(async (req) => {
       await supabaseAdmin.from("user_points").insert({ user_id: user.id, balance: 0, total_earned: 0 });
     }
 
+    // ─── Helper: add RP + record transaction + send notification ───
+    async function grantRP(amount: number, type: string, description: string, notifTitle?: string) {
+      const currentBalance = existing?.balance || 0;
+      const currentEarned = existing?.total_earned || 0;
+
+      await supabaseAdmin
+        .from("user_points")
+        .update({
+          balance: currentBalance + amount,
+          total_earned: currentEarned + amount,
+        })
+        .eq("user_id", user!.id);
+
+      await supabaseAdmin.from("point_transactions").insert({
+        user_id: user!.id,
+        amount,
+        type,
+        description,
+      });
+
+      // Send notification
+      if (notifTitle) {
+        await supabaseAdmin.from("notifications").insert({
+          user_id: user!.id,
+          type: "reward",
+          title: notifTitle,
+          message: description,
+          link: "/my",
+        });
+      }
+
+      return currentBalance + amount;
+    }
+
+    // ─── DAILY LOGIN STREAK ───────────────────────────────────────
+    if (action === "claim_login_streak") {
+      const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("login_streak, last_login_date, last_streak_claimed_at")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!profile) {
+        return new Response(JSON.stringify({ error: "프로필을 찾을 수 없습니다." }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Already claimed today?
+      if (profile.last_login_date === today) {
+        return new Response(
+          JSON.stringify({ error: "오늘 이미 출석 보상을 받았습니다.", streak: profile.login_streak }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Calculate streak
+      let newStreak = 1;
+      if (profile.last_login_date) {
+        const lastDate = new Date(profile.last_login_date);
+        const todayDate = new Date(today);
+        const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays === 1) {
+          newStreak = (profile.login_streak || 0) + 1;
+        }
+        // If diffDays > 1, streak resets to 1
+      }
+
+      // Streak bonus: 1일=2RP, 3일=5RP, 7일=10RP, 14일=20RP, 30일=50RP
+      let rpBonus = 2;
+      let streakLabel = "";
+      if (newStreak >= 30) { rpBonus = 50; streakLabel = "🏆 30일 연속 출석!"; }
+      else if (newStreak >= 14) { rpBonus = 20; streakLabel = "🔥 14일 연속 출석!"; }
+      else if (newStreak >= 7) { rpBonus = 10; streakLabel = "⚡ 7일 연속 출석!"; }
+      else if (newStreak >= 3) { rpBonus = 5; streakLabel = "✨ 3일 연속 출석!"; }
+      else { rpBonus = 2; streakLabel = "📅 출석 체크!"; }
+
+      // Update profile
+      await supabaseAdmin
+        .from("profiles")
+        .update({
+          login_streak: newStreak,
+          last_login_date: today,
+          last_streak_claimed_at: new Date().toISOString(),
+        })
+        .eq("user_id", user.id);
+
+      const newBalance = await grantRP(
+        rpBonus,
+        "login_streak",
+        `${streakLabel} 출석 보상 +${rpBonus} RP (${newStreak}일차)`,
+        `${streakLabel} +${rpBonus} RP`
+      );
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          streak: newStreak,
+          rp_earned: rpBonus,
+          balance: newBalance,
+          streak_label: streakLabel,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ─── SNS SHARE REWARD (+3 RP, max 3/day) ─────────────────────
+    if (action === "share_reward") {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+
+      const { count } = await supabaseAdmin
+        .from("point_transactions")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("type", "share_reward")
+        .gte("created_at", todayStart.toISOString());
+
+      if ((count || 0) >= 3) {
+        return new Response(
+          JSON.stringify({ error: "오늘의 공유 보상 횟수를 초과했습니다. (최대 3회)" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const rpAmount = 3;
+      const shareCount = (count || 0) + 1;
+      const newBalance = await grantRP(
+        rpAmount,
+        "share_reward",
+        `SNS 공유 보상 +${rpAmount} RP (${shareCount}/3)`,
+        `📢 공유 보상 +${rpAmount} RP`
+      );
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          earned: rpAmount,
+          balance: newBalance,
+          shares_today: shareCount,
+          shares_remaining: 3 - shareCount,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ─── AD REWARD ────────────────────────────────────────────────
     if (action === "earn_ad_reward") {
-      // Rate limit: max 5 ad rewards per day
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
@@ -72,28 +221,15 @@ Deno.serve(async (req) => {
       }
 
       const amount = 50;
-
-      await supabaseAdmin
-        .from("user_points")
-        .update({
-          balance: (existing?.balance || 0) + amount,
-          total_earned: (existing?.total_earned || 0) + amount,
-        })
-        .eq("user_id", user.id);
-
-      await supabaseAdmin.from("point_transactions").insert({
-        user_id: user.id,
-        amount,
-        type: "ad_reward",
-        description: "광고 시청 보상 +50 RP",
-      });
+      const newBalance = await grantRP(amount, "ad_reward", "광고 시청 보상 +50 RP", "🎬 광고 보상 +50 RP");
 
       return new Response(
-        JSON.stringify({ success: true, earned: amount, balance: (existing?.balance || 0) + amount }),
+        JSON.stringify({ success: true, earned: amount, balance: newBalance }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // ─── PURCHASE ─────────────────────────────────────────────────
     if (action === "purchase") {
       const { item_id } = params;
       if (!item_id) {
@@ -125,7 +261,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Check stock
       if (item.stock !== null && item.stock <= 0) {
         return new Response(JSON.stringify({ error: "품절된 상품입니다." }), {
           status: 400,
@@ -133,13 +268,11 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Deduct points
       await supabaseAdmin
         .from("user_points")
         .update({ balance: currentBalance - item.price })
         .eq("user_id", user.id);
 
-      // Record transaction
       await supabaseAdmin.from("point_transactions").insert({
         user_id: user.id,
         amount: -item.price,
@@ -147,14 +280,12 @@ Deno.serve(async (req) => {
         description: `${item.name} 구매`,
       });
 
-      // Record purchase
       await supabaseAdmin.from("point_purchases").insert({
         user_id: user.id,
         item_id: item.id,
         price_paid: item.price,
       });
 
-      // Decrease stock if applicable
       if (item.stock !== null) {
         await supabaseAdmin
           .from("shop_items")
@@ -168,6 +299,7 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ─── SETTLEMENT REQUEST ──────────────────────────────────────
     if (action === "request_settlement") {
       const { creator_id, amount: requestedAmount, bank_info } = params;
 
@@ -178,7 +310,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Validate bank_info format and length
       if (typeof bank_info !== 'string') {
         return new Response(JSON.stringify({ error: "은행 정보가 올바르지 않습니다." }), {
           status: 400,
@@ -200,7 +331,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Verify creator ownership
       const { data: creator } = await supabaseAdmin
         .from("creators")
         .select("id, user_id")
@@ -214,7 +344,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Check earnings
       const { data: earnings } = await supabaseAdmin
         .from("creator_earnings")
         .select("*")
@@ -229,14 +358,12 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Create settlement request
       await supabaseAdmin.from("settlement_requests").insert({
         creator_id,
         amount: requestedAmount,
         bank_info: sanitizedBankInfo,
       });
 
-      // Update pending amount
       await supabaseAdmin
         .from("creator_earnings")
         .update({ pending_amount: pending - requestedAmount })
@@ -248,7 +375,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ─── CONVERT RP TO TICKETS (10 RP = 1 Ticket) ───────
+    // ─── CONVERT RP TO TICKETS (10 RP = 1 Ticket) ────────────────
     if (action === "convert_to_ticket") {
       const { amount: ticketCount } = params;
       const count = Math.floor(Number(ticketCount) || 1);
@@ -270,13 +397,11 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Deduct RP
       await supabaseAdmin
         .from("user_points")
         .update({ balance: currentBalance - rpCost })
         .eq("user_id", user.id);
 
-      // Record RP transaction
       await supabaseAdmin.from("point_transactions").insert({
         user_id: user.id,
         amount: -rpCost,
@@ -284,7 +409,6 @@ Deno.serve(async (req) => {
         description: `티켓 ${count}장 전환 (-${rpCost} RP)`,
       });
 
-      // Add tickets
       await supabaseAdmin.rpc("add_tickets", {
         p_user_id: user.id,
         p_amount: count,
