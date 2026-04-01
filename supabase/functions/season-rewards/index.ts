@@ -319,7 +319,54 @@ Deno.serve(async (req) => {
     // 5d. Recalculate ranks after reset
     await supabaseAdmin.rpc("batch_recalculate_ranks");
 
-    // ====== 6. Deactivate the season ======
+    // ====== 6. Creator Performance RP Rewards ======
+    const creatorRpRewards: { creator_id: string; reward_type: string; reward_key: string; rp_amount: number; season_number: number; description: string }[] = [];
+    let creatorRpTotal = 0;
+
+    if (topCreators) {
+      const rpTiers: Record<number, { rp: number; tier: string; featured_days: number }> = {
+        1: { rp: 500, tier: "gold", featured_days: 7 },
+        2: { rp: 300, tier: "silver", featured_days: 3 },
+        3: { rp: 300, tier: "silver", featured_days: 3 },
+      };
+
+      for (let i = 0; i < topCreators.length; i++) {
+        const creator = topCreators[i];
+        const rank = i + 1;
+        const tierInfo = rpTiers[rank] || (rank <= 10 ? { rp: 100, tier: "bronze", featured_days: 0 } : null);
+
+        if (tierInfo) {
+          creatorRpRewards.push({
+            creator_id: creator.id,
+            reward_type: "season_rank",
+            reward_key: `season_${season.season_number}_rank_${rank}`,
+            rp_amount: tierInfo.rp,
+            season_number: season.season_number,
+            description: `시즌 ${season.season_number} ${rank}위 보상`,
+          });
+
+          // Update performance tier
+          const updates: any = { performance_tier: tierInfo.tier };
+          if (tierInfo.featured_days > 0) {
+            updates.featured_until = new Date(Date.now() + tierInfo.featured_days * 24 * 60 * 60 * 1000).toISOString();
+            updates.is_promoted = true;
+            updates.promotion_type = "featured";
+          }
+          await supabaseAdmin.from("creators").update(updates).eq("id", creator.id);
+        }
+      }
+
+      // Insert creator RP rewards
+      for (const reward of creatorRpRewards) {
+        const { error } = await supabaseAdmin.from("creator_rp_rewards").upsert(reward, {
+          onConflict: "creator_id,reward_key",
+          ignoreDuplicates: true,
+        });
+        if (!error) creatorRpTotal++;
+      }
+    }
+
+    // ====== 7. Deactivate the season ======
     await supabaseAdmin
       .from("seasons")
       .update({ is_active: false })
@@ -335,6 +382,7 @@ Deno.serve(async (req) => {
         total_skipped: skippedCount,
         fans_notified: notifiedFanIds.size,
         creators_reset: allCreators?.length || 0,
+        creator_rp_rewards: creatorRpTotal,
       }),
       {
         status: 200,
