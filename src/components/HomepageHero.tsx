@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import { TrendingUp, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, useReducedMotion } from "framer-motion";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const FloatingParticles = () => {
   const particles = useMemo(() =>
