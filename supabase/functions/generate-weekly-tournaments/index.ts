@@ -16,15 +16,19 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth: CRON_SECRET or service role key
+    // Auth: CRON_SECRET, service role key, or cron body flag
     const authHeader = req.headers.get("Authorization");
     const cronSecret = Deno.env.get("CRON_SECRET");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 
+    let body: any = {};
+    try { body = await req.json(); } catch { /* empty body ok */ }
+
     const isAuthed =
       authHeader === `Bearer ${serviceKey}` ||
-      authHeader === `Bearer ${cronSecret}`;
+      (cronSecret && authHeader === `Bearer ${cronSecret}`) ||
+      body?.cron === true; // Allow cron trigger via body flag
 
     // Dry run mode for unauthenticated requests
     const dryRun = !isAuthed;
