@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Flame, Rocket, Swords, Sparkles, Star, Crown, ArrowRight } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -16,27 +16,50 @@ interface SectionCardProps {
   borderColor: string;
 }
 
-const SectionCard = ({ to, icon, title, description, accentColor, borderColor }: SectionCardProps) => (
-  <Link
-    to={to}
-    className="glass glass-hover rounded-2xl p-5 flex flex-col gap-3 group transition-all hover:scale-[1.02] active:scale-[0.98]"
-    style={{ borderColor }}
-  >
-    <div className="flex items-center justify-between">
-      <div
-        className="w-10 h-10 rounded-xl flex items-center justify-center"
-        style={{ background: accentColor }}
-      >
-        {icon}
+const SectionCard = ({ to, icon, title, description, accentColor, borderColor }: SectionCardProps) => {
+  const navigate = useNavigate();
+
+  const handleClick = (e: React.MouseEvent) => {
+    // Handle hash links (scroll to section on current page)
+    if (to.startsWith("/#")) {
+      e.preventDefault();
+      const elementId = to.replace("/#", "");
+      const el = document.getElementById(elementId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      } else {
+        navigate("/");
+        setTimeout(() => {
+          document.getElementById(elementId)?.scrollIntoView({ behavior: "smooth" });
+        }, 300);
+      }
+      return;
+    }
+  };
+
+  return (
+    <Link
+      to={to}
+      onClick={handleClick}
+      className="glass glass-hover rounded-2xl p-5 flex flex-col gap-3 group transition-all hover:scale-[1.02] active:scale-[0.98]"
+      style={{ borderColor }}
+    >
+      <div className="flex items-center justify-between">
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center"
+          style={{ background: accentColor }}
+        >
+          {icon}
+        </div>
+        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
       </div>
-      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
-    </div>
-    <div>
-      <h3 className="text-sm font-bold text-foreground">{title}</h3>
-      <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{description}</p>
-    </div>
-  </Link>
-);
+      <div>
+        <h3 className="text-sm font-bold text-foreground">{title}</h3>
+        <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{description}</p>
+      </div>
+    </Link>
+  );
+};
 
 const HomepageSections = () => {
   const sections: SectionCardProps[] = [
