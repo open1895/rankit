@@ -60,7 +60,14 @@ const fadeUp = {
 
 const HomepageHero = () => {
   const prefersReduced = useReducedMotion();
+  const [creatorCount, setCreatorCount] = useState(0);
 
+  useEffect(() => {
+    supabase
+      .from("creators")
+      .select("id", { count: "exact", head: true })
+      .then(({ count }) => setCreatorCount(count || 0));
+  }, []);
   return (
     <section className="relative overflow-hidden">
       {/* Background gradient */}
