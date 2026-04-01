@@ -147,7 +147,7 @@ const CreatorProfile = () => {
     if (!id) return;
     const fetchData = async () => {
       const [creatorRes, historyRes, countRes, commentsRes] = await Promise.all([
-        supabase.from("creators").select("id, name, category, avatar_url, votes_count, subscriber_count, rank, is_verified, channel_link, user_id, youtube_channel_id, chzzk_channel_id, youtube_subscribers, chzzk_followers, instagram_followers, tiktok_followers, rankit_score, verification_status, is_promoted, promotion_type, promotion_status, claimed, instagram_handle").eq("id", id).single(),
+        supabase.from("creators").select("id, name, category, avatar_url, votes_count, subscriber_count, rank, is_verified, channel_link, user_id, youtube_channel_id, chzzk_channel_id, youtube_subscribers, chzzk_followers, instagram_followers, tiktok_followers, rankit_score, verification_status, is_promoted, promotion_type, promotion_status, claimed, instagram_handle, performance_tier, featured_until").eq("id", id).single(),
         supabase.from("rank_history").select("*").eq("creator_id", id).order("recorded_at", { ascending: true }).limit(50),
         supabase.from("creators").select("id", { count: "exact", head: true }),
         supabase.from("comments").select("*").eq("creator_id", id).order("created_at", { ascending: false }).limit(50),
