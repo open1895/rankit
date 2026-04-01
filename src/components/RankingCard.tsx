@@ -290,6 +290,18 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
               {isFireVoting ? "..." : "불꽃×5"}
             </button>
           )}
+          {user && (
+            <BoostVoteButton
+              creatorId={creator.id}
+              creatorName={creator.name}
+              votesUntilNext={votesUntilNext}
+              context="ranking"
+              onBoostComplete={() => {
+                setIsShaking(true);
+                setTimeout(() => setIsShaking(false), 500);
+              }}
+            />
+          )}
         </div>
 
         {/* Fire Effect Overlay */}
