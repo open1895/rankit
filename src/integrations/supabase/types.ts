@@ -555,6 +555,47 @@ export type Database = {
           },
         ]
       }
+      creator_rp_rewards: {
+        Row: {
+          created_at: string
+          creator_id: string
+          description: string
+          id: string
+          reward_key: string
+          reward_type: string
+          rp_amount: number
+          season_number: number | null
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          description?: string
+          id?: string
+          reward_key?: string
+          reward_type?: string
+          rp_amount?: number
+          season_number?: number | null
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          description?: string
+          id?: string
+          reward_key?: string
+          reward_type?: string
+          rp_amount?: number
+          season_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_rp_rewards_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creators: {
         Row: {
           avatar_url: string
@@ -567,6 +608,7 @@ export type Database = {
           claimed_at: string | null
           contact_email: string | null
           created_at: string
+          featured_until: string | null
           id: string
           instagram_followers: number
           instagram_handle: string | null
@@ -574,6 +616,7 @@ export type Database = {
           is_verified: boolean
           last_stats_updated: string | null
           name: string
+          performance_tier: string
           promotion_end: string | null
           promotion_start: string | null
           promotion_status: string
@@ -599,6 +642,7 @@ export type Database = {
           claimed_at?: string | null
           contact_email?: string | null
           created_at?: string
+          featured_until?: string | null
           id?: string
           instagram_followers?: number
           instagram_handle?: string | null
@@ -606,6 +650,7 @@ export type Database = {
           is_verified?: boolean
           last_stats_updated?: string | null
           name: string
+          performance_tier?: string
           promotion_end?: string | null
           promotion_start?: string | null
           promotion_status?: string
@@ -631,6 +676,7 @@ export type Database = {
           claimed_at?: string | null
           contact_email?: string | null
           created_at?: string
+          featured_until?: string | null
           id?: string
           instagram_followers?: number
           instagram_handle?: string | null
@@ -638,6 +684,7 @@ export type Database = {
           is_verified?: boolean
           last_stats_updated?: string | null
           name?: string
+          performance_tier?: string
           promotion_end?: string | null
           promotion_start?: string | null
           promotion_status?: string

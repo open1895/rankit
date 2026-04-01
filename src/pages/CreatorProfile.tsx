@@ -22,6 +22,7 @@ import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
 import VoteTrendChart from "@/components/VoteTrendChart";
 import VoteHeatmapChart from "@/components/VoteHeatmapChart";
 import CreatorRewards from "@/components/CreatorRewards";
+import CreatorPerformanceBadge from "@/components/CreatorPerformanceBadge";
 import CreatorOfficialFeed from "@/components/CreatorOfficialFeed";
 import AICreatorInsights from "@/components/AICreatorInsights";
 import { isCreatorRising } from "@/components/RisingInfluenceCreators";
@@ -104,7 +105,7 @@ const CreatorProfile = () => {
   const hallOfFameWins = useHallOfFameWins();
 
   // State
-  const [creator, setCreator] = useState<(Creator & { channel_link?: string; user_id?: string; youtube_channel_id?: string; chzzk_channel_id?: string; verification_status?: string }) | null>(null);
+  const [creator, setCreator] = useState<(Creator & { channel_link?: string; user_id?: string; youtube_channel_id?: string; chzzk_channel_id?: string; verification_status?: string; performance_tier?: string; featured_until?: string | null }) | null>(null);
   const [rankHistory, setRankHistory] = useState<RankHistoryPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCreators, setTotalCreators] = useState(0);
@@ -146,7 +147,7 @@ const CreatorProfile = () => {
     if (!id) return;
     const fetchData = async () => {
       const [creatorRes, historyRes, countRes, commentsRes] = await Promise.all([
-        supabase.from("creators").select("id, name, category, avatar_url, votes_count, subscriber_count, rank, is_verified, channel_link, user_id, youtube_channel_id, chzzk_channel_id, youtube_subscribers, chzzk_followers, instagram_followers, tiktok_followers, rankit_score, verification_status, is_promoted, promotion_type, promotion_status, claimed, instagram_handle").eq("id", id).single(),
+        supabase.from("creators").select("id, name, category, avatar_url, votes_count, subscriber_count, rank, is_verified, channel_link, user_id, youtube_channel_id, chzzk_channel_id, youtube_subscribers, chzzk_followers, instagram_followers, tiktok_followers, rankit_score, verification_status, is_promoted, promotion_type, promotion_status, claimed, instagram_handle, performance_tier, featured_until").eq("id", id).single(),
         supabase.from("rank_history").select("*").eq("creator_id", id).order("recorded_at", { ascending: true }).limit(50),
         supabase.from("creators").select("id", { count: "exact", head: true }),
         supabase.from("comments").select("*").eq("creator_id", id).order("created_at", { ascending: false }).limit(50),
@@ -168,6 +169,8 @@ const CreatorProfile = () => {
         tiktok_followers: (c as any).tiktok_followers ?? 0,
         rankit_score: (c as any).rankit_score ?? 0,
         verification_status: (c as any).verification_status || "none",
+        performance_tier: (c as any).performance_tier || "none",
+        featured_until: (c as any).featured_until || null,
       });
       setRankHistory(historyRes.data || []);
       setComments(commentsRes.data || []);
@@ -779,6 +782,7 @@ const CreatorProfile = () => {
                     <p className="text-[11px] text-muted-foreground">이 크리에이터는 Rankit에서 공식 인증된 크리에이터입니다.</p>
                   </div>
                 )}
+                <CreatorPerformanceBadge creatorId={creator.id} performanceTier={(creator as any).performance_tier} featuredUntil={(creator as any).featured_until} />
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-foreground">📦 내 순위 위젯 임베드</span>
