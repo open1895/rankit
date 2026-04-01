@@ -780,6 +780,7 @@ const CreatorProfile = () => {
                     <p className="text-[11px] text-muted-foreground">이 크리에이터는 Rankit에서 공식 인증된 크리에이터입니다.</p>
                   </div>
                 )}
+                <CreatorPerformanceBadge creatorId={creator.id} performanceTier={(creator as any).performance_tier} featuredUntil={(creator as any).featured_until} />
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-foreground">📦 내 순위 위젯 임베드</span>
