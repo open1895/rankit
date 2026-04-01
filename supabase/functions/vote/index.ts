@@ -290,6 +290,59 @@ Deno.serve(async (req) => {
       } catch (e) { console.error("Boost contribution error:", e); }
     }
 
+    // ── Vote milestone detection for creator ──
+    let milestoneReached = null;
+    try {
+      const { data: creatorData } = await supabase
+        .from("creators")
+        .select("votes_count, name")
+        .eq("id", creator_id)
+        .single();
+
+      if (creatorData) {
+        const milestones = [
+          { threshold: 10000, rp: 500, key: "milestone_10000" },
+          { threshold: 5000, rp: 150, key: "milestone_5000" },
+          { threshold: 1000, rp: 50, key: "milestone_1000" },
+        ];
+
+        for (const m of milestones) {
+          if (creatorData.votes_count >= m.threshold && creatorData.votes_count - voteWeight < m.threshold) {
+            // Just crossed this milestone
+            const { error: rpError } = await supabase.from("creator_rp_rewards").upsert({
+              creator_id,
+              reward_type: "vote_milestone",
+              reward_key: m.key,
+              rp_amount: m.rp,
+              description: `누적 ${m.threshold.toLocaleString()}표 달성 보상`,
+            }, { onConflict: "creator_id,reward_key", ignoreDuplicates: true });
+
+            if (!rpError) {
+              milestoneReached = { threshold: m.threshold, rp: m.rp };
+
+              // Notify all fans who voted for this creator (send to creator owner if claimed)
+              const { data: creatorFull } = await supabase
+                .from("creators")
+                .select("user_id")
+                .eq("id", creator_id)
+                .single();
+
+              if (creatorFull?.user_id) {
+                await supabase.from("notifications").insert({
+                  user_id: creatorFull.user_id,
+                  type: "milestone",
+                  title: `🎉 ${m.threshold.toLocaleString()}표 달성!`,
+                  message: `${creatorData.name}이(가) 누적 ${m.threshold.toLocaleString()}표를 달성했습니다! +${m.rp} RP 보상이 지급되었어요!`,
+                  link: `/creator/${creator_id}`,
+                });
+              }
+            }
+            break;
+          }
+        }
+      }
+    } catch (e) { console.error("Milestone check error:", e); }
+
     // Handle referral bonus (only for logged-in users)
     let referralBonus = false;
     if (userId && referral_code && typeof referral_code === "string" && referral_code.length >= 6) {
