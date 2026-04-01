@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.auto-add-creators]
 verify_jwt = false
+
+[functions.check-notifications]
+verify_jwt = false
