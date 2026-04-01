@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useShareReward } from "@/hooks/useShareReward";
 import { Share2, Download, Copy, X, Loader2, Sparkles, Trophy, ExternalLink, MessageCircle } from "lucide-react";
 import { copyToClipboard, getPublishedOrigin, getPublishedUrl } from "@/lib/clipboard";
 import { shareToKakao, initKakao } from "@/lib/kakao";
@@ -267,12 +268,15 @@ const ShareCard = ({ creatorId, creatorName, rank, votesCount, avatarUrl, catego
     claimShareBonus();
   };
 
+  const { claimShareReward } = useShareReward();
+
   const claimShareBonus = () => {
     if (!bonusClaimed && onShareBonus) {
       setBonusClaimed(true);
       onShareBonus();
-      toast.success("🎁 공유 보너스! 투표권 +1을 받았습니다!");
-      // Track for daily mission
+      // Also claim RP reward for sharing
+      claimShareReward();
+      toast.success("🎁 공유 보너스! 투표권 +1 & RP +3!");
       if (typeof (window as any).trackShare === "function") {
         (window as any).trackShare();
       }

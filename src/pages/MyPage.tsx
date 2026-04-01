@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
+import { useLoginStreak } from "@/hooks/useLoginStreak";
 
 import SEOHead from "@/components/SEOHead";
 import EarlyAdopterBadge from "@/components/EarlyAdopterBadge";
@@ -87,6 +88,7 @@ const MyPage = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
   const { tickets } = useTickets();
+  const { streak, claimedToday, claimStreak } = useLoginStreak();
   const [ticketHistory, setTicketHistory] = useState<any[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [votes, setVotes] = useState<VoteRecord[]>([]);
@@ -795,6 +797,36 @@ const MyPage = () => {
               </div>
               {watchingAd && (
                 <div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin" />
+              )}
+            </button>
+
+            {/* Daily Login Streak */}
+            <button
+              onClick={async () => {
+                if (claimedToday) return;
+                const result = await claimStreak();
+                if (result) setPointBalance(result.balance);
+              }}
+              disabled={claimedToday}
+              className={`w-full glass-sm glass-hover p-3 flex items-center gap-3 text-left ${claimedToday ? "opacity-60" : ""}`}
+            >
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shrink-0">
+                <Calendar className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-bold">
+                  {claimedToday ? `✅ 출석 완료! (${streak}일차)` : "📅 오늘의 출석 체크"}
+                </div>
+                <div className="text-[10px] text-muted-foreground">
+                  {claimedToday
+                    ? "내일 다시 출석하면 스트릭이 이어집니다"
+                    : `연속 ${streak + 1}일차 · 스트릭 보너스 RP 획득`}
+                </div>
+              </div>
+              {streak >= 3 && (
+                <span className="text-xs font-bold" style={{ color: "hsl(var(--neon-cyan))" }}>
+                  🔥 {streak}일
+                </span>
               )}
             </button>
 
