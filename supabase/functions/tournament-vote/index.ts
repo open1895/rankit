@@ -185,6 +185,34 @@ Deno.serve(async (req) => {
             is_featured: true,
           });
 
+          // ── Grant 200 RP to tournament champion ──
+          try {
+            await supabase.from("creator_rp_rewards").upsert({
+              creator_id: finalWinnerId,
+              reward_type: "tournament_win",
+              reward_key: `tournament_${match.tournament_id}`,
+              rp_amount: 200,
+              description: `토너먼트 우승 보상 (${tournamentData?.title || "토너먼트"})`,
+            }, { onConflict: "creator_id,reward_key", ignoreDuplicates: true });
+
+            // Notify the creator owner
+            const { data: creatorOwner } = await supabase
+              .from("creators")
+              .select("user_id, name")
+              .eq("id", finalWinnerId)
+              .single();
+
+            if (creatorOwner?.user_id) {
+              await supabase.from("notifications").insert({
+                user_id: creatorOwner.user_id,
+                type: "tournament_reward",
+                title: "🏆 토너먼트 우승 보상!",
+                message: `${creatorOwner.name}이(가) "${tournamentData?.title || "토너먼트"}"에서 우승하여 +200 RP 보상이 지급되었습니다!`,
+                link: "/tournament",
+              });
+            }
+          } catch (e) { console.error("Tournament RP reward error:", e); }
+
           // Mark tournament as ended
           await supabase
             .from("tournaments")
