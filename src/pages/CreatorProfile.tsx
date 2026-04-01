@@ -649,16 +649,44 @@ const CreatorProfile = () => {
             </div>
           )}
 
-          {/* Claim Profile Button */}
-          {!isEditing && user && !creator.user_id && (creator as any).verification_status !== "pending" && (
-            <Button
-              onClick={() => setShowClaimModal(true)}
-              variant="outline" size="sm"
-              className="w-full glass-sm border-[hsl(var(--neon-cyan)/0.3)] text-[hsl(var(--neon-cyan))] text-xs rounded-xl hover:border-[hsl(var(--neon-cyan)/0.6)]"
-            >
-              <Shield className="w-3 h-3 mr-1" />
-              {(creator as any).verification_status === "rejected" ? "인증 재신청하기" : "이 크리에이터 프로필 인증하기"}
-            </Button>
+          {/* Claim Profile Button - Enhanced */}
+          {!isEditing && !creator.user_id && (creator as any).verification_status !== "pending" && (
+            <div className={`rounded-2xl overflow-hidden ${isInvite ? "ring-2 ring-primary animate-pulse-glow" : ""}`}>
+              <div
+                className="p-4 space-y-2 text-center cursor-pointer hover:opacity-90 transition-opacity"
+                style={{
+                  background: "linear-gradient(135deg, hsl(var(--neon-purple) / 0.15), hsl(var(--neon-cyan) / 0.15))",
+                  borderRadius: "1rem",
+                  border: "1px solid hsl(var(--neon-cyan) / 0.3)",
+                }}
+                onClick={() => user ? setShowClaimModal(true) : navigate("/auth")}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Shield className="w-5 h-5" style={{ color: "hsl(var(--neon-cyan))" }} />
+                  <span className="text-sm font-bold text-foreground">
+                    {isInvite ? "🎉 초대받으셨습니다!" : "본인의 채널인가요?"}
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  {isInvite
+                    ? "프로필을 인증하고 크리에이터 전용 대시보드, 팬 분석, 성과 리포트를 무료로 이용하세요!"
+                    : "프로필을 인증하면 전용 대시보드와 팬 분석 도구를 이용할 수 있습니다."}
+                </p>
+                <Button
+                  size="sm"
+                  className="w-full font-bold text-xs rounded-xl"
+                  style={{
+                    background: "linear-gradient(135deg, hsl(var(--neon-purple)), hsl(var(--primary)))",
+                    boxShadow: "0 4px 16px hsl(var(--neon-purple) / 0.3)",
+                  }}
+                >
+                  <Shield className="w-3.5 h-3.5 mr-1" />
+                  {user
+                    ? ((creator as any).verification_status === "rejected" ? "인증 재신청하기" : "프로필 인증하기")
+                    : "로그인하고 인증하기"}
+                </Button>
+              </div>
+            </div>
           )}
 
           {/* Pending status indicator */}
