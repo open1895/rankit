@@ -1096,6 +1096,9 @@ export type Database = {
           display_name: string
           id: string
           is_beta_tester: boolean
+          last_login_date: string | null
+          last_streak_claimed_at: string | null
+          login_streak: number
           super_votes: number
           tickets: number
           updated_at: string
@@ -1108,6 +1111,9 @@ export type Database = {
           display_name?: string
           id?: string
           is_beta_tester?: boolean
+          last_login_date?: string | null
+          last_streak_claimed_at?: string | null
+          login_streak?: number
           super_votes?: number
           tickets?: number
           updated_at?: string
@@ -1120,6 +1126,9 @@ export type Database = {
           display_name?: string
           id?: string
           is_beta_tester?: boolean
+          last_login_date?: string | null
+          last_streak_claimed_at?: string | null
+          login_streak?: number
           super_votes?: number
           tickets?: number
           updated_at?: string
