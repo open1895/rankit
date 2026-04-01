@@ -136,6 +136,8 @@ const CreatorProfile = () => {
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [showPromotionModal, setShowPromotionModal] = useState(false);
   const [useSuperVote, setUseSuperVote] = useState(false);
+  const [searchParams] = useSearchParams();
+  const isInvite = searchParams.get("invite") === "true";
   const [superVotes, setSuperVotes] = useState(0);
   const [comboCount, setComboCount] = useState(0);
 
