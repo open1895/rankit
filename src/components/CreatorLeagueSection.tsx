@@ -101,7 +101,7 @@ const LeagueCard = ({ league, creators }: { league: typeof LEAGUES[0]; creators:
                 {i === 0 && <Crown className="w-3 h-3 shrink-0" style={{ color: "hsl(45 93% 50%)" }} />}
               </div>
               <div className="text-[10px] text-muted-foreground">
-                {creator.votes_count.toLocaleString()}표 · 스코어 {creator.rankit_score}
+                {creator.votes_count.toLocaleString()}표 · 스코어 {Number(creator.rankit_score).toFixed(1)}
               </div>
             </div>
 
