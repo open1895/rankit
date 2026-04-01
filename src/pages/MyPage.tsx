@@ -797,6 +797,68 @@ const MyPage = () => {
                 <div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin" />
               )}
             </button>
+
+            {/* RP → Ticket Conversion */}
+            <div className="glass-sm p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-bold flex items-center gap-1.5">
+                  <Ticket className="w-3.5 h-3.5 text-primary" />
+                  RP → 투표 티켓 전환
+                </div>
+                <span className="text-[10px] text-muted-foreground">10 RP = 1 티켓</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 flex-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setConvertCount(Math.max(1, convertCount - 1))}
+                    disabled={convertCount <= 1}
+                  >-</Button>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={Math.floor(pointBalance / 10)}
+                    value={convertCount}
+                    onChange={(e) => setConvertCount(Math.max(1, Math.min(Math.floor(pointBalance / 10) || 1, parseInt(e.target.value) || 1)))}
+                    className="h-8 text-center text-sm font-bold w-16"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setConvertCount(Math.min(Math.floor(pointBalance / 10) || 1, convertCount + 1))}
+                    disabled={convertCount >= Math.floor(pointBalance / 10)}
+                  >+</Button>
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">장 ({convertCount * 10} RP)</span>
+                </div>
+                <Button
+                  size="sm"
+                  disabled={converting || pointBalance < convertCount * 10}
+                  onClick={async () => {
+                    setConverting(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("points", {
+                        body: { action: "convert_to_ticket", amount: convertCount },
+                      });
+                      if (error) throw error;
+                      if (data?.error) throw new Error(data.error);
+                      setPointBalance(data.new_balance);
+                      toast.success(`🎫 티켓 ${data.tickets_gained}장 전환 완료! (-${data.rp_spent} RP)`);
+                      setConvertCount(1);
+                    } catch (e: any) {
+                      toast.error(e.message || "전환 실패");
+                    } finally {
+                      setConverting(false);
+                    }
+                  }}
+                  className="h-8 text-xs font-bold whitespace-nowrap"
+                >
+                  {converting ? "..." : "전환"}
+                </Button>
+              </div>
+            </div>
           </div>
 
           <RPChargeModal open={showRPCharge} onOpenChange={setShowRPCharge} />
