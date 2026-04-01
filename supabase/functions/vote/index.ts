@@ -386,6 +386,7 @@ Deno.serve(async (req) => {
         vote_weight: voteWeight,
         used_super: usedSuper,
         rp_earned: rpEarned,
+        milestone: milestoneReached,
       }),
       {
         status: 200,
