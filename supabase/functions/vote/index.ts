@@ -198,6 +198,53 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ── Grant +1 RP for vote participation (daily cap: 50 RP) ──
+    let rpEarned = 0;
+    if (userId) {
+      try {
+        const todayRpStart = new Date();
+        todayRpStart.setHours(0, 0, 0, 0);
+        const { data: todayTx } = await supabase
+          .from("point_transactions")
+          .select("amount")
+          .eq("user_id", userId)
+          .in("type", ["vote_reward", "tournament_reward"])
+          .gte("created_at", todayRpStart.toISOString());
+
+        const todayEarned = (todayTx || []).reduce((sum: number, t: any) => sum + (t.amount > 0 ? t.amount : 0), 0);
+
+        if (todayEarned < 50) {
+          const rpAmount = 1;
+          // Ensure user_points row exists
+          const { data: existingPts } = await supabase
+            .from("user_points")
+            .select("id, balance, total_earned")
+            .eq("user_id", userId)
+            .maybeSingle();
+
+          if (!existingPts) {
+            await supabase.from("user_points").insert({ user_id: userId, balance: rpAmount, total_earned: rpAmount });
+          } else {
+            await supabase
+              .from("user_points")
+              .update({
+                balance: existingPts.balance + rpAmount,
+                total_earned: existingPts.total_earned + rpAmount,
+              })
+              .eq("user_id", userId);
+          }
+
+          await supabase.from("point_transactions").insert({
+            user_id: userId,
+            amount: rpAmount,
+            type: "vote_reward",
+            description: "투표 참여 보상 +1 RP",
+          });
+          rpEarned = rpAmount;
+        }
+      } catch (e) { console.error("RP reward error:", e); }
+    }
+
     // Auto-contribute to active boost campaign
     if (userId) {
       try {
@@ -262,6 +309,7 @@ Deno.serve(async (req) => {
         combo_bonus: comboBonus,
         vote_weight: voteWeight,
         used_super: usedSuper,
+        rp_earned: rpEarned,
       }),
       {
         status: 200,

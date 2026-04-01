@@ -248,6 +248,61 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ─── CONVERT RP TO TICKETS (10 RP = 1 Ticket) ───────
+    if (action === "convert_to_ticket") {
+      const { amount: ticketCount } = params;
+      const count = Math.floor(Number(ticketCount) || 1);
+
+      if (count < 1 || count > 100) {
+        return new Response(JSON.stringify({ error: "1~100장까지 전환 가능합니다." }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const rpCost = count * 10;
+      const currentBalance = existing?.balance || 0;
+
+      if (currentBalance < rpCost) {
+        return new Response(
+          JSON.stringify({ error: `RP가 부족합니다. (필요: ${rpCost} RP, 보유: ${currentBalance} RP)` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Deduct RP
+      await supabaseAdmin
+        .from("user_points")
+        .update({ balance: currentBalance - rpCost })
+        .eq("user_id", user.id);
+
+      // Record RP transaction
+      await supabaseAdmin.from("point_transactions").insert({
+        user_id: user.id,
+        amount: -rpCost,
+        type: "ticket_convert",
+        description: `티켓 ${count}장 전환 (-${rpCost} RP)`,
+      });
+
+      // Add tickets
+      await supabaseAdmin.rpc("add_tickets", {
+        p_user_id: user.id,
+        p_amount: count,
+        p_type: "rp_convert",
+        p_description: `RP 전환 티켓 +${count}`,
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          tickets_gained: count,
+          rp_spent: rpCost,
+          new_balance: currentBalance - rpCost,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     return new Response(JSON.stringify({ error: "알 수 없는 액션입니다." }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

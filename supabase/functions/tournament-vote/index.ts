@@ -194,9 +194,54 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── Grant +2 RP for tournament participation (daily cap: 50 RP) ──
+    let rpEarned = 0;
+    try {
+      const todayRpStart = new Date();
+      todayRpStart.setHours(0, 0, 0, 0);
+      const { data: todayTx } = await supabase
+        .from("point_transactions")
+        .select("amount")
+        .eq("user_id", userId)
+        .in("type", ["vote_reward", "tournament_reward"])
+        .gte("created_at", todayRpStart.toISOString());
+
+      const todayEarned = (todayTx || []).reduce((sum: number, t: any) => sum + (t.amount > 0 ? t.amount : 0), 0);
+
+      if (todayEarned < 50) {
+        const rpAmount = 2;
+        const { data: existingPts } = await supabase
+          .from("user_points")
+          .select("id, balance, total_earned")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (!existingPts) {
+          await supabase.from("user_points").insert({ user_id: userId, balance: rpAmount, total_earned: rpAmount });
+        } else {
+          await supabase
+            .from("user_points")
+            .update({
+              balance: existingPts.balance + rpAmount,
+              total_earned: existingPts.total_earned + rpAmount,
+            })
+            .eq("user_id", userId);
+        }
+
+        await supabase.from("point_transactions").insert({
+          user_id: userId,
+          amount: rpAmount,
+          type: "tournament_reward",
+          description: "토너먼트 투표 참여 보상 +2 RP",
+        });
+        rpEarned = rpAmount;
+      }
+    } catch (e) { console.error("RP reward error:", e); }
+
     return new Response(JSON.stringify({
       success: true,
       match_completed: matchCompleted,
+      rp_earned: rpEarned,
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
