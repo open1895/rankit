@@ -374,10 +374,37 @@ const PredictionGame = () => {
                         </p>
                       )}
 
-                      {/* Pool info */}
-                      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                        <span>총 베팅 풀: {event.total_pool}표</span>
-                        <span>적중 시 약 {totalBets > 0 ? Math.round(event.total_pool / Math.max(counts.a, counts.b, 1)) : 2}배 보상</span>
+                      {/* Pool info + difficulty indicator */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                          <span>총 베팅 풀: {event.total_pool}표</span>
+                          <span>적중 시 약 {totalBets > 0 ? Math.round(event.total_pool / Math.max(counts.a, counts.b, 1)) : 2}배 보상</span>
+                        </div>
+                        {totalBets >= 2 && (() => {
+                          const minPercent = Math.min(aPercent, bPercent);
+                          let diffLabel = "";
+                          let diffColor = "";
+                          let rpHint = "";
+                          if (minPercent <= 20) {
+                            diffLabel = "🔥 전설급 난이도";
+                            diffColor = "text-orange-400";
+                            rpHint = "+30 RP";
+                          } else if (minPercent <= 35) {
+                            diffLabel = "⚡ 고난도";
+                            diffColor = "text-yellow-400";
+                            rpHint = "+20 RP";
+                          } else if (minPercent <= 50) {
+                            diffLabel = "🎯 역배";
+                            diffColor = "text-neon-cyan";
+                            rpHint = "+10 RP";
+                          }
+                          return diffLabel ? (
+                            <div className={`flex items-center justify-between text-[10px] ${diffColor}`}>
+                              <span className="font-bold">{diffLabel}</span>
+                              <span>소수파 적중 시 {rpHint} 보너스!</span>
+                            </div>
+                          ) : null;
+                        })()}
                       </div>
                     </div>
                   );
