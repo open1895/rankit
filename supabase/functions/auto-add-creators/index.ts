@@ -152,13 +152,7 @@ Deno.serve(async (req) => {
       targetCategories = CATEGORIES.filter(c => c.name === parsedBody.category);
     }
 
-    // Pick one random category per cron call to conserve API quota
-    // For manual calls with specific category, use that one
-    if (targetCategories.length === CATEGORIES.length) {
-      // Cron call: pick one random category
-      const randomIndex = Math.floor(Math.random() * CATEGORIES.length);
-      targetCategories = [CATEGORIES[randomIndex]];
-    }
+    // Process all categories to ensure 10 creators per category per day
 
     console.log(`auto-add-creators: processing category "${targetCategories.map(c => c.name).join(", ")}"`);
 
