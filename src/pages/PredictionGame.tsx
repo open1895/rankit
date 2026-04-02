@@ -205,7 +205,7 @@ const PredictionGame = () => {
     <div className="min-h-screen bg-background text-foreground">
       <SEOHead title="예측 게임 | Rankit" description="크리에이터 대결 결과를 예측하고 보상을 받으세요!" />
 
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-lg mx-auto px-4 py-6 pb-28 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
           <Link to="/" className="p-2 rounded-xl glass-sm hover:bg-muted/50 transition-colors">
