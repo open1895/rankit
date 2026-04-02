@@ -1897,12 +1897,19 @@ const OutreachTab = () => {
   const { data: creators, isLoading } = useQuery({
     queryKey: ["outreach-creators"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("creators")
-        .select("id, name, category, avatar_url, contact_email, youtube_channel_id, youtube_subscribers, claimed, user_id, channel_link")
-        .order("youtube_subscribers", { ascending: false })
-        .limit(1000);
-      return data || [];
+      const { data, error } = await supabase.functions.invoke("admin", {
+        body: { action: "list_creators" },
+      });
+      if (error) throw error;
+      const list = data?.creators || [];
+      return list
+        .map((c: any) => ({
+          id: c.id, name: c.name, category: c.category, avatar_url: c.avatar_url,
+          contact_email: c.contact_email, youtube_channel_id: c.youtube_channel_id,
+          youtube_subscribers: c.youtube_subscribers, claimed: c.claimed, user_id: c.user_id,
+          channel_link: c.channel_link,
+        }))
+        .sort((a: any, b: any) => (b.youtube_subscribers || 0) - (a.youtube_subscribers || 0));
     },
   });
 
