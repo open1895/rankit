@@ -15,14 +15,18 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Auth: accept service role key, anon key, or admin user
+    // Parse body for cron detection
+    let body: any = {};
+    try { body = await req.clone().json(); } catch { /* empty */ }
+    const isCronCall = body?.cron === true;
+
+    // Auth: accept service role key, anon key, cron body flag, or admin user
     const authHeader = req.headers.get("Authorization");
     const token = authHeader?.replace("Bearer ", "") || "";
 
-    const isTrustedCall = token === serviceKey || token === anonKey;
+    const isTrustedCall = token === serviceKey || token === anonKey || isCronCall;
 
     if (!isTrustedCall) {
-      // Check if it's an admin user
       if (!authHeader) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
