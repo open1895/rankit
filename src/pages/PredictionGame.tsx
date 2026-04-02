@@ -151,7 +151,7 @@ const PredictionGame = () => {
       setBettingEventId(null);
       setSelectedAmount(1);
 
-      // Refresh data
+      // Update local state
       const bet: UserBet = {
         event_id: eventId,
         predicted_creator_id: creatorId,
@@ -160,6 +160,26 @@ const PredictionGame = () => {
         reward_amount: 0,
       };
       setUserBets((prev) => new Map(prev).set(eventId, bet));
+
+      // Update bet counts locally
+      setBetCounts((prev) => {
+        const updated = new Map(prev);
+        const existing = updated.get(eventId) || { a: 0, b: 0 };
+        const event = events.find((e) => e.id === eventId);
+        if (event) {
+          if (creatorId === event.creator_a_id) existing.a += 1;
+          else existing.b += 1;
+        }
+        updated.set(eventId, existing);
+        return updated;
+      });
+
+      // Update total_pool locally
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.id === eventId ? { ...e, total_pool: e.total_pool + selectedAmount } : e
+        )
+      );
     } catch (err) {
       toast.error("베팅 처리 중 오류가 발생했습니다.");
     }

@@ -121,6 +121,21 @@ const LivePredictionBattle = () => {
       return;
     }
 
+    // Update local stats immediately
+    const isA = selectedCreator === event.creator_a_id;
+    const newTotal = totalBets + betAmount;
+    setTotalBets(newTotal);
+    const currentAAmount = Math.round((aPercent / 100) * totalBets);
+    const currentBAmount = totalBets - currentAAmount;
+    const newAAmount = currentAAmount + (isA ? betAmount : 0);
+    const newBAmount = currentBAmount + (isA ? 0 : betAmount);
+    const newAPercent = newTotal > 0 ? Math.round((newAAmount / newTotal) * 100) : 50;
+    setAPercent(newAPercent);
+    if (newTotal > 0) {
+      setAOdds(newAAmount > 0 ? Math.min(10, Math.max(1.5, newTotal / newAAmount)) : 10);
+      setBOdds(newBAmount > 0 ? Math.min(10, Math.max(1.5, newTotal / newBAmount)) : 10);
+    }
+
     // Trigger absorption animation
     setShowAbsorb(true);
     setTimeout(() => {
