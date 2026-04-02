@@ -205,7 +205,7 @@ const PredictionGame = () => {
     <div className="min-h-screen bg-background text-foreground">
       <SEOHead title="예측 게임 | Rankit" description="크리에이터 대결 결과를 예측하고 보상을 받으세요!" />
 
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-lg mx-auto px-4 py-6 pb-28 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
           <Link to="/" className="p-2 rounded-xl glass-sm hover:bg-muted/50 transition-colors">
@@ -325,12 +325,13 @@ const PredictionGame = () => {
                       )}
 
                       {/* VS Layout */}
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         {/* Creator A */}
                         <button
-                          onClick={() => !userBet && !isExpired && handlePlaceBet(event.id, event.creator_a_id)}
+                          type="button"
+                          onClick={() => handlePlaceBet(event.id, event.creator_a_id)}
                           disabled={!!userBet || isExpired}
-                          className={`flex-1 glass-sm rounded-xl p-3 text-center space-y-2 transition-all ${
+                          className={`flex-1 min-w-0 glass-sm rounded-xl p-3 text-center space-y-2 transition-all ${
                             userBet?.predicted_creator_id === event.creator_a_id
                               ? "ring-2 ring-neon-purple border-neon-purple/50"
                               : !userBet && !isExpired
@@ -339,22 +340,23 @@ const PredictionGame = () => {
                           }`}
                         >
                           <CreatorAvatar avatarUrl={event.creator_a?.avatar_url || ""} name={event.creator_a?.name || "A"} />
-                          <div className="text-xs font-semibold truncate">{event.creator_a?.name}</div>
+                          <div className="text-xs font-semibold truncate max-w-[100px] mx-auto">{event.creator_a?.name}</div>
                           <div className="text-[10px] text-muted-foreground">{event.creator_a?.rank}위</div>
                           <div className="text-xs font-bold text-neon-purple">{aPercent}%</div>
                         </button>
 
                         {/* VS */}
-                        <div className="flex flex-col items-center gap-1 shrink-0">
+                        <div className="flex flex-col items-center gap-1 shrink-0 w-14">
                           <span className="text-lg font-black text-muted-foreground/50">VS</span>
-                          <span className="text-[9px] text-muted-foreground">{totalBets}명 참여</span>
+                          <span className="text-[9px] text-muted-foreground whitespace-nowrap">{totalBets}명 참여</span>
                         </div>
 
                         {/* Creator B */}
                         <button
-                          onClick={() => !userBet && !isExpired && handlePlaceBet(event.id, event.creator_b_id)}
+                          type="button"
+                          onClick={() => handlePlaceBet(event.id, event.creator_b_id)}
                           disabled={!!userBet || isExpired}
-                          className={`flex-1 glass-sm rounded-xl p-3 text-center space-y-2 transition-all ${
+                          className={`flex-1 min-w-0 glass-sm rounded-xl p-3 text-center space-y-2 transition-all ${
                             userBet?.predicted_creator_id === event.creator_b_id
                               ? "ring-2 ring-neon-cyan border-neon-cyan/50"
                               : !userBet && !isExpired
@@ -363,7 +365,7 @@ const PredictionGame = () => {
                           }`}
                         >
                           <CreatorAvatar avatarUrl={event.creator_b?.avatar_url || ""} name={event.creator_b?.name || "B"} />
-                          <div className="text-xs font-semibold truncate">{event.creator_b?.name}</div>
+                          <div className="text-xs font-semibold truncate max-w-[100px] mx-auto">{event.creator_b?.name}</div>
                           <div className="text-[10px] text-muted-foreground">{event.creator_b?.rank}위</div>
                           <div className="text-xs font-bold text-neon-cyan">{bPercent}%</div>
                         </button>
