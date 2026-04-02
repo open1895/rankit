@@ -78,6 +78,13 @@ export type Database = {
             referencedRelation: "creators"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "battle_votes_voted_creator_id_fkey"
+            columns: ["voted_creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       battles: {
@@ -129,8 +136,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "battles_creator_a_id_fkey"
+            columns: ["creator_a_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "battles_creator_b_id_fkey"
             columns: ["creator_b_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battles_creator_b_id_fkey"
+            columns: ["creator_b_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battles_winner_id_fkey"
+            columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "creators"
             referencedColumns: ["id"]
@@ -139,7 +167,7 @@ export type Database = {
             foreignKeyName: "battles_winner_id_fkey"
             columns: ["winner_id"]
             isOneToOne: false
-            referencedRelation: "creators"
+            referencedRelation: "creators_public"
             referencedColumns: ["id"]
           },
         ]
@@ -305,6 +333,13 @@ export type Database = {
             referencedRelation: "creators"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "boost_campaigns_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       boost_contributions: {
@@ -381,6 +416,13 @@ export type Database = {
             referencedRelation: "creators"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "boost_usages_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       chat_messages: {
@@ -411,6 +453,13 @@ export type Database = {
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
             referencedColumns: ["id"]
           },
         ]
@@ -451,6 +500,13 @@ export type Database = {
             referencedRelation: "creators"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "comments_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       creator_earnings: {
@@ -487,6 +543,13 @@ export type Database = {
             columns: ["creator_id"]
             isOneToOne: true
             referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_earnings_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: true
+            referencedRelation: "creators_public"
             referencedColumns: ["id"]
           },
         ]
@@ -553,6 +616,13 @@ export type Database = {
             referencedRelation: "creators"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "creator_feed_posts_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       creator_rewards: {
@@ -594,6 +664,13 @@ export type Database = {
             referencedRelation: "creators"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "creator_rewards_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       creator_rp_rewards: {
@@ -633,6 +710,13 @@ export type Database = {
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_rp_rewards_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
             referencedColumns: ["id"]
           },
         ]
@@ -830,6 +914,13 @@ export type Database = {
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hall_of_fame_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1062,6 +1153,13 @@ export type Database = {
             referencedRelation: "creators"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "posts_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       prediction_bets: {
@@ -1108,6 +1206,13 @@ export type Database = {
             columns: ["predicted_creator_id"]
             isOneToOne: false
             referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_bets_predicted_creator_id_fkey"
+            columns: ["predicted_creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1161,8 +1266,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "prediction_events_creator_a_id_fkey"
+            columns: ["creator_a_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "prediction_events_creator_b_id_fkey"
             columns: ["creator_b_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_events_creator_b_id_fkey"
+            columns: ["creator_b_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_events_winner_id_fkey"
+            columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "creators"
             referencedColumns: ["id"]
@@ -1171,7 +1297,7 @@ export type Database = {
             foreignKeyName: "prediction_events_winner_id_fkey"
             columns: ["winner_id"]
             isOneToOne: false
-            referencedRelation: "creators"
+            referencedRelation: "creators_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1252,6 +1378,13 @@ export type Database = {
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rank_history_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1344,6 +1477,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "season_awards_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "season_awards_season_id_fkey"
             columns: ["season_id"]
             isOneToOne: false
@@ -1386,6 +1526,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "season_rankings_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "season_rankings_season_id_fkey"
             columns: ["season_id"]
             isOneToOne: false
@@ -1425,6 +1572,13 @@ export type Database = {
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_snapshots_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
             referencedColumns: ["id"]
           },
           {
@@ -1500,6 +1654,13 @@ export type Database = {
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "settlement_requests_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1604,6 +1765,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tournament_champions_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tournament_champions_tournament_id_fkey"
             columns: ["tournament_id"]
             isOneToOne: true
@@ -1661,10 +1829,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tournament_matches_creator_a_id_fkey"
+            columns: ["creator_a_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tournament_matches_creator_b_id_fkey"
             columns: ["creator_b_id"]
             isOneToOne: false
             referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_creator_b_id_fkey"
+            columns: ["creator_b_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
             referencedColumns: ["id"]
           },
           {
@@ -1679,6 +1861,13 @@ export type Database = {
             columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1721,6 +1910,13 @@ export type Database = {
             columns: ["voted_creator_id"]
             isOneToOne: false
             referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_votes_voted_creator_id_fkey"
+            columns: ["voted_creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1866,6 +2062,13 @@ export type Database = {
             referencedRelation: "creators"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "votes_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       weekly_highlights: {
@@ -1907,11 +2110,116 @@ export type Database = {
             referencedRelation: "creators"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "weekly_highlights_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      creators_public: {
+        Row: {
+          avatar_url: string | null
+          category: string | null
+          channel_link: string | null
+          chzzk_channel_id: string | null
+          chzzk_followers: number | null
+          claimed: boolean | null
+          claimed_at: string | null
+          created_at: string | null
+          featured_until: string | null
+          id: string | null
+          instagram_followers: number | null
+          instagram_handle: string | null
+          is_promoted: boolean | null
+          is_verified: boolean | null
+          last_stats_updated: string | null
+          name: string | null
+          performance_tier: string | null
+          promotion_end: string | null
+          promotion_start: string | null
+          promotion_status: string | null
+          promotion_type: string | null
+          rank: number | null
+          rankit_score: number | null
+          subscriber_count: number | null
+          tiktok_followers: number | null
+          user_id: string | null
+          verification_status: string | null
+          votes_count: number | null
+          youtube_channel_id: string | null
+          youtube_subscribers: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          category?: string | null
+          channel_link?: string | null
+          chzzk_channel_id?: string | null
+          chzzk_followers?: number | null
+          claimed?: boolean | null
+          claimed_at?: string | null
+          created_at?: string | null
+          featured_until?: string | null
+          id?: string | null
+          instagram_followers?: number | null
+          instagram_handle?: string | null
+          is_promoted?: boolean | null
+          is_verified?: boolean | null
+          last_stats_updated?: string | null
+          name?: string | null
+          performance_tier?: string | null
+          promotion_end?: string | null
+          promotion_start?: string | null
+          promotion_status?: string | null
+          promotion_type?: string | null
+          rank?: number | null
+          rankit_score?: number | null
+          subscriber_count?: number | null
+          tiktok_followers?: number | null
+          user_id?: string | null
+          verification_status?: string | null
+          votes_count?: number | null
+          youtube_channel_id?: string | null
+          youtube_subscribers?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          category?: string | null
+          channel_link?: string | null
+          chzzk_channel_id?: string | null
+          chzzk_followers?: number | null
+          claimed?: boolean | null
+          claimed_at?: string | null
+          created_at?: string | null
+          featured_until?: string | null
+          id?: string | null
+          instagram_followers?: number | null
+          instagram_handle?: string | null
+          is_promoted?: boolean | null
+          is_verified?: boolean | null
+          last_stats_updated?: string | null
+          name?: string | null
+          performance_tier?: string | null
+          promotion_end?: string | null
+          promotion_start?: string | null
+          promotion_status?: string | null
+          promotion_type?: string | null
+          rank?: number | null
+          rankit_score?: number | null
+          subscriber_count?: number | null
+          tiktok_followers?: number | null
+          user_id?: string | null
+          verification_status?: string | null
+          votes_count?: number | null
+          youtube_channel_id?: string | null
+          youtube_subscribers?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_tickets: {
