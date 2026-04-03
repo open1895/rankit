@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const TARGET_CATEGORIES = ["게임", "먹방", "뷰티", "운동", "음악"];
+const TARGET_CATEGORIES = ["게임", "먹방", "뷰티", "운동", "음악", "유머"];
 const CREATORS_PER_TOURNAMENT = 8;
 const PREDICTIONS_PER_CATEGORY = 2;
 const MAX_RECENT_APPEARANCES = 3; // skip if appeared in last 3 tournaments

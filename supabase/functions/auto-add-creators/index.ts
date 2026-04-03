@@ -19,6 +19,7 @@ const CATEGORIES = [
   { name: "아트", query: "한국 그림 일러스트 유튜버" },
   { name: "요리", query: "한국 요리 레시피 유튜버" },
   { name: "반려동물", query: "한국 강아지 고양이 유튜버" },
+  { name: "유머", query: "한국 유머 코미디 유튜버" },
 ];
 
 const MAX_SUBSCRIBERS = 200000;

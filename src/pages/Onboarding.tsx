@@ -23,6 +23,7 @@ const CATEGORIES = [
   { value: "아트", emoji: "🎨" },
   { value: "요리", emoji: "🍳" },
   { value: "반려동물", emoji: "🐾" },
+  { value: "유머", emoji: "😂" },
 ];
 
 const Onboarding = () => {

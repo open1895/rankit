@@ -13,7 +13,7 @@ import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
-const CATEGORIES = ["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크", "아트", "교육", "댄스", "요리", "반려동물"];
+const CATEGORIES = ["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크", "아트", "교육", "댄스", "요리", "반려동물", "유머"];
 
 const AdminPanelPage = () => {
   const { user, loading: authLoading } = useAuth();
