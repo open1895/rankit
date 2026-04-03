@@ -83,10 +83,15 @@ const SocialProofCounters = () => {
   useEffect(() => {
     fetchStats();
 
-    // Re-fetch when creators table changes (new creators added or votes updated)
     const channel = supabase
       .channel("social-proof-counters")
       .on("postgres_changes", { event: "*", schema: "public", table: "creators" }, () => {
+        fetchStats();
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "votes" }, () => {
+        fetchStats();
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "profiles" }, () => {
         fetchStats();
       })
       .subscribe();

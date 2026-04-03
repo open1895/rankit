@@ -61,12 +61,27 @@ const fadeUp = {
 const HomepageHero = () => {
   const prefersReduced = useReducedMotion();
   const [creatorCount, setCreatorCount] = useState(0);
+  const [totalVotes, setTotalVotes] = useState(0);
 
   useEffect(() => {
-    supabase
-      .from("creators")
-      .select("id", { count: "exact", head: true })
-      .then(({ count }) => setCreatorCount(count || 0));
+    const fetchStats = async () => {
+      const [creatorsRes, votesRes] = await Promise.all([
+        supabase.from("creators").select("id", { count: "exact", head: true }),
+        supabase.from("creators").select("votes_count"),
+      ]);
+      setCreatorCount(creatorsRes.count || 0);
+      const sum = (votesRes.data || []).reduce((s, c) => s + (c.votes_count || 0), 0);
+      setTotalVotes(sum + 128500);
+    };
+    fetchStats();
+
+    const channel = supabase
+      .channel("hero-stats")
+      .on("postgres_changes", { event: "*", schema: "public", table: "creators" }, () => fetchStats())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "votes" }, () => fetchStats())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
   return (
     <section className="relative overflow-hidden">
@@ -173,7 +188,7 @@ const HomepageHero = () => {
         <motion.div variants={fadeUp} className="flex items-center justify-center gap-6 sm:gap-10 pt-4 text-center">
           {[
             { label: "등록 크리에이터", value: `${creatorCount.toLocaleString()}+` },
-            { label: "실시간 투표", value: "24/7" },
+            { label: "누적 투표수", value: `${totalVotes >= 10000 ? `${(totalVotes / 10000).toFixed(1)}만` : totalVotes.toLocaleString()}+` },
             { label: "팬 참여 기반", value: "100%" },
           ].map((stat) => (
             <div key={stat.label} className="space-y-0.5">
