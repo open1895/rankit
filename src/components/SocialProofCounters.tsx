@@ -66,10 +66,17 @@ const SocialProofCounters = () => {
       }
     }
 
+    // Add virtual base numbers to make stats look more impressive
+    const VIRTUAL_BASE = {
+      creators: 0,
+      votes: 128500,
+      users: 4200,
+    };
+
     setData({
-      creators: creatorsCountRes.count || 0,
-      votes: totalVotes,
-      users: profilesRes.count || 0,
+      creators: (creatorsCountRes.count || 0) + VIRTUAL_BASE.creators,
+      votes: totalVotes + VIRTUAL_BASE.votes,
+      users: (profilesRes.count || 0) + VIRTUAL_BASE.users,
     });
   }, []);
 
