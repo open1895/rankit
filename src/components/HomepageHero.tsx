@@ -188,7 +188,7 @@ const HomepageHero = () => {
         <motion.div variants={fadeUp} className="flex items-center justify-center gap-6 sm:gap-10 pt-4 text-center">
           {[
             { label: "등록 크리에이터", value: `${creatorCount.toLocaleString()}+` },
-            { label: "실시간 투표", value: "24/7" },
+            { label: "누적 투표수", value: `${totalVotes >= 10000 ? `${(totalVotes / 10000).toFixed(1)}만` : totalVotes.toLocaleString()}+` },
             { label: "팬 참여 기반", value: "100%" },
           ].map((stat) => (
             <div key={stat.label} className="space-y-0.5">
