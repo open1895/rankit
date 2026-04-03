@@ -1,40 +1,28 @@
 
+## 랭킷 토너먼트 완전 자동화 시스템
 
-## 인앱 브라우저 구글 로그인 차단 대응
+### Phase 1: 데이터베이스 스키마 변경
+- `tournaments` 테이블에 `category`, `season_number`, `current_round`, `champion_creator_id`, `start_at`, `end_at` 컬럼 추가
+- `tournament_matches` 테이블에 `status`, `start_at`, `end_at` 컬럼 추가 (기존 `is_completed` → `status` 전환)
+- 새 테이블: `tournament_participants` (tournament_id, creator_id, seed, selection_score)
+- 새 테이블: `tournament_logs` (tournament_id, log_type, message)
+- `tournament_matches`의 `winner_id` → 유지 (이미 존재)
 
-### 문제
-네이버, 카카오톡, Instagram 등 앱 내장 브라우저(WebView)에서 Google OAuth 시도 시 `403: disallowed_useragent` 에러 발생. Google 정책상 WebView에서의 OAuth가 차단됨.
+### Phase 2: Edge Function - 토너먼트 자동 생성
+- `generate-weekly-tournaments` 리팩토링
+- 크리에이터 자동 선발 (scoring 알고리즘)
+- 매치 자동 생성 (seed 기반 대진)
+- 참가자 저장 + 매치 생성 + 활성화를 원자적으로 처리
+- 자동 진행 로직 (라운드 완료 시 다음 라운드 생성)
 
-### 해결 방안
+### Phase 3: Edge Function - 토너먼트 진행
+- `tournament-vote` 수정: 투표 후 매치 완료 체크 → 라운드 완료 시 다음 라운드 자동 생성
+- 타이브레이커 로직
 
-**1. WebView 감지 유틸리티 함수 생성** (`src/lib/browser.ts`)
-- User-Agent 문자열을 분석하여 인앱 브라우저 여부를 판별
-- 감지 대상: NAVER, KakaoTalk, Instagram, Facebook, Line, Twitter 등 한국에서 주로 사용되는 앱
+### Phase 4: UI 업데이트
+- Tournament 페이지: 빈 상태 제거, LIVE 배지, 진행률 바
+- 홈 토너먼트 섹션 업데이트
+- 관리자 패널: 토너먼트 수동 생성/관리
 
-**2. Auth 페이지에서 WebView 감지 시 안내 표시** (`src/pages/Auth.tsx`)
-- 인앱 브라우저 감지 시 Google 로그인 버튼 위에 경고 배너 표시
-- 안내 메시지: "인앱 브라우저에서는 Google 로그인이 제한됩니다. Safari/Chrome에서 열어주세요."
-- "외부 브라우저로 열기" 버튼 제공 → 현재 URL을 외부 브라우저로 오픈 시도
-- Google 버튼 클릭 시에도 WebView면 toast로 안내 후 차단
-
-### 기술 상세
-
-```text
-WebView 감지 로직 (User-Agent 기반):
-- NAVER: "NAVER" 포함
-- KakaoTalk: "KAKAOTALK" 포함  
-- Instagram: "Instagram" 포함
-- Facebook: "FBAN" 또는 "FBAV" 포함
-- Line: "Line/" 포함
-- 기타: "wv" (Android WebView), "WebView" 등
-```
-
-**외부 브라우저 열기 방법:**
-- Android: `intent://` scheme 사용
-- iOS: 직접 열기 어려우므로 URL 복사 안내
-- Fallback: URL 복사 버튼 + "복사한 주소를 브라우저에 붙여넣기 해주세요" 안내
-
-### 변경 파일
-- `src/lib/browser.ts` — 신규: WebView 감지 유틸리티
-- `src/pages/Auth.tsx` — 수정: WebView 감지 배너 및 Google 버튼 분기 처리
-
+### Phase 5: 크론 스케줄
+- 매주 월요일 09:00 KST 자동 실행
