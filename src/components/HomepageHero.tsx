@@ -61,12 +61,27 @@ const fadeUp = {
 const HomepageHero = () => {
   const prefersReduced = useReducedMotion();
   const [creatorCount, setCreatorCount] = useState(0);
+  const [totalVotes, setTotalVotes] = useState(0);
 
   useEffect(() => {
-    supabase
-      .from("creators")
-      .select("id", { count: "exact", head: true })
-      .then(({ count }) => setCreatorCount(count || 0));
+    const fetchStats = async () => {
+      const [creatorsRes, votesRes] = await Promise.all([
+        supabase.from("creators").select("id", { count: "exact", head: true }),
+        supabase.from("creators").select("votes_count"),
+      ]);
+      setCreatorCount(creatorsRes.count || 0);
+      const sum = (votesRes.data || []).reduce((s, c) => s + (c.votes_count || 0), 0);
+      setTotalVotes(sum + 128500);
+    };
+    fetchStats();
+
+    const channel = supabase
+      .channel("hero-stats")
+      .on("postgres_changes", { event: "*", schema: "public", table: "creators" }, () => fetchStats())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "votes" }, () => fetchStats())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
   return (
     <section className="relative overflow-hidden">
