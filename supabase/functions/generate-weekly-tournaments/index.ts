@@ -5,10 +5,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const TARGET_CATEGORIES = ["게임", "먹방", "뷰티", "운동", "음악", "유머"];
+const TARGET_CATEGORIES = ["게임", "먹방", "뷰티", "운동", "음악", "유머", "여행", "테크", "교육", "댄스", "아트", "요리", "반려동물"];
 const CREATORS_PER_TOURNAMENT = 8;
-const PREDICTIONS_PER_CATEGORY = 2;
-const MAX_RECENT_APPEARANCES = 3; // skip if appeared in last 3 tournaments
+const MAX_RECENT_APPEARANCES = 3;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -16,7 +15,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth: CRON_SECRET, service role key, or cron body flag
     const authHeader = req.headers.get("Authorization");
     const cronSecret = Deno.env.get("CRON_SECRET");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -28,10 +26,12 @@ Deno.serve(async (req) => {
     const isAuthed =
       authHeader === `Bearer ${serviceKey}` ||
       (cronSecret && authHeader === `Bearer ${cronSecret}`) ||
-      body?.cron === true; // Allow cron trigger via body flag
+      body?.cron === true;
 
-    // Dry run mode for unauthenticated requests
     const dryRun = !isAuthed;
+    // Optional: only generate for specific category
+    const targetCategory = body?.category;
+    const categories = targetCategory ? [targetCategory] : TARGET_CATEGORIES;
 
     const supabase = createClient(supabaseUrl, serviceKey);
 
@@ -42,34 +42,66 @@ Deno.serve(async (req) => {
       .select("id")
       .gte("created_at", fourWeeksAgo);
 
-    const recentTournamentIds = (recentTournaments || []).map(t => t.id);
-
+    const recentTournamentIds = (recentTournaments || []).map((t: any) => t.id);
     const appearanceCount = new Map<string, number>();
+
     if (recentTournamentIds.length > 0) {
-      const { data: recentMatches } = await supabase
-        .from("tournament_matches")
-        .select("creator_a_id, creator_b_id")
+      const { data: recentParticipants } = await supabase
+        .from("tournament_participants")
+        .select("creator_id")
         .in("tournament_id", recentTournamentIds);
 
-      for (const m of (recentMatches || [])) {
-        appearanceCount.set(m.creator_a_id, (appearanceCount.get(m.creator_a_id) || 0) + 1);
-        appearanceCount.set(m.creator_b_id, (appearanceCount.get(m.creator_b_id) || 0) + 1);
+      for (const p of (recentParticipants || [])) {
+        appearanceCount.set(p.creator_id, (appearanceCount.get(p.creator_id) || 0) + 1);
+      }
+
+      // Fallback: also check matches for backwards compatibility
+      if ((recentParticipants || []).length === 0) {
+        const { data: recentMatches } = await supabase
+          .from("tournament_matches")
+          .select("creator_a_id, creator_b_id")
+          .in("tournament_id", recentTournamentIds);
+        for (const m of (recentMatches || [])) {
+          appearanceCount.set(m.creator_a_id, (appearanceCount.get(m.creator_a_id) || 0) + 1);
+          appearanceCount.set(m.creator_b_id, (appearanceCount.get(m.creator_b_id) || 0) + 1);
+        }
       }
     }
 
     // 2. Get recent 7-day vote counts per creator
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+
     const { data: recentVotes } = await supabase
       .from("votes")
+      .select("creator_id, created_at")
+      .gte("created_at", fourteenDaysAgo);
+
+    const recentVoteCount = new Map<string, number>();
+    const prevWeekVoteCount = new Map<string, number>();
+    const sevenDaysAgoDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    for (const v of (recentVotes || [])) {
+      const voteDate = new Date(v.created_at);
+      if (voteDate >= sevenDaysAgoDate) {
+        recentVoteCount.set(v.creator_id, (recentVoteCount.get(v.creator_id) || 0) + 1);
+      } else {
+        prevWeekVoteCount.set(v.creator_id, (prevWeekVoteCount.get(v.creator_id) || 0) + 1);
+      }
+    }
+
+    // 3. Get fan engagement (comments in last 7 days)
+    const { data: recentComments } = await supabase
+      .from("comments")
       .select("creator_id")
       .gte("created_at", sevenDaysAgo);
 
-    const recentVoteCount = new Map<string, number>();
-    for (const v of (recentVotes || [])) {
-      recentVoteCount.set(v.creator_id, (recentVoteCount.get(v.creator_id) || 0) + 1);
+    const commentCount = new Map<string, number>();
+    for (const c of (recentComments || [])) {
+      commentCount.set(c.creator_id, (commentCount.get(c.creator_id) || 0) + 1);
     }
 
-    // 3. Get all creators with engagement data
+    // 4. Get all creators
     const { data: allCreators } = await supabase
       .from("creators")
       .select("id, name, category, rankit_score, votes_count, rank, avatar_url")
@@ -82,18 +114,25 @@ Deno.serve(async (req) => {
       });
     }
 
-    const results: any[] = [];
-    const generatedPredictions: any[] = [];
+    // Get next season number
+    const { data: maxSeason } = await supabase
+      .from("tournaments")
+      .select("season_number")
+      .order("season_number", { ascending: false })
+      .limit(1);
+    const nextSeasonBase = ((maxSeason?.[0]?.season_number) || 0) + 1;
 
-    for (const category of TARGET_CATEGORIES) {
+    const results: any[] = [];
+    let seasonOffset = 0;
+
+    for (const category of categories) {
       const categoryCreators = allCreators
-        .filter(c => c.category === category)
-        .filter(c => {
+        .filter((c: any) => c.category === category)
+        .filter((c: any) => {
           const recent7d = recentVoteCount.get(c.id) || 0;
-          // Exclude: zero recent votes, too many appearances
-          if (recent7d === 0) return false;
+          // Allow creators with at least some engagement or decent score
+          if (recent7d === 0 && (c.rankit_score || 0) < 5) return false;
           if ((appearanceCount.get(c.id) || 0) >= MAX_RECENT_APPEARANCES) return false;
-          // Exclude: weak profile (no avatar, low score)
           if (!c.avatar_url || c.avatar_url === "") return false;
           return true;
         });
@@ -103,27 +142,30 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Score creators for selection
-      const scored = categoryCreators.map(c => {
+      // Score creators using the new formula
+      const scored = categoryCreators.map((c: any) => {
         const recent7d = recentVoteCount.get(c.id) || 0;
+        const prevWeek = prevWeekVoteCount.get(c.id) || 0;
+        const growthRate = prevWeek > 0 ? (recent7d - prevWeek) / prevWeek : (recent7d > 0 ? 1 : 0);
+        const fanEngagement = commentCount.get(c.id) || 0;
         const appearances = appearanceCount.get(c.id) || 0;
-        const freshBonus = appearances === 0 ? 20 : (3 - appearances) * 5;
+        const freshBonus = appearances === 0 ? 1 : Math.max(0, (MAX_RECENT_APPEARANCES - appearances) / MAX_RECENT_APPEARANCES);
 
-        const engagementScore =
-          (c.rankit_score || 0) * 0.3 +
-          recent7d * 2 +
-          (c.votes_count || 0) * 0.01 +
-          Math.max(0, freshBonus);
+        const selectionScore =
+          (recent7d * 0.35) +
+          (growthRate * 20 * 0.20) +
+          ((c.rankit_score || 0) * 0.20) +
+          (fanEngagement * 0.15) +
+          (freshBonus * 10 * 0.10);
 
-        return { ...c, engagementScore, recent7d };
+        return { ...c, selectionScore, recent7d, growthRate };
       });
 
-      // Sort by engagement score and pick top 8
-      scored.sort((a, b) => b.engagementScore - a.engagementScore);
+      scored.sort((a: any, b: any) => b.selectionScore - a.selectionScore);
       const selected = scored.slice(0, CREATORS_PER_TOURNAMENT);
 
-      // Create balanced matches: 1 vs 8, 2 vs 7, 3 vs 6, 4 vs 5
-      const matches: { a: typeof selected[0]; b: typeof selected[0]; order: number }[] = [];
+      // Create balanced matches: seed1 vs seed8, seed2 vs seed7, etc.
+      const matches: { a: any; b: any; order: number }[] = [];
       const half = selected.length / 2;
       for (let i = 0; i < half; i++) {
         matches.push({
@@ -135,16 +177,27 @@ Deno.serve(async (req) => {
 
       const weekLabel = getWeekLabel();
       const title = `${weekLabel} ${category} 토너먼트`;
+      const seasonNumber = nextSeasonBase + seasonOffset;
+      seasonOffset++;
 
       if (!dryRun) {
-        // Create tournament as draft (is_active = false)
+        const now = new Date();
+        const endDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+        // Create tournament with new schema
         const { data: tournament, error: tErr } = await supabase
           .from("tournaments")
           .insert({
             title,
             description: `${category} 카테고리 주간 자동 생성 토너먼트`,
-            is_active: false, // Draft! Admin must approve
+            is_active: true,
+            status: "active",
+            category,
+            season_number: seasonNumber,
+            current_round: "quarterfinal",
             round: 8,
+            start_at: now.toISOString(),
+            end_at: endDate.toISOString(),
           })
           .select("id")
           .single();
@@ -154,77 +207,83 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        // Log creation
+        await supabase.from("tournament_logs").insert({
+          tournament_id: tournament.id,
+          log_type: "created",
+          message: `토너먼트 자동 생성: ${title} (${CREATORS_PER_TOURNAMENT}명 참가)`,
+        });
+
+        // Insert participants with seeds
+        const participantInserts = selected.map((c: any, idx: number) => ({
+          tournament_id: tournament.id,
+          creator_id: c.id,
+          seed: idx + 1,
+          selection_score: c.selectionScore,
+        }));
+
+        const { error: pErr } = await supabase.from("tournament_participants").insert(participantInserts);
+        if (pErr) {
+          await supabase.from("tournament_logs").insert({
+            tournament_id: tournament.id,
+            log_type: "error",
+            message: `참가자 등록 실패: ${pErr.message}`,
+          });
+        }
+
         // Insert quarterfinal matches
-        const matchInserts = matches.map(m => ({
+        const matchStart = now;
+        const matchEnd = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+
+        const matchInserts = matches.map((m) => ({
           tournament_id: tournament.id,
           round: 8,
           match_order: m.order,
           creator_a_id: m.a.id,
           creator_b_id: m.b.id,
+          status: "active",
+          start_at: matchStart.toISOString(),
+          end_at: matchEnd.toISOString(),
         }));
 
         const { error: mErr } = await supabase.from("tournament_matches").insert(matchInserts);
         if (mErr) {
+          // Rollback: set to draft if matches fail
+          await supabase.from("tournaments").update({ status: "draft", is_active: false }).eq("id", tournament.id);
+          await supabase.from("tournament_logs").insert({
+            tournament_id: tournament.id,
+            log_type: "error",
+            message: `매치 생성 실패, draft로 전환: ${mErr.message}`,
+          });
           results.push({ category, error: mErr.message });
           continue;
         }
 
-        // Generate prediction events for this category
-        const predictions = [];
-
-        // Prediction 1: Category weekly #1 (top 2 creators in category)
-        if (selected.length >= 2) {
-          const betDeadline = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days
-          const { data: predEvent } = await supabase
-            .from("prediction_events")
-            .insert({
-              title: `${weekLabel} ${category} 주간 1위 예측`,
-              description: `이번 주 ${category} 카테고리에서 더 많은 득표를 받을 크리에이터는?`,
-              creator_a_id: selected[0].id,
-              creator_b_id: selected[1].id,
-              bet_deadline: betDeadline.toISOString(),
-              status: "open",
-            })
-            .select("id")
-            .single();
-          if (predEvent) predictions.push(predEvent.id);
-        }
-
-        // Prediction 2: First match winner prediction
-        if (matches.length >= 1) {
-          const betDeadline = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); // 2 days
-          const { data: predEvent } = await supabase
-            .from("prediction_events")
-            .insert({
-              title: `${matches[0].a.name} vs ${matches[0].b.name} 승자 예측`,
-              description: `${category} 토너먼트 8강 첫 매치! 누가 이길까요?`,
-              creator_a_id: matches[0].a.id,
-              creator_b_id: matches[0].b.id,
-              bet_deadline: betDeadline.toISOString(),
-              status: "open",
-            })
-            .select("id")
-            .single();
-          if (predEvent) predictions.push(predEvent.id);
-        }
-
-        generatedPredictions.push({ category, prediction_ids: predictions });
+        // Log successful activation
+        await supabase.from("tournament_logs").insert({
+          tournament_id: tournament.id,
+          log_type: "activated",
+          message: `8명 참가자 + 4개 8강 매치 생성 완료. 토너먼트 활성화됨.`,
+        });
 
         results.push({
           category,
           tournament_id: tournament.id,
-          creators: selected.map(c => c.name),
-          matches: matches.map(m => `${m.a.name} vs ${m.b.name}`),
-          predictions: predictions.length,
-          status: "draft",
+          season_number: seasonNumber,
+          creators: selected.map((c: any) => c.name),
+          matches: matches.map((m) => `${m.a.name} vs ${m.b.name}`),
+          status: "active",
         });
       } else {
-        // Dry run - just show what would be generated
         results.push({
           category,
           dryRun: true,
-          creators: selected.map(c => ({ name: c.name, score: c.engagementScore.toFixed(1), recent7d: c.recent7d })),
-          matches: matches.map(m => `${m.a.name} vs ${m.b.name}`),
+          creators: selected.map((c: any) => ({
+            name: c.name,
+            score: c.selectionScore.toFixed(1),
+            recent7d: c.recent7d,
+          })),
+          matches: matches.map((m) => `${m.a.name} vs ${m.b.name}`),
         });
       }
     }
@@ -232,10 +291,9 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       dryRun,
-      generated: results.filter(r => !r.skipped && !r.error).length,
-      skipped: results.filter(r => r.skipped).length,
+      generated: results.filter((r) => !r.skipped && !r.error).length,
+      skipped: results.filter((r) => r.skipped).length,
       results,
-      predictions: generatedPredictions,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

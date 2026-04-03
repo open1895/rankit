@@ -5,7 +5,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const MIN_VOTES_TO_COMPLETE = 10; // Minimum votes before a match can auto-complete
+const MIN_VOTES_TO_COMPLETE = 10;
+
+const ROUND_MAP: Record<string, string> = {
+  "quarterfinal": "semifinal",
+  "semifinal": "final",
+};
+
+const ROUND_NUMBER: Record<string, number> = {
+  "quarterfinal": 8,
+  "semifinal": 4,
+  "final": 2,
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -17,7 +28,6 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Verify auth
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "로그인이 필요합니다." }), {
@@ -45,7 +55,7 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Check match exists and is not completed
+    // Get match
     const { data: match, error: matchErr } = await supabase
       .from("tournament_matches")
       .select("*")
@@ -58,7 +68,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (match.is_completed) {
+    if (match.is_completed || match.status === "completed") {
       return new Response(JSON.stringify({ error: "이미 종료된 매치입니다." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -70,7 +80,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check duplicate vote by user_id
+    // Check duplicate
     const { data: existing } = await supabase
       .from("tournament_votes")
       .select("id")
@@ -93,7 +103,6 @@ Deno.serve(async (req) => {
     });
 
     // Update match vote counts
-    const field = voted_creator_id === match.creator_a_id ? "votes_a" : "votes_b";
     const newVotesA = voted_creator_id === match.creator_a_id ? match.votes_a + 1 : match.votes_a;
     const newVotesB = voted_creator_id === match.creator_b_id ? match.votes_b + 1 : match.votes_b;
 
@@ -102,8 +111,7 @@ Deno.serve(async (req) => {
       .update({ votes_a: newVotesA, votes_b: newVotesB })
       .eq("id", match_id);
 
-    // Auto-advance: check if all matches in this round should complete
-    // A match auto-completes when total votes reach a threshold and there's a clear winner
+    // Auto-advance logic
     const totalVotes = newVotesA + newVotesB;
     let matchCompleted = false;
 
@@ -112,10 +120,17 @@ Deno.serve(async (req) => {
 
       await supabase
         .from("tournament_matches")
-        .update({ is_completed: true, winner_id: winnerId })
+        .update({ is_completed: true, winner_id: winnerId, status: "completed" })
         .eq("id", match_id);
 
       matchCompleted = true;
+
+      // Log
+      await supabase.from("tournament_logs").insert({
+        tournament_id: match.tournament_id,
+        log_type: "match_completed",
+        message: `매치 완료 (round ${match.round}, order ${match.match_order}): 승자 결정 (${newVotesA}:${newVotesB})`,
+      });
 
       // Check if all matches in this round are completed
       const { data: roundMatches } = await supabase
@@ -124,7 +139,7 @@ Deno.serve(async (req) => {
         .eq("tournament_id", match.tournament_id)
         .eq("round", match.round);
 
-      const allCompleted = roundMatches?.every((m) =>
+      const allCompleted = roundMatches?.every((m: any) =>
         m.id === match_id ? true : m.is_completed
       );
 
@@ -132,15 +147,27 @@ Deno.serve(async (req) => {
         const nextRound = match.round / 2;
 
         if (nextRound >= 2) {
-          // Create next round matches by pairing winners
+          // Get next round name
+          const { data: tournament } = await supabase
+            .from("tournaments")
+            .select("current_round")
+            .eq("id", match.tournament_id)
+            .single();
+
+          const currentRoundName = tournament?.current_round || "quarterfinal";
+          const nextRoundName = ROUND_MAP[currentRoundName] || "final";
+
+          // Create next round matches
           const winners = roundMatches
-            .sort((a, b) => a.match_order - b.match_order)
-            .map((m) => m.id === match_id ? winnerId : m.winner_id!)
+            .sort((a: any, b: any) => a.match_order - b.match_order)
+            .map((m: any) => m.id === match_id ? winnerId : m.winner_id!)
             .filter(Boolean);
+
+          const now = new Date();
+          const matchEnd = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
 
           for (let i = 0; i < winners.length; i += 2) {
             if (i + 1 < winners.length) {
-              // Check if match already exists
               const { data: existingMatch } = await supabase
                 .from("tournament_matches")
                 .select("id")
@@ -156,6 +183,9 @@ Deno.serve(async (req) => {
                   match_order: Math.floor(i / 2),
                   creator_a_id: winners[i],
                   creator_b_id: winners[i + 1],
+                  status: "active",
+                  start_at: now.toISOString(),
+                  end_at: matchEnd.toISOString(),
                 });
               }
             }
@@ -164,20 +194,24 @@ Deno.serve(async (req) => {
           // Update tournament round
           await supabase
             .from("tournaments")
-            .update({ round: nextRound })
+            .update({ round: nextRound, current_round: nextRoundName })
             .eq("id", match.tournament_id);
+
+          await supabase.from("tournament_logs").insert({
+            tournament_id: match.tournament_id,
+            log_type: "round_advanced",
+            message: `라운드 진행: ${currentRoundName} → ${nextRoundName}`,
+          });
         } else {
-          // Tournament is over - the final match winner is the champion
+          // Tournament over
           const finalWinnerId = newVotesA > newVotesB ? match.creator_a_id : match.creator_b_id;
 
-          // Get tournament title
           const { data: tournamentData } = await supabase
             .from("tournaments")
             .select("title")
             .eq("id", match.tournament_id)
             .single();
 
-          // Insert champion record
           await supabase.from("tournament_champions").insert({
             tournament_id: match.tournament_id,
             creator_id: finalWinnerId,
@@ -185,7 +219,7 @@ Deno.serve(async (req) => {
             is_featured: true,
           });
 
-          // ── Grant 200 RP to tournament champion ──
+          // Grant 200 RP
           try {
             await supabase.from("creator_rp_rewards").upsert({
               creator_id: finalWinnerId,
@@ -195,7 +229,6 @@ Deno.serve(async (req) => {
               description: `토너먼트 우승 보상 (${tournamentData?.title || "토너먼트"})`,
             }, { onConflict: "creator_id,reward_key", ignoreDuplicates: true });
 
-            // Notify the creator owner
             const { data: creatorOwner } = await supabase
               .from("creators")
               .select("user_id, name")
@@ -207,22 +240,34 @@ Deno.serve(async (req) => {
                 user_id: creatorOwner.user_id,
                 type: "tournament_reward",
                 title: "🏆 토너먼트 우승 보상!",
-                message: `${creatorOwner.name}이(가) "${tournamentData?.title || "토너먼트"}"에서 우승하여 +200 RP 보상이 지급되었습니다!`,
+                message: `${creatorOwner.name}이(가) "${tournamentData?.title}"에서 우승하여 +200 RP 보상이 지급되었습니다!`,
                 link: "/tournament",
               });
             }
           } catch (e) { console.error("Tournament RP reward error:", e); }
 
-          // Mark tournament as ended
+          // End tournament
           await supabase
             .from("tournaments")
-            .update({ is_active: false, ended_at: new Date().toISOString() })
+            .update({
+              is_active: false,
+              status: "ended",
+              current_round: "ended",
+              champion_creator_id: finalWinnerId,
+              ended_at: new Date().toISOString(),
+            })
             .eq("id", match.tournament_id);
+
+          await supabase.from("tournament_logs").insert({
+            tournament_id: match.tournament_id,
+            log_type: "ended",
+            message: `토너먼트 종료! 챔피언 결정.`,
+          });
         }
       }
     }
 
-    // ── Grant +2 RP for tournament participation (daily cap: 50 RP) ──
+    // RP reward for participation
     let rpEarned = 0;
     try {
       const todayRpStart = new Date();
@@ -237,7 +282,6 @@ Deno.serve(async (req) => {
       const todayEarned = (todayTx || []).reduce((sum: number, t: any) => sum + (t.amount > 0 ? t.amount : 0), 0);
 
       if (todayEarned < 50) {
-        // Get fan level multiplier
         let rpMultiplier = 1.0;
         let fanLevel = 1;
         try {
@@ -278,7 +322,6 @@ Deno.serve(async (req) => {
         });
         rpEarned = rpAmount;
 
-        // Send reward notification
         await supabase.from("notifications").insert({
           user_id: userId,
           type: "reward",

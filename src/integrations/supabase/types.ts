@@ -1780,15 +1780,50 @@ export type Database = {
           },
         ]
       }
+      tournament_logs: {
+        Row: {
+          created_at: string
+          id: string
+          log_type: string
+          message: string
+          tournament_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          log_type?: string
+          message?: string
+          tournament_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          log_type?: string
+          message?: string
+          tournament_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_logs_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tournament_matches: {
         Row: {
           created_at: string
           creator_a_id: string
           creator_b_id: string
+          end_at: string | null
           id: string
           is_completed: boolean
           match_order: number
           round: number
+          start_at: string | null
+          status: string
           tournament_id: string
           votes_a: number
           votes_b: number
@@ -1798,10 +1833,13 @@ export type Database = {
           created_at?: string
           creator_a_id: string
           creator_b_id: string
+          end_at?: string | null
           id?: string
           is_completed?: boolean
           match_order?: number
           round?: number
+          start_at?: string | null
+          status?: string
           tournament_id: string
           votes_a?: number
           votes_b?: number
@@ -1811,10 +1849,13 @@ export type Database = {
           created_at?: string
           creator_a_id?: string
           creator_b_id?: string
+          end_at?: string | null
           id?: string
           is_completed?: boolean
           match_order?: number
           round?: number
+          start_at?: string | null
+          status?: string
           tournament_id?: string
           votes_a?: number
           votes_b?: number
@@ -1872,6 +1913,55 @@ export type Database = {
           },
         ]
       }
+      tournament_participants: {
+        Row: {
+          created_at: string
+          creator_id: string
+          id: string
+          seed: number
+          selection_score: number
+          tournament_id: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          id?: string
+          seed?: number
+          selection_score?: number
+          tournament_id: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          id?: string
+          seed?: number
+          selection_score?: number
+          tournament_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_participants_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_participants_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_participants_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tournament_votes: {
         Row: {
           created_at: string
@@ -1923,33 +2013,69 @@ export type Database = {
       }
       tournaments: {
         Row: {
+          category: string
+          champion_creator_id: string | null
           created_at: string
+          current_round: string
           description: string
+          end_at: string | null
           ended_at: string | null
           id: string
           is_active: boolean
           round: number
+          season_number: number
+          start_at: string | null
+          status: string
           title: string
         }
         Insert: {
+          category?: string
+          champion_creator_id?: string | null
           created_at?: string
+          current_round?: string
           description?: string
+          end_at?: string | null
           ended_at?: string | null
           id?: string
           is_active?: boolean
           round?: number
+          season_number?: number
+          start_at?: string | null
+          status?: string
           title?: string
         }
         Update: {
+          category?: string
+          champion_creator_id?: string | null
           created_at?: string
+          current_round?: string
           description?: string
+          end_at?: string | null
           ended_at?: string | null
           id?: string
           is_active?: boolean
           round?: number
+          season_number?: number
+          start_at?: string | null
+          status?: string
           title?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tournaments_champion_creator_id_fkey"
+            columns: ["champion_creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournaments_champion_creator_id_fkey"
+            columns: ["champion_creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_missions: {
         Row: {

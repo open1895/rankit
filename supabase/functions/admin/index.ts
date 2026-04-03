@@ -455,81 +455,164 @@ serve(async (req) => {
         .order("created_at", { ascending: false });
       if (error) throw error;
 
-      // Get match counts per tournament
       const tournamentIds = (data || []).map((t: any) => t.id);
       const { data: matches } = await adminClient
         .from("tournament_matches")
-        .select("tournament_id, is_completed")
+        .select("tournament_id, is_completed, status")
         .in("tournament_id", tournamentIds.length > 0 ? tournamentIds : ["__none__"]);
 
       const matchStats = new Map<string, { total: number; completed: number }>();
       for (const m of (matches || [])) {
         const s = matchStats.get(m.tournament_id) || { total: 0, completed: 0 };
         s.total++;
-        if (m.is_completed) s.completed++;
+        if (m.is_completed || m.status === "completed") s.completed++;
         matchStats.set(m.tournament_id, s);
+      }
+
+      // Get participant counts
+      const { data: participants } = await adminClient
+        .from("tournament_participants")
+        .select("tournament_id")
+        .in("tournament_id", tournamentIds.length > 0 ? tournamentIds : ["__none__"]);
+
+      const participantCounts = new Map<string, number>();
+      for (const p of (participants || [])) {
+        participantCounts.set(p.tournament_id, (participantCounts.get(p.tournament_id) || 0) + 1);
       }
 
       const enriched = (data || []).map((t: any) => ({
         ...t,
         match_total: matchStats.get(t.id)?.total || 0,
         match_completed: matchStats.get(t.id)?.completed || 0,
+        participant_count: participantCounts.get(t.id) || 0,
       }));
 
       return new Response(JSON.stringify({ tournaments: enriched }), { headers: corsHeaders });
     }
 
-    // ─── CREATE TOURNAMENT (auto-assign top 16) ──────────
+    // ─── CREATE TOURNAMENT (category-based, 8 creators) ──
     if (action === "create_tournament") {
-      const { title: tTitle, description: tDesc } = body;
+      const { title: tTitle, description: tDesc, category: tCategory } = body;
       if (!tTitle) return new Response(JSON.stringify({ error: "title required" }), { status: 400, headers: corsHeaders });
+      
+      const category = tCategory || "";
 
-      // Check no active tournament
-      const { data: activeTourneys } = await adminClient
-        .from("tournaments")
-        .select("id")
-        .eq("is_active", true);
-      if (activeTourneys && activeTourneys.length > 0) {
-        return new Response(JSON.stringify({ error: "이미 진행 중인 토너먼트가 있습니다. 먼저 종료해주세요." }), { status: 400, headers: corsHeaders });
+      // Get recent 7-day votes
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: recentVotes } = await adminClient
+        .from("votes")
+        .select("creator_id")
+        .gte("created_at", sevenDaysAgo);
+
+      const recentVoteCount = new Map<string, number>();
+      for (const v of (recentVotes || [])) {
+        recentVoteCount.set(v.creator_id, (recentVoteCount.get(v.creator_id) || 0) + 1);
       }
 
-      // Get top 16 creators by rank
-      const { data: topCreators, error: cErr } = await adminClient
+      // Get creators (filtered by category if provided)
+      let creatorsQuery = adminClient
         .from("creators")
-        .select("id, name")
-        .order("rank", { ascending: true })
-        .limit(16);
-      if (cErr) throw cErr;
-      if (!topCreators || topCreators.length < 16) {
-        return new Response(JSON.stringify({ error: `크리에이터가 16명 이상 필요합니다. (현재 ${topCreators?.length || 0}명)` }), { status: 400, headers: corsHeaders });
+        .select("id, name, avatar_url, rankit_score, votes_count")
+        .order("rankit_score", { ascending: false });
+      
+      if (category) {
+        creatorsQuery = creatorsQuery.eq("category", category);
       }
+
+      const { data: creators, error: cErr } = await creatorsQuery.limit(50);
+      if (cErr) throw cErr;
+
+      // Filter eligible
+      const eligible = (creators || []).filter((c: any) => {
+        if (!c.avatar_url || c.avatar_url === "") return false;
+        return true;
+      });
+
+      if (eligible.length < 8) {
+        return new Response(JSON.stringify({ error: `적격 크리에이터가 8명 이상 필요합니다. (현재 ${eligible.length}명)` }), { status: 400, headers: corsHeaders });
+      }
+
+      // Score and select top 8
+      const scored = eligible.map((c: any) => {
+        const recent7d = recentVoteCount.get(c.id) || 0;
+        const score = (recent7d * 0.35) + ((c.rankit_score || 0) * 0.20) + ((c.votes_count || 0) * 0.01);
+        return { ...c, selectionScore: score, recent7d };
+      });
+      scored.sort((a: any, b: any) => b.selectionScore - a.selectionScore);
+      const selected = scored.slice(0, 8);
+
+      // Get next season number
+      const { data: maxSeason } = await adminClient
+        .from("tournaments")
+        .select("season_number")
+        .order("season_number", { ascending: false })
+        .limit(1);
+      const seasonNumber = ((maxSeason?.[0]?.season_number) || 0) + 1;
+
+      const now = new Date();
+      const endDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
       // Create tournament
       const { data: tournament, error: tErr } = await adminClient
         .from("tournaments")
-        .insert({ title: tTitle, description: tDesc || "", is_active: true, round: 16 })
+        .insert({
+          title: tTitle,
+          description: tDesc || "",
+          is_active: true,
+          status: "active",
+          category,
+          season_number: seasonNumber,
+          current_round: "quarterfinal",
+          round: 8,
+          start_at: now.toISOString(),
+          end_at: endDate.toISOString(),
+        })
         .select("id")
         .single();
       if (tErr) throw tErr;
 
-      // Create round of 16 matches (8 matches)
+      // Insert participants
+      const participantInserts = selected.map((c: any, idx: number) => ({
+        tournament_id: tournament.id,
+        creator_id: c.id,
+        seed: idx + 1,
+        selection_score: c.selectionScore,
+      }));
+      await adminClient.from("tournament_participants").insert(participantInserts);
+
+      // Create matches (seed1 vs seed8, seed2 vs seed7, etc.)
+      const matchEnd = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
       const matchInserts = [];
-      for (let i = 0; i < 16; i += 2) {
+      for (let i = 0; i < 4; i++) {
         matchInserts.push({
           tournament_id: tournament.id,
-          round: 16,
-          match_order: Math.floor(i / 2),
-          creator_a_id: topCreators[i].id,
-          creator_b_id: topCreators[i + 1].id,
+          round: 8,
+          match_order: i,
+          creator_a_id: selected[i].id,
+          creator_b_id: selected[7 - i].id,
+          status: "active",
+          start_at: now.toISOString(),
+          end_at: matchEnd.toISOString(),
         });
       }
       const { error: mErr } = await adminClient.from("tournament_matches").insert(matchInserts);
-      if (mErr) throw mErr;
+      if (mErr) {
+        await adminClient.from("tournaments").update({ status: "draft", is_active: false }).eq("id", tournament.id);
+        throw mErr;
+      }
+
+      // Log
+      await adminClient.from("tournament_logs").insert({
+        tournament_id: tournament.id,
+        log_type: "created",
+        message: `관리자 수동 생성: ${tTitle} (${category || "전체"}, 8명, 4매치)`,
+      });
 
       return new Response(JSON.stringify({
         success: true,
         tournament_id: tournament.id,
-        creators: topCreators.map((c: any) => c.name),
+        creators: selected.map((c: any) => c.name),
+        matches: matchInserts.length,
       }), { headers: corsHeaders });
     }
 
@@ -538,7 +621,6 @@ serve(async (req) => {
       const { tournament_id } = body;
       if (!tournament_id) return new Response(JSON.stringify({ error: "tournament_id required" }), { status: 400, headers: corsHeaders });
 
-      // Delete votes -> matches -> tournament
       const { data: matchIds } = await adminClient
         .from("tournament_matches")
         .select("id")
@@ -546,8 +628,8 @@ serve(async (req) => {
       if (matchIds && matchIds.length > 0) {
         const ids = matchIds.map((m: any) => m.id);
         await adminClient.from("tournament_votes").delete().in("match_id", ids);
-        await adminClient.from("tournament_matches").delete().eq("tournament_id", tournament_id);
       }
+      // CASCADE will handle tournament_matches, tournament_participants, tournament_logs
       const { error } = await adminClient.from("tournaments").delete().eq("id", tournament_id);
       if (error) throw error;
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
@@ -558,12 +640,28 @@ serve(async (req) => {
       const { tournament_id } = body;
       if (!tournament_id) return new Response(JSON.stringify({ error: "tournament_id required" }), { status: 400, headers: corsHeaders });
       
-      const { data: t } = await adminClient.from("tournaments").select("id, is_active, title").eq("id", tournament_id).single();
+      const { data: t } = await adminClient.from("tournaments").select("id, status, title").eq("id", tournament_id).single();
       if (!t) return new Response(JSON.stringify({ error: "Tournament not found" }), { status: 404, headers: corsHeaders });
-      if (t.is_active) return new Response(JSON.stringify({ error: "이미 활성화된 토너먼트입니다." }), { status: 400, headers: corsHeaders });
+      if (t.status === "active") return new Response(JSON.stringify({ error: "이미 활성화된 토너먼트입니다." }), { status: 400, headers: corsHeaders });
 
-      const { error } = await adminClient.from("tournaments").update({ is_active: true }).eq("id", tournament_id);
+      // Verify matches exist
+      const { data: matchCount } = await adminClient
+        .from("tournament_matches")
+        .select("id", { count: "exact", head: true })
+        .eq("tournament_id", tournament_id);
+
+      const { error } = await adminClient
+        .from("tournaments")
+        .update({ is_active: true, status: "active", start_at: new Date().toISOString() })
+        .eq("id", tournament_id);
       if (error) throw error;
+
+      await adminClient.from("tournament_logs").insert({
+        tournament_id,
+        log_type: "activated",
+        message: `관리자 승인으로 활성화: ${t.title}`,
+      });
+
       return new Response(JSON.stringify({ success: true, message: `"${t.title}" 토너먼트가 승인되어 활성화되었습니다.` }), { headers: corsHeaders });
     }
 
@@ -581,12 +679,92 @@ serve(async (req) => {
       return new Response(JSON.stringify(result), { headers: corsHeaders });
     }
 
+    // ─── REGENERATE TOURNAMENT MATCHES ────────────────────
+    if (action === "regenerate_matches") {
+      const { tournament_id } = body;
+      if (!tournament_id) return new Response(JSON.stringify({ error: "tournament_id required" }), { status: 400, headers: corsHeaders });
+
+      // Delete existing matches and votes
+      const { data: matchIds } = await adminClient
+        .from("tournament_matches")
+        .select("id")
+        .eq("tournament_id", tournament_id);
+      if (matchIds && matchIds.length > 0) {
+        await adminClient.from("tournament_votes").delete().in("match_id", matchIds.map((m: any) => m.id));
+        await adminClient.from("tournament_matches").delete().eq("tournament_id", tournament_id);
+      }
+
+      // Get participants
+      const { data: participants } = await adminClient
+        .from("tournament_participants")
+        .select("creator_id, seed")
+        .eq("tournament_id", tournament_id)
+        .order("seed", { ascending: true });
+
+      if (!participants || participants.length < 8) {
+        return new Response(JSON.stringify({ error: "참가자가 8명 미만입니다." }), { status: 400, headers: corsHeaders });
+      }
+
+      const now = new Date();
+      const matchEnd = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+
+      const matchInserts = [];
+      for (let i = 0; i < 4; i++) {
+        matchInserts.push({
+          tournament_id,
+          round: 8,
+          match_order: i,
+          creator_a_id: participants[i].creator_id,
+          creator_b_id: participants[7 - i].creator_id,
+          status: "active",
+          start_at: now.toISOString(),
+          end_at: matchEnd.toISOString(),
+        });
+      }
+
+      await adminClient.from("tournament_matches").insert(matchInserts);
+      await adminClient.from("tournaments").update({ round: 8, current_round: "quarterfinal" }).eq("id", tournament_id);
+
+      await adminClient.from("tournament_logs").insert({
+        tournament_id,
+        log_type: "regenerated",
+        message: `매치 재생성됨 (4개 8강 매치)`,
+      });
+
+      return new Response(JSON.stringify({ success: true, matches: matchInserts.length }), { headers: corsHeaders });
+    }
+
+    // ─── OVERRIDE WINNER ──────────────────────────────────
+    if (action === "override_winner") {
+      const { match_id, winner_creator_id } = body;
+      if (!match_id || !winner_creator_id) return new Response(JSON.stringify({ error: "match_id and winner_creator_id required" }), { status: 400, headers: corsHeaders });
+
+      const { error } = await adminClient
+        .from("tournament_matches")
+        .update({ winner_id: winner_creator_id, is_completed: true, status: "completed" })
+        .eq("id", match_id);
+      if (error) throw error;
+
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+
     // ─── END TOURNAMENT ──────────────────────────────────
     if (action === "end_tournament") {
       const { tournament_id } = body;
       if (!tournament_id) return new Response(JSON.stringify({ error: "tournament_id required" }), { status: 400, headers: corsHeaders });
-      const { error } = await adminClient.from("tournaments").update({ is_active: false, ended_at: new Date().toISOString() }).eq("id", tournament_id);
+      
+      const { error } = await adminClient
+        .from("tournaments")
+        .update({ is_active: false, status: "ended", ended_at: new Date().toISOString() })
+        .eq("id", tournament_id);
       if (error) throw error;
+
+      await adminClient.from("tournament_logs").insert({
+        tournament_id,
+        log_type: "force_ended",
+        message: `관리자에 의해 강제 종료됨`,
+      });
+
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }
 
