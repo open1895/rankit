@@ -24,6 +24,15 @@ const CATEGORIES = [
 
 const MAX_SUBSCRIBERS = 200000;
 const TARGET_PER_CATEGORY = 10;
+const SEARCH_BATCH_SIZE = 50;
+const SEARCH_VARIATIONS = [
+  "",
+  " 인기",
+  " 추천",
+  " 브이로그",
+  " shorts",
+  " 채널",
+];
 
 interface YouTubeChannel {
   id: string;
@@ -65,6 +74,44 @@ async function searchAndFetchChannels(
   }
   const detailsData = await detailsRes.json();
   return detailsData.items || [];
+}
+
+function uniqueChannels(channels: YouTubeChannel[]): YouTubeChannel[] {
+  const seen = new Set<string>();
+  return channels.filter((channel) => {
+    if (!channel?.id || seen.has(channel.id)) return false;
+    seen.add(channel.id);
+    return true;
+  });
+}
+
+async function gatherEligibleChannels(
+  baseQuery: string,
+  apiKey: string,
+  existingIds: Set<string>,
+  neededCount: number
+): Promise<YouTubeChannel[]> {
+  const collected: YouTubeChannel[] = [];
+  const collectedIds = new Set<string>();
+
+  for (const suffix of SEARCH_VARIATIONS) {
+    const channels = await searchAndFetchChannels(`${baseQuery}${suffix}`, apiKey, SEARCH_BATCH_SIZE);
+
+    for (const channel of uniqueChannels(channels)) {
+      const subs = parseInt(channel.statistics?.subscriberCount ?? "0", 10) || 0;
+      if (subs <= 0 || subs > MAX_SUBSCRIBERS) continue;
+      if (existingIds.has(channel.id) || collectedIds.has(channel.id)) continue;
+
+      collected.push(channel);
+      collectedIds.add(channel.id);
+
+      if (collected.length >= neededCount) {
+        return collected;
+      }
+    }
+  }
+
+  return collected;
 }
 
 Deno.serve(async (req) => {
@@ -149,8 +196,18 @@ Deno.serve(async (req) => {
 
     // Use already-parsed body for category filter
     let targetCategories = CATEGORIES;
-    if (parsedBody.category) {
-      targetCategories = CATEGORIES.filter(c => c.name === parsedBody.category);
+    if (Array.isArray(parsedBody.categories) && parsedBody.categories.length > 0) {
+      const categorySet = new Set(parsedBody.categories);
+      targetCategories = CATEGORIES.filter((c) => categorySet.has(c.name));
+    } else if (parsedBody.category) {
+      targetCategories = CATEGORIES.filter((c) => c.name === parsedBody.category);
+    }
+
+    if (targetCategories.length === 0) {
+      return new Response(JSON.stringify({ error: "No valid categories provided" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Process all categories to ensure 10 creators per category per day
@@ -160,27 +217,26 @@ Deno.serve(async (req) => {
     // Get existing youtube_channel_ids to avoid duplicates
     const { data: existingCreators } = await supabase
       .from("creators")
-      .select("youtube_channel_id")
+      .select("category, youtube_channel_id")
       .neq("youtube_channel_id", "");
 
     const existingIds = new Set(
       (existingCreators || []).map((c: any) => c.youtube_channel_id).filter(Boolean)
     );
+    const existingCounts = new Map<string, number>();
+    for (const creator of existingCreators || []) {
+      const category = (creator as any).category;
+      if (!category) continue;
+      existingCounts.set(category, (existingCounts.get(category) || 0) + 1);
+    }
 
     let totalAdded = 0;
-    const results: { category: string; added: number }[] = [];
+    const results: { category: string; added: number; requested: number; beforeCount: number; afterCount: number; shortfall: number }[] = [];
 
     for (const cat of targetCategories) {
-      const channels = await searchAndFetchChannels(cat.query, youtubeApiKey, 50);
-
-      // Filter: under 200k subs, not already in DB
-      const eligible = channels.filter((ch) => {
-        const subs = parseInt(ch.statistics.subscriberCount, 10) || 0;
-        return subs > 0 && subs <= MAX_SUBSCRIBERS && !existingIds.has(ch.id);
-      });
-
-      // Take up to TARGET_PER_CATEGORY
-      const toAdd = eligible.slice(0, TARGET_PER_CATEGORY);
+      const beforeCount = existingCounts.get(cat.name) || 0;
+      const requested = TARGET_PER_CATEGORY;
+      const toAdd = await gatherEligibleChannels(cat.query, youtubeApiKey, existingIds, requested);
 
       if (toAdd.length > 0) {
         const rows = toAdd.map((ch) => {
@@ -215,15 +271,38 @@ Deno.serve(async (req) => {
 
         if (insertError) {
           console.error(`Insert error for ${cat.name}:`, insertError);
-          results.push({ category: cat.name, added: 0 });
+          results.push({
+            category: cat.name,
+            added: 0,
+            requested,
+            beforeCount,
+            afterCount: beforeCount,
+            shortfall: requested,
+          });
         } else {
           // Mark these as existing to prevent cross-category dupes
           toAdd.forEach((ch) => existingIds.add(ch.id));
           totalAdded += toAdd.length;
-          results.push({ category: cat.name, added: toAdd.length });
+          const afterCount = beforeCount + toAdd.length;
+          existingCounts.set(cat.name, afterCount);
+          results.push({
+            category: cat.name,
+            added: toAdd.length,
+            requested,
+            beforeCount,
+            afterCount,
+            shortfall: Math.max(0, requested - toAdd.length),
+          });
         }
       } else {
-        results.push({ category: cat.name, added: 0 });
+        results.push({
+          category: cat.name,
+          added: 0,
+          requested,
+          beforeCount,
+          afterCount: beforeCount,
+          shortfall: requested,
+        });
       }
     }
 
