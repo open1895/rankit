@@ -456,21 +456,21 @@ const PredictionGame = () => {
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <div className={`flex-1 glass-sm rounded-xl p-3 text-center space-y-1 ${
+                        <div className={`flex-1 min-w-0 glass-sm rounded-xl p-3 text-center space-y-1 ${
                           event.winner_id === event.creator_a_id ? "ring-2 ring-yellow-400" : "opacity-50"
                         }`}>
                           <CreatorAvatar avatarUrl={event.creator_a?.avatar_url || ""} name={event.creator_a?.name || "A"} size="w-10 h-10" />
-                          <div className="text-xs font-semibold">{event.creator_a?.name}</div>
+                          <div className="text-xs font-semibold truncate w-full px-1">{event.creator_a?.name}</div>
                           {event.winner_id === event.creator_a_id && <Trophy className="w-4 h-4 text-yellow-400 mx-auto" />}
                         </div>
 
-                        <span className="text-sm font-black text-muted-foreground/30">VS</span>
+                        <span className="text-sm font-black text-muted-foreground/30 shrink-0">VS</span>
 
-                        <div className={`flex-1 glass-sm rounded-xl p-3 text-center space-y-1 ${
+                        <div className={`flex-1 min-w-0 glass-sm rounded-xl p-3 text-center space-y-1 ${
                           event.winner_id === event.creator_b_id ? "ring-2 ring-yellow-400" : "opacity-50"
                         }`}>
                           <CreatorAvatar avatarUrl={event.creator_b?.avatar_url || ""} name={event.creator_b?.name || "B"} size="w-10 h-10" />
-                          <div className="text-xs font-semibold">{event.creator_b?.name}</div>
+                          <div className="text-xs font-semibold truncate w-full px-1">{event.creator_b?.name}</div>
                           {event.winner_id === event.creator_b_id && <Trophy className="w-4 h-4 text-yellow-400 mx-auto" />}
                         </div>
                       </div>
