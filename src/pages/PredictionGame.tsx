@@ -365,7 +365,7 @@ const PredictionGame = () => {
                           }`}
                         >
                           <CreatorAvatar avatarUrl={event.creator_b?.avatar_url || ""} name={event.creator_b?.name || "B"} />
-                          <div className="text-xs font-semibold truncate max-w-[100px] mx-auto">{event.creator_b?.name}</div>
+                          <div className="text-xs font-semibold truncate w-full px-1">{event.creator_b?.name}</div>
                           <div className="text-[10px] text-muted-foreground">{event.creator_b?.rank}위</div>
                           <div className="text-xs font-bold text-neon-cyan">{bPercent}%</div>
                         </button>
