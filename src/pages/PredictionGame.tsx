@@ -192,10 +192,10 @@ const PredictionGame = () => {
   const CreatorAvatar = ({ avatarUrl, name, size = "w-12 h-12" }: { avatarUrl: string; name: string; size?: string }) => {
     const isImageUrl = avatarUrl?.startsWith("http") || avatarUrl?.startsWith("/");
     if (isImageUrl) {
-      return <img src={avatarUrl} alt={name} className={`${size} rounded-full object-cover`} />;
+      return <img src={avatarUrl} alt={name} className={`${size} shrink-0 rounded-full object-cover mx-auto`} />;
     }
     return (
-      <div className={`${size} rounded-full gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground`}>
+      <div className={`${size} shrink-0 rounded-full gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground mx-auto`}>
         {name.slice(0, 2)}
       </div>
     );
