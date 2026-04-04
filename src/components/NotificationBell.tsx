@@ -152,7 +152,7 @@ const NotificationBell = () => {
           {/* Backdrop */}
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
 
-          <div className="absolute right-0 top-full mt-2 w-80 glass rounded-xl p-3 space-y-2 z-50 shadow-xl border border-border/50">
+          <div className="fixed left-2 right-2 sm:absolute sm:left-auto sm:right-0 top-14 sm:top-full sm:mt-2 sm:w-80 glass rounded-xl p-3 space-y-2 z-50 shadow-xl border border-border/50">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold text-foreground">🔔 알림 센터</h4>
               {unreadCount > 0 && (
