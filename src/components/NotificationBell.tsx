@@ -182,13 +182,13 @@ const NotificationBell = () => {
                         : "bg-primary/10 border border-primary/20 hover:bg-primary/15"
                     } ${n.link ? "cursor-pointer" : "cursor-default"}`}
                   >
-                    <div className="flex items-start gap-2">
-                      <span className="text-sm mt-0.5 shrink-0">{typeIcon(n.type)}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className={`font-medium truncate ${n.is_read ? "text-muted-foreground" : "text-foreground"}`}>
+                    <div className="flex items-start gap-2 w-full overflow-hidden">
+                      <span className="text-sm mt-0.5 shrink-0 w-5 text-center">{typeIcon(n.type)}</span>
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <p className={`font-medium truncate text-[11px] ${n.is_read ? "text-muted-foreground" : "text-foreground"}`}>
                           {n.title}
                         </p>
-                        <p className="text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
+                        <p className="text-muted-foreground mt-0.5 line-clamp-2 text-[10px] break-words">{n.message}</p>
                         <span className="text-[9px] text-muted-foreground/70 mt-1 block">
                           {formatTime(n.created_at)}
                         </span>
