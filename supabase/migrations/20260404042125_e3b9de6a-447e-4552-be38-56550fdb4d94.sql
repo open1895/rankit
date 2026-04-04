@@ -1,0 +1,1 @@
+UPDATE battles SET ends_at = now() + interval '24 hours' WHERE status = 'active';
