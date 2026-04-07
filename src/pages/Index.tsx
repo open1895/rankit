@@ -508,8 +508,6 @@ const Index = () => {
       {/* 1. Hero Section */}
       <HomepageHero />
 
-      {/* 1.5. Social Proof Counters */}
-      <SocialProofCounters />
 
       {/* 2. Section Cards */}
       <HomepageSections />
