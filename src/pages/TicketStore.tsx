@@ -108,6 +108,7 @@ const TicketStore = () => {
 
       const paymentParams: any = {
         storeId,
+        pgProvider: "INICIS",
         paymentId: orderId,
         orderName,
         totalAmount: bundle.price,
