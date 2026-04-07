@@ -988,6 +988,42 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_history: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          order_id: string
+          payment_id: string | null
+          status: string
+          ticket_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          order_id: string
+          payment_id?: string | null
+          status?: string
+          ticket_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          order_id?: string
+          payment_id?: string | null
+          status?: string
+          ticket_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       point_purchases: {
         Row: {
           created_at: string
@@ -2358,6 +2394,16 @@ export type Database = {
         Returns: boolean
       }
       batch_recalculate_ranks: { Args: never; Returns: undefined }
+      confirm_payment: {
+        Args: {
+          p_amount: number
+          p_order_id: string
+          p_payment_id: string
+          p_ticket_amount: number
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       deduct_tickets: {
         Args: { p_amount: number; p_user_id: string }
         Returns: boolean
