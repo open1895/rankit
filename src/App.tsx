@@ -41,7 +41,7 @@ const RisingCreatorsPage = lazy(() => import("./pages/RisingCreatorsPage"));
 const BattlePage = lazy(() => import("./pages/BattlePage"));
 const ExplorePage = lazy(() => import("./pages/ExplorePage"));
 const MonthlyTop3 = lazy(() => import("./pages/MonthlyTop3"));
-
+const TicketStore = lazy(() => import("./pages/TicketStore"));
 const queryClient = new QueryClient();
 
 const PageFallback = () => (
@@ -93,6 +93,7 @@ const App = () => (
                     <Route path="/battle" element={<BattlePage />} />
                     <Route path="/explore" element={<ExplorePage />} />
                     <Route path="/monthly-top3" element={<MonthlyTop3 />} />
+                    <Route path="/ticket-store" element={<TicketStore />} />
                     <Route path="/widget/creator/:id" element={<WidgetPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
