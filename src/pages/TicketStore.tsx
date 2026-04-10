@@ -116,6 +116,7 @@ const TicketStore = () => {
         payMethod: payOption.method,
         customer: {
           email: user.email,
+          phoneNumber: user.phone || "01000000000",
         },
         redirectUrl: `${window.location.origin}/ticket-store`,
       };
