@@ -429,7 +429,7 @@ const MyPage = () => {
     setClaiming(true);
 
     const { data, error } = await supabase.functions.invoke("claim-creator", {
-      body: { creator_id: creatorId },
+      body: { action: "link_creator", creator_id: creatorId },
     });
 
     if (error || data?.error) {
