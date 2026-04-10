@@ -108,7 +108,7 @@ const TicketStore = () => {
 
       const paymentParams: any = {
         storeId,
-        pgProvider: "INICIS",
+        channelKey: "channel-key-56345f58-8eb7-446e-ae5c-a473d83bd50a",
         paymentId: orderId,
         orderName,
         totalAmount: bundle.price,
