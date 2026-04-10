@@ -115,6 +115,7 @@ const TicketStore = () => {
         currency: "CURRENCY_KRW",
         payMethod: payOption.method,
         customer: {
+          fullName: user.user_metadata?.full_name || "랭킷유저",
           email: user.email,
           phoneNumber: user.phone || "01000000000",
         },
