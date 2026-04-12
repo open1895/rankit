@@ -715,6 +715,7 @@ const Index = () => {
 
       {/* Modals */}
       <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
+      </Suspense>
       </>
       )}
     </div>
