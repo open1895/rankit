@@ -79,13 +79,65 @@ const PAY_OPTIONS: PayOption[] = [
 
 const TicketStore = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const [selectedBundle, setSelectedBundle] = useState<string>("bundle_100");
   const [selectedPay, setSelectedPay] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const redirectHandled = useRef(false);
 
   const bundle = BUNDLES.find((b) => b.id === selectedBundle)!;
   const payOption = PAY_OPTIONS[selectedPay];
+
+  // Handle mobile redirect flow: PortOne redirects back with paymentId in URL
+  useEffect(() => {
+    if (redirectHandled.current || !user) return;
+    const paymentId = searchParams.get("paymentId");
+    const orderId = searchParams.get("paymentId"); // PortOne uses paymentId as our orderId
+    if (!paymentId) return;
+    redirectHandled.current = true;
+
+    // Extract ticket amount from the orderId pattern or localStorage
+    const savedTicketAmount = localStorage.getItem("pending_ticket_amount");
+    const ticketAmount = savedTicketAmount ? parseInt(savedTicketAmount) : null;
+
+    if (!ticketAmount || !BUNDLES.find((b) => b.tickets === ticketAmount)) {
+      toast.error("결제 정보를 확인할 수 없습니다. 고객센터에 문의해주세요.");
+      setSearchParams({}, { replace: true });
+      return;
+    }
+
+    // Clean up URL params
+    setSearchParams({}, { replace: true });
+
+    const verifyPayment = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("portone-confirm", {
+          body: { paymentId, orderId: paymentId, ticketAmount },
+        });
+
+        if (error || !data?.success) {
+          if (data?.error?.includes("Duplicate")) {
+            toast.info("이미 처리된 결제입니다.");
+          } else {
+            toast.error(data?.error || "결제 확인에 실패했습니다. 고객센터에 문의해주세요.");
+          }
+        } else {
+          toast.success(`🎉 티켓 ${ticketAmount}장이 충전되었습니다!`);
+          localStorage.removeItem("pending_ticket_amount");
+          navigate("/my");
+        }
+      } catch (err: any) {
+        console.error("Redirect payment verification error:", err);
+        toast.error("결제 확인 중 오류가 발생했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    verifyPayment();
+  }, [user, searchParams, setSearchParams, navigate]);
 
   const handlePurchase = async () => {
     if (!user) {
