@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.generate-weekly-tournaments]
 verify_jwt = false
+
+[functions.portone-confirm]
+verify_jwt = false
