@@ -178,6 +178,9 @@ const TicketStore = () => {
         paymentParams.easyPay = { provider: payOption.easyPayProvider };
       }
 
+      // Save ticket amount for mobile redirect flow
+      localStorage.setItem("pending_ticket_amount", String(bundle.tickets));
+
       const response = await window.PortOne!.requestPayment(paymentParams);
 
       // User cancelled or error from SDK
