@@ -332,21 +332,21 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
         {/* Fire Effect Overlay */}
         {showFireEffect && (
           <div className="fixed inset-0 pointer-events-none z-50">
-            <div className="absolute inset-0 overflow-hidden">
-              {Array.from({ length: 30 }).map((_, i) => (
+          <div className="absolute inset-0 overflow-hidden">
+              {fireParticles.map((p) => (
                 <div
-                  key={i}
+                  key={p.key}
                   className="absolute text-2xl animate-bounce"
                   style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                    animationDelay: `${Math.random() * 0.5}s`,
-                    animationDuration: `${0.8 + Math.random() * 1.2}s`,
+                    left: p.left,
+                    top: p.top,
+                    animationDelay: p.delay,
+                    animationDuration: p.duration,
                     opacity: 0,
-                    animation: `fire-particle ${1 + Math.random() * 1.5}s ease-out forwards`,
+                    animation: `fire-particle ${p.duration} ease-out forwards`,
                   }}
                 >
-                  {["🔥", "✨", "💥", "⚡"][Math.floor(Math.random() * 4)]}
+                  {p.emoji}
                 </div>
               ))}
             </div>
