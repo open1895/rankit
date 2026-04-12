@@ -2408,6 +2408,14 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: boolean
       }
+      get_creator_activity_stats: {
+        Args: { p_creator_id: string }
+        Returns: {
+          comment_count: number
+          like_count: number
+          post_count: number
+        }[]
+      }
       get_creator_daily_votes: {
         Args: { p_creator_id: string; p_days?: number }
         Returns: {
