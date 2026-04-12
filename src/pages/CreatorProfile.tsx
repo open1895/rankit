@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, ChangeEvent } from "react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense, ChangeEvent } from "react";
 import Footer from "@/components/Footer";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,10 +25,10 @@ import { toast } from "sonner";
 
 // Extracted components
 import SnsLinks from "@/components/creator-profile/SnsLinks";
-import OverviewTab from "@/components/creator-profile/OverviewTab";
-import AnalyticsTab from "@/components/creator-profile/AnalyticsTab";
-import FansTab from "@/components/creator-profile/FansTab";
-import CommunityTab from "@/components/creator-profile/CommunityTab";
+const OverviewTab = lazy(() => import("@/components/creator-profile/OverviewTab"));
+const AnalyticsTab = lazy(() => import("@/components/creator-profile/AnalyticsTab"));
+const FansTab = lazy(() => import("@/components/creator-profile/FansTab"));
+const CommunityTab = lazy(() => import("@/components/creator-profile/CommunityTab"));
 import {
   CreatorProfileData, CommentItem, RankHistoryPoint,
   FanPeriod, FanRankingEntry, ProfileTab,
