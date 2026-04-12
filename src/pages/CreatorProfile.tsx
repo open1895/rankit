@@ -1,101 +1,46 @@
 import { useState, useEffect, useCallback, useRef, ChangeEvent } from "react";
 import Footer from "@/components/Footer";
-import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-
 import SEOHead from "@/components/SEOHead";
-import { Creator } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import ShareCard from "@/components/ShareCard";
 import FanCertCard from "@/components/FanCertCard";
 import ClaimCreatorModal from "@/components/ClaimCreatorModal";
 import CelebrationEffect from "@/components/CelebrationEffect";
-import FanBadge from "@/components/FanBadge";
-import FanLevelBadge from "@/components/FanLevelBadge";
-import FanAchievementBadges from "@/components/FanAchievementBadges";
-import CreatorChat from "@/components/CreatorChat";
-import RankitVerifiedBadge from "@/components/RankitVerifiedBadge";
+import TournamentChampionBadge from "@/components/TournamentChampionBadge";
+import PromotionRequestModal from "@/components/PromotionRequestModal";
 import { generateWeeklyPDF } from "@/lib/pdfReport";
 import { useHallOfFameWins, getWinTitle } from "@/hooks/useHallOfFame";
 import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
-import VoteTrendChart from "@/components/VoteTrendChart";
-import VoteHeatmapChart from "@/components/VoteHeatmapChart";
-import CreatorRewards from "@/components/CreatorRewards";
-import CreatorPerformanceBadge from "@/components/CreatorPerformanceBadge";
-import CreatorOfficialFeed from "@/components/CreatorOfficialFeed";
-import AICreatorInsights from "@/components/AICreatorInsights";
 import { isCreatorRising } from "@/components/RisingInfluenceCreators";
-import CreatorRecommendations from "@/components/CreatorRecommendations";
-import PowerBoostSection from "@/components/PowerBoostCard";
-import PromotionRequestModal from "@/components/PromotionRequestModal";
-import TournamentChampionBadge from "@/components/TournamentChampionBadge";
-import { formatDistanceToNow } from "date-fns";
-import { ko } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
 import {
-  ArrowLeft, Crown, Heart, Trophy, TrendingUp, TrendingDown,
-  ExternalLink, CheckCircle2, BarChart3, Share2, MessageCircle,
-  MessageSquare, Medal, Star, Edit3, Save, X, Camera, Code2,
-  FileDown, Copy, Check, Users, Activity, ChartArea, Shield,
+  ArrowLeft, Crown, Heart, Trophy, TrendingUp,
+  CheckCircle2, Share2, Edit3, Save, X, Camera, Shield,
+  Activity, ChartArea, Users, MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+
+// Extracted components
+import SnsLinks from "@/components/creator-profile/SnsLinks";
+import OverviewTab from "@/components/creator-profile/OverviewTab";
+import AnalyticsTab from "@/components/creator-profile/AnalyticsTab";
+import FansTab from "@/components/creator-profile/FansTab";
+import CommunityTab from "@/components/creator-profile/CommunityTab";
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  CartesianGrid, Area, AreaChart,
-} from "recharts";
+  CreatorProfileData, CommentItem, RankHistoryPoint,
+  FanPeriod, FanRankingEntry, ProfileTab,
+} from "@/components/creator-profile/types";
 
-// ─── Types ───────────────────────────────────────────────────
-interface CommentItem {
-  id: string;
-  nickname: string;
-  message: string;
-  vote_count: number;
-  post_count: number;
-  created_at: string;
-}
-
-type RankHistoryPoint = { recorded_at: string; rank: number; votes_count: number };
-type FanPeriod = "all" | "weekly" | "monthly";
-type ProfileTab = "overview" | "analytics" | "fans" | "community";
-
-// ─── Comment Form ────────────────────────────────────────────
-const CommentForm = ({ creatorId, onCommentAdded }: { creatorId: string; onCommentAdded: (c: CommentItem) => void }) => {
-  const [nickname, setNickname] = useState("");
-  const [message, setMessage] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async () => {
-    const trimNick = nickname.trim();
-    const trimMsg = message.trim();
-    if (trimNick.length < 2 || trimNick.length > 20) { toast.error("닉네임은 2~20자로 입력해주세요."); return; }
-    if (trimMsg.length < 2 || trimMsg.length > 50) { toast.error("메시지는 2~50자로 입력해주세요."); return; }
-    setSubmitting(true);
-    const { data, error } = await supabase.from("comments").insert({ creator_id: creatorId, nickname: trimNick, message: trimMsg }).select().single();
-    setSubmitting(false);
-    if (error) { toast.error("메시지 등록에 실패했습니다."); return; }
-    if (data) { onCommentAdded(data as CommentItem); setMessage(""); toast.success("응원 메시지가 등록되었습니다! 💬"); }
-  };
-
-  return (
-    <div className="glass-sm p-3 rounded-xl space-y-2">
-      {!nickname.trim() || nickname.trim().length < 2 ? (
-        <Input placeholder="닉네임 (2~20자)" value={nickname} onChange={(e) => setNickname(e.target.value)} maxLength={20} className="h-8 text-xs bg-background/50 border-glass-border" />
-      ) : (
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs font-semibold text-neon-purple">{nickname.trim()}</span>
-          <button onClick={() => setNickname("")} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">변경</button>
-        </div>
-      )}
-      <div className="flex gap-2">
-        <Input placeholder="응원 메시지를 남겨보세요! (2~50자)" value={message} onChange={(e) => setMessage(e.target.value)} maxLength={50} className="h-8 text-xs bg-background/50 border-glass-border flex-1" onKeyDown={(e) => e.key === "Enter" && !submitting && handleSubmit()} />
-        <Button onClick={handleSubmit} disabled={submitting} size="sm" className="h-8 px-3 gradient-primary text-primary-foreground rounded-lg text-xs">
-          {submitting ? "..." : "등록"}
-        </Button>
-      </div>
-    </div>
-  );
-};
+// ─── Constants ───────────────────────────────────────────────
+const PROFILE_TABS: { key: ProfileTab; label: string; icon: React.ReactNode }[] = [
+  { key: "overview", label: "개요", icon: <Activity className="w-4 h-4" /> },
+  { key: "analytics", label: "분석", icon: <ChartArea className="w-4 h-4" /> },
+  { key: "fans", label: "팬", icon: <Users className="w-4 h-4" /> },
+  { key: "community", label: "커뮤니티", icon: <MessageCircle className="w-4 h-4" /> },
+];
 
 // ─── Main Component ──────────────────────────────────────────
 const CreatorProfile = () => {
@@ -103,9 +48,10 @@ const CreatorProfile = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const hallOfFameWins = useHallOfFameWins();
+  const timersRef = useRef<number[]>([]);
 
   // State
-  const [creator, setCreator] = useState<(Creator & { channel_link?: string; user_id?: string; youtube_channel_id?: string; chzzk_channel_id?: string; verification_status?: string; performance_tier?: string; featured_until?: string | null }) | null>(null);
+  const [creator, setCreator] = useState<CreatorProfileData | null>(null);
   const [rankHistory, setRankHistory] = useState<RankHistoryPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCreators, setTotalCreators] = useState(0);
@@ -116,8 +62,7 @@ const CreatorProfile = () => {
   const [showRankUpHint, setShowRankUpHint] = useState(false);
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [activityData, setActivityData] = useState({ posts: 0, postComments: 0, postLikes: 0 });
-  const [maxValues, setMaxValues] = useState({ maxSubs: 1, maxVotes: 1, maxActivity: 1 });
-  const [fanRanking, setFanRanking] = useState<{ nickname: string; score: number; votes: number; posts: number; comments: number }[]>([]);
+  const [fanRanking, setFanRanking] = useState<FanRankingEntry[]>([]);
   const [fanPeriod, setFanPeriod] = useState<FanPeriod>("all");
   const [fanLoading, setFanLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -138,9 +83,22 @@ const CreatorProfile = () => {
   const [showPromotionModal, setShowPromotionModal] = useState(false);
   const [useSuperVote, setUseSuperVote] = useState(false);
   const [searchParams] = useSearchParams();
-  const isInvite = searchParams.get("invite") === "true";
   const [superVotes, setSuperVotes] = useState(0);
   const [comboCount, setComboCount] = useState(0);
+
+  // Timer cleanup
+  const addTimer = useCallback((fn: () => void, ms: number) => {
+    const tid = window.setTimeout(fn, ms);
+    timersRef.current.push(tid);
+    return tid;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach(clearTimeout);
+      timersRef.current = [];
+    };
+  }, []);
 
   // ─── Data Fetching ──────────────────────────────────────
   useEffect(() => {
@@ -176,26 +134,14 @@ const CreatorProfile = () => {
       setComments(commentsRes.data || []);
       setTotalCreators(countRes.count || 0);
 
-      // Activity data
-      const creatorId = c.id;
-      const [postsRes, postCommentsRes, postLikesRes, allCreatorsRes] = await Promise.all([
-        supabase.from("posts").select("id", { count: "exact", head: true }).eq("creator_id", creatorId),
-        supabase.from("post_comments").select("id, post_id").then(async (res) => {
-          if (!res.data) return 0;
-          const postIds = (await supabase.from("posts").select("id").eq("creator_id", creatorId)).data?.map(p => p.id) || [];
-          return res.data.filter(pc => postIds.includes(pc.post_id)).length;
-        }),
-        supabase.from("posts").select("id, likes_count").eq("creator_id", creatorId),
-        supabase.from("creators").select("subscriber_count, votes_count"),
-      ]);
-
-      const totalLikes = postLikesRes.data?.reduce((sum, p) => sum + p.likes_count, 0) || 0;
-      setActivityData({ posts: postsRes.count || 0, postComments: typeof postCommentsRes === "number" ? postCommentsRes : 0, postLikes: totalLikes });
-      if (allCreatorsRes.data) {
-        setMaxValues({
-          maxSubs: Math.max(1, ...allCreatorsRes.data.map(cr => cr.subscriber_count)),
-          maxVotes: Math.max(1, ...allCreatorsRes.data.map(cr => cr.votes_count)),
-          maxActivity: 1,
+      // Activity data via RPC
+      const { data: activityStats } = await supabase.rpc("get_creator_activity_stats", { p_creator_id: c.id });
+      if (activityStats && activityStats.length > 0) {
+        const stats = activityStats[0];
+        setActivityData({
+          posts: Number(stats.post_count) || 0,
+          postComments: Number(stats.comment_count) || 0,
+          postLikes: Number(stats.like_count) || 0,
         });
       }
       setLoading(false);
@@ -256,11 +202,7 @@ const CreatorProfile = () => {
     checkVote();
   }, [user, id]);
 
-  // Check if creator is rising
-  useEffect(() => {
-    if (!id) return;
-    isCreatorRising(id).then(setIsRising);
-  }, [id]);
+  useEffect(() => { if (!id) return; isCreatorRising(id).then(setIsRising); }, [id]);
 
   // ─── Handlers ───────────────────────────────────────────
   const handleVote = async () => {
@@ -268,15 +210,12 @@ const CreatorProfile = () => {
     if (!user) { toast.error("투표하려면 로그인이 필요합니다."); navigate("/auth"); return; }
     if (hasVotedToday) { toast.error("오늘 이미 투표하셨습니다! 내일 다시 투표할 수 있어요."); return; }
     setShowRankUpHint(true);
-    setTimeout(() => setShowRankUpHint(false), 3000);
+    addTimer(() => setShowRankUpHint(false), 3000);
     const { data, error } = await supabase.functions.invoke("vote", { body: { creator_id: id, use_super: useSuperVote } });
-    
-    // Handle error responses - supabase puts non-2xx body in error, data may be null
+
     const errorBody = data?.error || (error && typeof error === 'object' && 'context' in error ? await (error as any).context?.json?.().catch(() => null) : null);
-    const isAlreadyVoted = data?.error === "already_voted" || 
-      (error?.message && error.message.includes("already_voted")) ||
-      errorBody?.error === "already_voted";
-    
+    const isAlreadyVoted = data?.error === "already_voted" || (error?.message && error.message.includes("already_voted")) || errorBody?.error === "already_voted";
+
     if (error || data?.error) {
       setShowRankUpHint(false);
       if (isAlreadyVoted) { toast.error("오늘 이미 이 크리에이터에게 투표하셨습니다."); setHasVotedToday(true); }
@@ -285,17 +224,11 @@ const CreatorProfile = () => {
     }
     setHasVotedToday(true); setShowRankUpHint(false);
 
-    // Combo feedback
     if (data?.combo_count > 1) {
       setComboCount(data.combo_count);
-      if (data.combo_bonus > 0) {
-        toast.success(`🔥 ${data.combo_count} COMBO! +${data.combo_bonus} 보너스 티켓 획득!`);
-      } else {
-        toast.success(`🔥 ${data.combo_count} COMBO!`);
-      }
+      toast.success(data.combo_bonus > 0 ? `🔥 ${data.combo_count} COMBO! +${data.combo_bonus} 보너스 티켓 획득!` : `🔥 ${data.combo_count} COMBO!`);
     }
 
-    // Super vote feedback
     if (data?.used_super) {
       setCelebrationMsg(`⚡ 슈퍼투표! +${data.vote_weight}표 반영!`);
       setSuperVotes(prev => Math.max(0, prev - 1));
@@ -309,14 +242,11 @@ const CreatorProfile = () => {
     setAutoShareCard(true); setShowShare(true);
   };
 
-  // Fetch super votes count
   useEffect(() => {
     if (!user) return;
-    const fetchSuperVotes = async () => {
-      const { data } = await supabase.functions.invoke("tickets", { body: { action: "get_balance" } });
+    supabase.functions.invoke("tickets", { body: { action: "get_balance" } }).then(({ data }) => {
       if (data?.super_votes) setSuperVotes(data.super_votes);
-    };
-    fetchSuperVotes();
+    });
   }, [user]);
 
   const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -372,7 +302,7 @@ const CreatorProfile = () => {
     const origin = getPublishedOrigin();
     const embedCode = `<iframe src="${origin}/widget/creator/${id}" width="300" height="120" frameborder="0" style="border-radius:16px; overflow:hidden;"></iframe>`;
     const ok = await copyToClipboard(embedCode);
-    if (ok) { setEmbedCopied(true); toast.success("임베드 코드가 복사되었습니다! 🎉"); setTimeout(() => setEmbedCopied(false), 2500); }
+    if (ok) { setEmbedCopied(true); toast.success("임베드 코드가 복사되었습니다! 🎉"); addTimer(() => setEmbedCopied(false), 2500); }
   };
 
   // ─── Loading ────────────────────────────────────────────
@@ -390,59 +320,9 @@ const CreatorProfile = () => {
 
   const topPercent = totalCreators > 0 ? Math.round((creator.rank / totalCreators) * 100) : 0;
   const activityScore = activityData.postComments + activityData.posts * 2 + activityData.postLikes;
-
   const wins = hallOfFameWins[creator.id] || 0;
   const winTitle = getWinTitle(wins);
-
-  // ─── Tab Config ─────────────────────────────────────────
-  const tabs: { key: ProfileTab; label: string; icon: React.ReactNode }[] = [
-    { key: "overview", label: "개요", icon: <Activity className="w-4 h-4" /> },
-    { key: "analytics", label: "분석", icon: <ChartArea className="w-4 h-4" /> },
-    { key: "fans", label: "팬", icon: <Users className="w-4 h-4" /> },
-    { key: "community", label: "커뮤니티", icon: <MessageCircle className="w-4 h-4" /> },
-  ];
-
-  // ─── SNS Links ──────────────────────────────────────────
-  const SnsLinks = () => {
-    // Prefer channel_link (@handle URL) for YouTube, fall back to channel ID
-    const isYoutubeLink = creator.channel_link?.includes("youtube.com");
-    const youtubeUrl = isYoutubeLink
-      ? creator.channel_link
-      : creator.youtube_channel_id
-        ? `https://www.youtube.com/channel/${creator.youtube_channel_id}`
-        : "";
-    const displayUrl = creator.channel_link
-      ? creator.channel_link.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")
-      : youtubeUrl
-        ? youtubeUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")
-        : "";
-    return (
-      <div className="space-y-1.5">
-        <div className="flex items-center gap-2">
-          {(youtubeUrl || creator.youtube_channel_id) && (
-            <a href={youtubeUrl || `https://www.youtube.com/channel/${creator.youtube_channel_id}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-destructive/10 hover:bg-destructive/20 transition-colors" title="YouTube">
-              <svg viewBox="0 0 24 24" className="w-4 h-4 text-destructive" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-            </a>
-          )}
-          {creator.chzzk_channel_id && (
-            <a href={`https://chzzk.naver.com/${creator.chzzk_channel_id}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-500/10 hover:bg-green-500/20 transition-colors" title="치지직">
-              <span className="text-xs font-black text-green-500">치</span>
-            </a>
-          )}
-          {creator.channel_link && !isYoutubeLink && (
-            <a href={creator.channel_link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-secondary/10 hover:bg-secondary/20 transition-colors" title="채널">
-              <ExternalLink className="w-3.5 h-3.5 text-secondary" />
-            </a>
-          )}
-        </div>
-        {displayUrl && (
-          <a href={youtubeUrl || creator.channel_link || ""} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="block text-[11px] text-muted-foreground hover:text-primary truncate max-w-[200px] transition-colors">
-            {displayUrl}
-          </a>
-        )}
-      </div>
-    );
-  };
+  const embedCode = `<iframe src="${getPublishedOrigin()}/widget/creator/${id}" width="300" height="120" frameborder="0" style="border-radius:16px;"></iframe>`;
 
   // ═══════════════════════════════════════════════════════
   // RENDER
@@ -464,9 +344,7 @@ const CreatorProfile = () => {
 
       <main className="container max-w-2xl mx-auto px-4 py-6 space-y-0">
 
-        {/* ═══════════════════════════════════════════════════ */}
-        {/* PROFILE HEADER - Always visible                    */}
-        {/* ═══════════════════════════════════════════════════ */}
+        {/* PROFILE HEADER */}
         <div className="glass p-5 rounded-2xl space-y-4 animate-fade-in-up">
           <div className="flex items-start gap-4">
             {/* Avatar */}
@@ -502,7 +380,6 @@ const CreatorProfile = () => {
             {/* Info */}
             <div className="flex-1 min-w-0 space-y-1">
               {isEditing ? (
-                /* Edit Form inline */
                 <div className="space-y-2">
                   <Input value={editForm.name} onChange={(e) => setEditForm(f => ({ ...f, name: e.target.value }))} className="glass-sm border-glass-border h-8 text-sm" maxLength={50} placeholder="이름" />
                   <Input value={editForm.category} onChange={(e) => setEditForm(f => ({ ...f, category: e.target.value }))} className="glass-sm border-glass-border h-8 text-sm" maxLength={20} placeholder="카테고리" />
@@ -538,7 +415,7 @@ const CreatorProfile = () => {
                     )}
                     <TournamentChampionBadge creatorId={creator.id} />
                   </div>
-                  <SnsLinks />
+                  <SnsLinks channelLink={creator.channel_link} youtubeChannelId={creator.youtube_channel_id} chzzkChannelId={creator.chzzk_channel_id} />
                 </>
               )}
             </div>
@@ -566,19 +443,16 @@ const CreatorProfile = () => {
                   <p className="text-[10px] text-muted-foreground">1표가 3표로! (보유: {superVotes}개)</p>
                 </div>
               </div>
-              <button
-                onClick={() => setUseSuperVote(!useSuperVote)}
-                className={`w-10 h-5 rounded-full transition-colors ${useSuperVote ? "bg-accent" : "bg-muted"} relative`}
-              >
-                <span className={`block w-4 h-4 rounded-full bg-background shadow transition-transform ${useSuperVote ? "translate-x-5" : "translate-x-0.5"}`} />
+              <button onClick={() => setUseSuperVote(!useSuperVote)} className={`w-10 h-5 rounded-full transition-colors ${useSuperVote ? "bg-accent" : "bg-muted"} relative`}>
+                <div className={`w-4 h-4 rounded-full bg-foreground absolute top-0.5 transition-all ${useSuperVote ? "left-5" : "left-0.5"}`} />
               </button>
             </div>
           )}
 
           {/* Combo Counter */}
           {comboCount > 1 && (
-            <div className="text-center">
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-destructive/20 text-destructive text-xs font-bold animate-pulse">
+            <div className="text-center animate-fade-in">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-sm font-black">
                 🔥 {comboCount} COMBO
               </span>
             </div>
@@ -586,22 +460,22 @@ const CreatorProfile = () => {
 
           {/* Action Buttons */}
           <div className="flex gap-2">
-            <Button onClick={handleVote} disabled={hasVotedToday} className={`flex-1 h-11 font-bold rounded-xl disabled:opacity-50 ${useSuperVote ? "bg-accent text-accent-foreground neon-glow-purple" : "gradient-primary text-primary-foreground neon-glow-purple"}`}>
-              {useSuperVote ? <span className="mr-2">⚡</span> : <Heart className="w-4 h-4 mr-2" />}
+            <Button onClick={handleVote} disabled={hasVotedToday} className={`flex-1 h-11 rounded-xl text-sm font-bold gap-1.5 transition-all ${hasVotedToday ? "glass-sm border-muted/30 text-muted-foreground" : useSuperVote ? "bg-accent text-accent-foreground shadow-lg shadow-accent/30" : "gradient-primary text-primary-foreground shadow-lg shadow-primary/30"}`}>
+              {useSuperVote ? <span>⚡</span> : <Heart className="w-4 h-4" />}
               {hasVotedToday ? "오늘 투표 완료 ✓" : useSuperVote ? "슈퍼투표 ×3" : "투표하기"}
             </Button>
             <Button onClick={() => setShowShare(true)} variant="outline" className="h-11 px-3 rounded-xl glass-sm border-glass-border">
-              <Share2 className="w-4 h-4 text-secondary" />
+              <Share2 className="w-4 h-4" />
             </Button>
             <button onClick={() => setShowFanCert(true)} className="h-11 px-3 rounded-xl glass-sm border border-primary/20 hover:border-primary/40 transition-colors flex items-center">
-              <span className="text-sm">📸</span>
+              📸
             </button>
           </div>
 
           {!user && (
-            <p className="text-xs text-center text-muted-foreground">
+            <div className="text-center text-xs text-muted-foreground py-1">
               <button onClick={() => navigate("/auth")} className="text-secondary underline underline-offset-2">로그인하고 투표에 참여하세요</button>
-            </p>
+            </div>
           )}
 
           {/* Owner Edit */}
@@ -609,7 +483,7 @@ const CreatorProfile = () => {
             <div className="space-y-2">
               <Button
                 onClick={() => {
-                  setEditForm({ name: creator.name, category: creator.category, channel_link: creator.channel_link || "", youtube_channel_id: (creator as any).youtube_channel_id || "", chzzk_channel_id: (creator as any).chzzk_channel_id || "", instagram_id: "", tiktok_id: "", youtube_subscribers: String((creator as any).youtube_subscribers || 0), chzzk_followers: String((creator as any).chzzk_followers || 0), instagram_followers: String((creator as any).instagram_followers || 0), tiktok_followers: String((creator as any).tiktok_followers || 0) });
+                  setEditForm({ name: creator.name, category: creator.category, channel_link: creator.channel_link || "", youtube_channel_id: creator.youtube_channel_id || "", chzzk_channel_id: creator.chzzk_channel_id || "", instagram_id: "", tiktok_id: "", youtube_subscribers: String(creator.youtube_subscribers || 0), chzzk_followers: String(creator.chzzk_followers || 0), instagram_followers: String(creator.instagram_followers || 0), tiktok_followers: String(creator.tiktok_followers || 0) });
                   setAvatarFile(null); setAvatarPreview(null); setIsEditing(true);
                 }}
                 variant="outline" size="sm"
@@ -618,12 +492,8 @@ const CreatorProfile = () => {
                 <Edit3 className="w-3 h-3 mr-1" /> 프로필 수정
               </Button>
               {(creator as any).promotion_status !== "pending" && (
-                <Button
-                  onClick={() => setShowPromotionModal(true)}
-                  variant="outline" size="sm"
-                  className="w-full glass-sm border-yellow-500/30 text-yellow-500 text-xs rounded-xl hover:border-yellow-500/60"
-                >
-                  <Star className="w-3 h-3 mr-1" /> 프로필 홍보하기
+                <Button onClick={() => setShowPromotionModal(true)} variant="outline" size="sm" className="w-full glass-sm border-yellow-500/30 text-yellow-500 text-xs rounded-xl hover:border-yellow-500/60">
+                  <TrendingUp className="w-3 h-3 mr-1" /> 프로필 홍보하기
                 </Button>
               )}
             </div>
@@ -631,71 +501,35 @@ const CreatorProfile = () => {
 
           {/* Active Promotion Badge */}
           {(creator as any).is_promoted && (creator as any).promotion_status === "approved" && (creator as any).promotion_end && new Date((creator as any).promotion_end) > new Date() && (
-            <div className="glass-sm p-2.5 rounded-xl border border-yellow-500/30 text-center">
-              <div className="flex items-center justify-center gap-1.5">
-                {(creator as any).promotion_type === "featured" ? (
-                  <span className="text-xs font-bold text-yellow-500">⭐ Featured Creator</span>
-                ) : (
-                  <span className="text-xs font-bold text-orange-500">🚀 Rising Creator</span>
-                )}
-              </div>
+            <div className="text-center">
+              <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-yellow-500/15 text-yellow-500">
+                {(creator as any).promotion_type === "featured" ? "⭐ Featured Creator" : "🚀 Rising Creator"}
+              </span>
             </div>
           )}
 
           {/* Promotion Pending */}
           {(creator as any).promotion_status === "pending" && user && creator.user_id === user.id && (
-            <div className="glass-sm p-2.5 rounded-xl border border-yellow-500/20 text-center">
-              <div className="flex items-center justify-center gap-1.5">
+            <div className="glass-sm p-3 rounded-xl border border-yellow-500/20">
+              <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-                <span className="text-[11px] font-semibold text-yellow-500">프로모션 심사 중</span>
+                <span className="text-xs font-semibold text-yellow-500">프로모션 심사 중</span>
               </div>
             </div>
           )}
 
-          {/* Claim Profile Button - Enhanced */}
-          {!isEditing && !creator.user_id && (creator as any).verification_status !== "pending" && (
-            <div className={`rounded-2xl overflow-hidden ${isInvite ? "ring-2 ring-primary animate-pulse-glow" : ""}`}>
-              <div
-                className="p-4 space-y-2 text-center cursor-pointer hover:opacity-90 transition-opacity"
-                style={{
-                  background: "linear-gradient(135deg, hsl(var(--neon-purple) / 0.15), hsl(var(--neon-cyan) / 0.15))",
-                  borderRadius: "1rem",
-                  border: "1px solid hsl(var(--neon-cyan) / 0.3)",
-                }}
-                onClick={() => user ? setShowClaimModal(true) : navigate("/auth")}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <Shield className="w-5 h-5" style={{ color: "hsl(var(--neon-cyan))" }} />
-                  <span className="text-sm font-bold text-foreground">
-                    {isInvite ? "🎉 초대받으셨습니다!" : "본인의 채널인가요?"}
-                  </span>
-                </div>
-                <p className="text-[11px] text-muted-foreground">
-                  {isInvite
-                    ? "프로필을 인증하고 크리에이터 전용 대시보드, 팬 분석, 성과 리포트를 무료로 이용하세요!"
-                    : "프로필을 인증하면 전용 대시보드와 팬 분석 도구를 이용할 수 있습니다."}
-                </p>
-                <Button
-                  size="sm"
-                  className="w-full font-bold text-xs rounded-xl"
-                  style={{
-                    background: "linear-gradient(135deg, hsl(var(--neon-purple)), hsl(var(--primary)))",
-                    boxShadow: "0 4px 16px hsl(var(--neon-purple) / 0.3)",
-                  }}
-                >
-                  <Shield className="w-3.5 h-3.5 mr-1" />
-                  {user
-                    ? ((creator as any).verification_status === "rejected" ? "인증 재신청하기" : "프로필 인증하기")
-                    : "로그인하고 인증하기"}
-                </Button>
-              </div>
-            </div>
+          {/* Claim Profile Button */}
+          {!isEditing && user && !creator.user_id && creator.verification_status !== "pending" && (
+            <Button onClick={() => setShowClaimModal(true)} variant="outline" size="sm" className="w-full glass-sm border-[hsl(var(--neon-cyan)/0.3)] text-[hsl(var(--neon-cyan))] text-xs rounded-xl hover:border-[hsl(var(--neon-cyan)/0.6)]">
+              <Shield className="w-3 h-3 mr-1" />
+              {creator.verification_status === "rejected" ? "인증 재신청하기" : "이 크리에이터 프로필 인증하기"}
+            </Button>
           )}
 
           {/* Pending status indicator */}
-          {(creator as any).verification_status === "pending" && (
-            <div className="glass-sm p-3 rounded-xl border border-yellow-500/30 text-center">
-              <div className="flex items-center justify-center gap-2">
+          {creator.verification_status === "pending" && (
+            <div className="glass-sm p-3 rounded-xl border border-yellow-500/20">
+              <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
                 <span className="text-xs font-semibold text-yellow-500">인증 심사 중</span>
               </div>
@@ -704,12 +538,10 @@ const CreatorProfile = () => {
           )}
         </div>
 
-        {/* ═══════════════════════════════════════════════════ */}
-        {/* TAB BAR                                            */}
-        {/* ═══════════════════════════════════════════════════ */}
+        {/* TAB BAR */}
         <div className="sticky top-0 md:top-14 z-30 -mx-4 px-4 pt-3 pb-0">
           <div className="glass rounded-xl p-1 flex gap-1">
-            {tabs.map((tab) => (
+            {PROFILE_TABS.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
@@ -727,266 +559,47 @@ const CreatorProfile = () => {
           </div>
         </div>
 
-        {/* ═══════════════════════════════════════════════════ */}
-        {/* TAB CONTENT                                        */}
-        {/* ═══════════════════════════════════════════════════ */}
+        {/* TAB CONTENT */}
         <div className="pt-4 space-y-4">
-
-          {/* ─── TAB: OVERVIEW ─── */}
           {activeTab === "overview" && (
-            <>
-              {/* Quick Stats */}
-              <div className="grid grid-cols-3 gap-2">
-                <div className="glass-sm p-3 text-center space-y-0.5">
-                  <div className="text-xl font-bold gradient-text">{creator.rank}</div>
-                  <div className="text-[10px] text-muted-foreground">현재 순위</div>
-                </div>
-                <div className="glass-sm p-3 text-center space-y-0.5">
-                  <div className="text-xl font-bold text-secondary">{topPercent <= 0 ? "—" : `${topPercent}%`}</div>
-                  <div className="text-[10px] text-muted-foreground">상위 퍼센트</div>
-                </div>
-                <div className="glass-sm p-3 text-center space-y-0.5">
-                  <div className="text-sm font-bold text-green-500">{activityScore}</div>
-                  <div className="text-[10px] text-muted-foreground">활동 점수</div>
-                </div>
-              </div>
-
-              {/* AI Influence Score - prominently displayed */}
-              <AICreatorInsights creatorId={id!} />
-
-              {/* Detail Stats */}
-              <div className="grid grid-cols-3 gap-2">
-                <div className="glass-sm p-3 text-center space-y-0.5">
-                  <div className="text-sm font-bold text-primary">{creator.subscriber_count.toLocaleString()}</div>
-                  <div className="text-[9px] text-muted-foreground">총 구독자</div>
-                </div>
-                <div className="glass-sm p-3 text-center space-y-0.5">
-                  <div className="text-sm font-bold text-secondary">{creator.votes_count.toLocaleString()}</div>
-                  <div className="text-[9px] text-muted-foreground">총 투표</div>
-                </div>
-                <div className="glass-sm p-3 text-center space-y-0.5">
-                  <div className="text-sm font-bold text-green-500">{activityScore}</div>
-                  <div className="text-[9px] text-muted-foreground">활동 점수</div>
-                </div>
-              </div>
-
-              {/* Creator Tools */}
-              <div className="glass p-4 space-y-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <Code2 className="w-4 h-4 text-primary" />
-                  <h3 className="text-sm font-semibold">크리에이터 도구</h3>
-                </div>
-                {creator.is_verified && (
-                  <div className="glass-sm p-3 rounded-xl border border-secondary/20 space-y-2">
-                    <RankitVerifiedBadge size="lg" />
-                    <p className="text-[11px] text-muted-foreground">이 크리에이터는 Rankit에서 공식 인증된 크리에이터입니다.</p>
-                  </div>
-                )}
-                <CreatorPerformanceBadge creatorId={creator.id} performanceTier={(creator as any).performance_tier} featuredUntil={(creator as any).featured_until} />
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-foreground">📦 내 순위 위젯 임베드</span>
-                    <button onClick={() => setShowEmbedModal(!showEmbedModal)} className="text-[10px] text-secondary hover:underline">{showEmbedModal ? "닫기" : "코드 보기"}</button>
-                  </div>
-                  {showEmbedModal && (
-                    <div className="space-y-2 animate-fade-in">
-                      <div className="glass-sm p-2.5 rounded-xl font-mono text-[10px] text-muted-foreground break-all border border-glass-border">
-                        {`<iframe src="${getPublishedOrigin()}/widget/creator/${id}" width="300" height="120" frameborder="0" style="border-radius:16px;"></iframe>`}
-                      </div>
-                      <button onClick={handleCopyEmbed} className={`w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${embedCopied ? "bg-secondary/20 text-secondary border border-secondary/30" : "glass-sm text-secondary border border-secondary/20 hover:border-secondary/50"}`}>
-                        {embedCopied ? <><Check className="w-3.5 h-3.5" /> 복사 완료!</> : <><Copy className="w-3.5 h-3.5" /> 코드 복사</>}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              {creator && <CreatorRewards creatorId={creator.id} currentVotes={creator.votes_count} />}
-              </div>
-
-              {/* Power Boost */}
-              <div className="glass p-4 space-y-3">
-                <PowerBoostSection creatorId={creator.id} creatorName={creator.name} creatorAvatar={creator.avatar_url} />
-                <button onClick={handleDownloadPDF} disabled={pdfGenerating} className="w-full py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 glass-sm border border-primary/20 text-primary hover:border-primary/50 active:scale-[0.98] disabled:opacity-60">
-                  {pdfGenerating ? <><div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /> 생성 중...</> : <><FileDown className="w-4 h-4" /> 주간 리포트 PDF</>}
-                </button>
-              </div>
-            </>
+            <OverviewTab
+              creator={creator}
+              creatorId={id!}
+              topPercent={topPercent}
+              activityScore={activityScore}
+              showEmbedModal={showEmbedModal}
+              setShowEmbedModal={setShowEmbedModal}
+              embedCopied={embedCopied}
+              handleCopyEmbed={handleCopyEmbed}
+              embedCode={embedCode}
+              pdfGenerating={pdfGenerating}
+              handleDownloadPDF={handleDownloadPDF}
+            />
           )}
-
-          {/* ─── TAB: ANALYTICS ─── */}
           {activeTab === "analytics" && (
-            <>
-              {/* AI Insights */}
-              <AICreatorInsights creatorId={id!} />
-
-              {/* Rank Chart */}
-              <div className="glass p-4 space-y-3">
-                <div className="flex items-center gap-2"><BarChart3 className="w-4 h-4 text-primary" /><h3 className="text-sm font-semibold">순위 변동</h3></div>
-                {chartData.length <= 1 ? (
-                  <div className="text-center py-8 text-muted-foreground text-xs">아직 순위 변동 기록이 없어요.<br />투표가 진행되면 그래프가 나타납니다!</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="time" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                      <YAxis reversed domain={[1, "auto"]} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={30} />
-                      <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "12px" }} formatter={(value: number) => [`${value}위`, "순위"]} />
-                      <Line type="monotone" dataKey="rank" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: "hsl(var(--primary))", r: 3 }} activeDot={{ r: 5, fill: "hsl(var(--secondary))" }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-
-              {/* Votes Chart */}
-              <div className="glass p-4 space-y-3">
-                <div className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-secondary" /><h3 className="text-sm font-semibold">투표 추이</h3></div>
-                {chartData.length <= 1 ? (
-                  <div className="text-center py-8 text-muted-foreground text-xs">투표 데이터가 쌓이면 그래프가 나타납니다!</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={200}>
-                    <AreaChart data={chartData}>
-                      <defs><linearGradient id="voteGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="hsl(var(--secondary))" stopOpacity={0.3} /><stop offset="95%" stopColor="hsl(var(--secondary))" stopOpacity={0} /></linearGradient></defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="time" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={40} />
-                      <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "12px" }} formatter={(value: number) => [`${value.toLocaleString()}표`, "투표수"]} />
-                      <Area type="monotone" dataKey="votes" stroke="hsl(var(--secondary))" strokeWidth={2} fill="url(#voteGradient)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-
-              {/* 7-Day Vote Trend */}
-              <div className="glass p-4 space-y-3">
-                <div className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-secondary" /><h3 className="text-sm font-semibold">📈 최근 7일 득표 추이</h3></div>
-                <VoteTrendChart creatorId={id!} />
-              </div>
-
-              {/* Vote Heatmap */}
-              <div className="glass p-4 space-y-3">
-                <div className="flex items-center gap-2"><BarChart3 className="w-4 h-4 text-orange-400" /><h3 className="text-sm font-semibold">🔥 시간대별 화력 분석</h3></div>
-                <VoteHeatmapChart creatorId={id!} />
-              </div>
-
-              {/* Similar Creator Recommendations */}
-              <CreatorRecommendations
-                mode="similar"
-                creatorId={id!}
-                title="이 크리에이터의 팬이 좋아하는"
-                subtitle="AI 추천"
-              />
-            </>
+            <AnalyticsTab creatorId={id!} chartData={chartData} />
           )}
-
-          {/* ─── TAB: FANS ─── */}
           {activeTab === "fans" && (
-            <>
-              <div className="glass p-4 space-y-3">
-                <div className="flex items-center gap-2"><Medal className="w-4 h-4 text-primary" /><h3 className="text-sm font-semibold">🏅 팬 랭킹 TOP 10</h3></div>
-                <div className="flex items-center gap-2">
-                  {([["all", "전체"], ["weekly", "주간"], ["monthly", "월간"]] as const).map(([key, label]) => (
-                    <button key={key} onClick={() => setFanPeriod(key)} className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${fanPeriod === key ? "bg-primary text-primary-foreground" : "glass-sm text-muted-foreground hover:text-foreground"}`}>{label}</button>
-                  ))}
-                </div>
-                {fanLoading ? (
-                  <div className="text-center py-8 text-muted-foreground text-xs">로딩 중...</div>
-                ) : fanRanking.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground text-xs">
-                    {fanPeriod === "all" ? "아직 팬 활동 데이터가 없어요." : fanPeriod === "weekly" ? "이번 주 활동 데이터가 없어요." : "이번 달 활동 데이터가 없어요."}
-                    <br />투표하고 게시판에 참여해보세요! 🔥
-                  </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    {fanRanking.map((fan, idx) => {
-                      const medalColors = ["text-yellow-400", "text-gray-300", "text-amber-600"];
-                      return (
-                        <div key={fan.nickname} className={`glass-sm px-3 py-2.5 flex items-center gap-3 ${idx < 3 ? "border border-primary/20" : ""}`}>
-                          <div className="w-6 text-center shrink-0">
-                            {idx < 3 ? <Trophy className={`w-4 h-4 mx-auto ${medalColors[idx]}`} /> : <span className="text-xs font-bold text-muted-foreground">{idx + 1}</span>}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className={`text-xs font-bold truncate ${idx === 0 ? "text-yellow-400" : "text-foreground"}`}>{fan.nickname}</span>
-                              {idx === 0 && <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 shrink-0" />}
-                              <FanLevelBadge activity={{ votes: fan.votes, posts: fan.posts, comments: fan.comments }} />
-                              <FanAchievementBadges activity={{ votes: fan.votes, posts: fan.posts, comments: fan.comments }} />
-                              <FanBadge voteCount={fan.votes} postCount={fan.posts} />
-                            </div>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[9px] text-muted-foreground">투표 {fan.votes}</span>
-                              <span className="text-[9px] text-muted-foreground">게시글 {fan.posts}</span>
-                              <span className="text-[9px] text-muted-foreground">댓글 {fan.comments}</span>
-                            </div>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <div className="text-sm font-bold gradient-text">{fan.score}</div>
-                            <div className="text-[8px] text-muted-foreground">점</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Board Link */}
-              <Link to={`/creator/${id}/board`} className="block w-full glass p-4 text-center text-sm font-medium text-secondary hover:border-secondary/50 transition-all rounded-2xl">
-                <span className="inline-flex items-center gap-2"><MessageSquare className="w-4 h-4" />팬 게시판 바로가기</span>
-              </Link>
-            </>
+            <FansTab
+              creatorId={id!}
+              fanRanking={fanRanking}
+              fanPeriod={fanPeriod}
+              setFanPeriod={setFanPeriod}
+              fanLoading={fanLoading}
+            />
           )}
-
-          {/* ─── TAB: COMMUNITY ─── */}
           {activeTab === "community" && (
-            <>
-              {/* Cheer / Official Feed Tabs */}
-              <div className="glass p-4 space-y-3">
-                <div className="flex gap-1 p-0.5 rounded-xl bg-muted/50">
-                  <button onClick={() => setFeedTab("cheer")} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${feedTab === "cheer" ? "gradient-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>💬 응원톡</button>
-                  <button onClick={() => setFeedTab("official")} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${feedTab === "official" ? "gradient-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>✨ 공식 피드</button>
-                </div>
-
-                {feedTab === "cheer" && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <MessageCircle className="w-4 h-4 text-secondary" />
-                      <h3 className="text-sm font-semibold">응원 메시지</h3>
-                      <span className="text-xs text-muted-foreground">({comments.length})</span>
-                    </div>
-                    <CommentForm creatorId={creator.id} onCommentAdded={(newComment) => setComments(prev => [newComment, ...prev])} />
-                    {comments.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground text-xs">아직 응원 메시지가 없어요.<br />첫 번째 응원을 남겨보세요! 💬</div>
-                    ) : (
-                      <div className="space-y-2 max-h-80 overflow-y-auto">
-                        {comments.map((c) => (
-                          <div key={c.id} className="glass-sm px-3 py-2.5 space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-semibold text-primary">{c.nickname}</span>
-                              <FanBadge voteCount={c.vote_count} postCount={c.post_count} />
-                              <span className="text-[10px] text-muted-foreground ml-auto shrink-0">{formatDistanceToNow(new Date(c.created_at), { locale: ko, addSuffix: true })}</span>
-                            </div>
-                            <p className="text-xs text-foreground/90">{c.message}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {feedTab === "official" && creator && (
-                  <CreatorOfficialFeed creatorId={creator.id} creatorName={creator.name} creatorAvatar={creator.avatar_url} creatorUserId={creator.user_id} isVerified={creator.is_verified} />
-                )}
-              </div>
-
-              {/* Real-time Chat */}
-              <div className="glass p-4 space-y-3">
-                <CreatorChat creatorId={id!} creatorName={creator.name} />
-              </div>
-
-              {/* Board Link */}
-              <Link to={`/creator/${id}/board`} className="block w-full glass p-4 text-center text-sm font-medium text-secondary hover:border-secondary/50 transition-all rounded-2xl">
-                <span className="inline-flex items-center gap-2"><MessageSquare className="w-4 h-4" />팬 게시판 바로가기</span>
-              </Link>
-            </>
+            <CommunityTab
+              creatorId={id!}
+              creatorName={creator.name}
+              creatorAvatar={creator.avatar_url}
+              creatorUserId={creator.user_id}
+              isVerified={creator.is_verified}
+              comments={comments}
+              onCommentAdded={(c) => setComments(prev => [c, ...prev])}
+              feedTab={feedTab}
+              setFeedTab={setFeedTab}
+            />
           )}
         </div>
       </main>
