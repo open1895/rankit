@@ -11,7 +11,7 @@ const ClaimCreatorModal = lazy(() => import("@/components/ClaimCreatorModal"));
 import CelebrationEffect from "@/components/CelebrationEffect";
 const TournamentChampionBadge = lazy(() => import("@/components/TournamentChampionBadge"));
 const PromotionRequestModal = lazy(() => import("@/components/PromotionRequestModal"));
-import { generateWeeklyPDF } from "@/lib/pdfReport";
+import type { generateWeeklyPDF as GenerateWeeklyPDFType } from "@/lib/pdfReport";
 import { useHallOfFameWins, getWinTitle } from "@/hooks/useHallOfFame";
 import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
 import { isCreatorRising } from "@/components/RisingInfluenceCreators";
