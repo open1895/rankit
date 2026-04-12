@@ -364,10 +364,10 @@ const Index = () => {
 
       {/* Landing page for non-logged-in users */}
       {!user && !loading && (
-        <>
+        <Suspense fallback={null}>
           <LandingHero />
           <Footer />
-        </>
+        </Suspense>
       )}
 
       {/* Show full app only for logged-in users or during loading */}
