@@ -212,6 +212,7 @@ const TicketStore = () => {
       }
 
       toast.success(`🎉 티켓 ${bundle.tickets}장이 충전되었습니다!`);
+      localStorage.removeItem("pending_ticket_amount");
       navigate("/my");
     } catch (err: any) {
       console.error("Payment error:", err);
