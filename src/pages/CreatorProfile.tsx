@@ -1,17 +1,17 @@
-import { useState, useEffect, useCallback, useRef, ChangeEvent } from "react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense, ChangeEvent } from "react";
 import Footer from "@/components/Footer";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
-import ShareCard from "@/components/ShareCard";
-import FanCertCard from "@/components/FanCertCard";
-import ClaimCreatorModal from "@/components/ClaimCreatorModal";
+const ShareCard = lazy(() => import("@/components/ShareCard"));
+const FanCertCard = lazy(() => import("@/components/FanCertCard"));
+const ClaimCreatorModal = lazy(() => import("@/components/ClaimCreatorModal"));
 import CelebrationEffect from "@/components/CelebrationEffect";
-import TournamentChampionBadge from "@/components/TournamentChampionBadge";
-import PromotionRequestModal from "@/components/PromotionRequestModal";
-import { generateWeeklyPDF } from "@/lib/pdfReport";
+const TournamentChampionBadge = lazy(() => import("@/components/TournamentChampionBadge"));
+const PromotionRequestModal = lazy(() => import("@/components/PromotionRequestModal"));
+// pdfReport is dynamically imported in handleDownloadPDF
 import { useHallOfFameWins, getWinTitle } from "@/hooks/useHallOfFame";
 import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
 import { isCreatorRising } from "@/components/RisingInfluenceCreators";
@@ -25,10 +25,10 @@ import { toast } from "sonner";
 
 // Extracted components
 import SnsLinks from "@/components/creator-profile/SnsLinks";
-import OverviewTab from "@/components/creator-profile/OverviewTab";
-import AnalyticsTab from "@/components/creator-profile/AnalyticsTab";
-import FansTab from "@/components/creator-profile/FansTab";
-import CommunityTab from "@/components/creator-profile/CommunityTab";
+const OverviewTab = lazy(() => import("@/components/creator-profile/OverviewTab"));
+const AnalyticsTab = lazy(() => import("@/components/creator-profile/AnalyticsTab"));
+const FansTab = lazy(() => import("@/components/creator-profile/FansTab"));
+const CommunityTab = lazy(() => import("@/components/creator-profile/CommunityTab"));
 import {
   CreatorProfileData, CommentItem, RankHistoryPoint,
   FanPeriod, FanRankingEntry, ProfileTab,
@@ -291,6 +291,7 @@ const CreatorProfile = () => {
       const now = new Date(); const weekStart = new Date(now); weekStart.setDate(now.getDate() - 7);
       const weekLabel = `${weekStart.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })} ~ ${now.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}`;
       const cd = rankHistory.map((h) => ({ time: new Date(h.recorded_at).toLocaleDateString("ko-KR", { month: "short", day: "numeric" }), rank: h.rank, votes: h.votes_count }));
+      const { generateWeeklyPDF } = await import("@/lib/pdfReport");
       generateWeeklyPDF({ name: creator.name, category: creator.category, rank: creator.rank, votes_count: creator.votes_count, rankit_score: creator.rankit_score, youtube_subscribers: creator.youtube_subscribers, chzzk_followers: creator.chzzk_followers, instagram_followers: creator.instagram_followers, tiktok_followers: creator.tiktok_followers, is_verified: creator.is_verified, rankHistory: cd, fanRanking, weekLabel });
       toast.success("PDF 리포트가 다운로드되었습니다! 📄");
     } catch { toast.error("PDF 생성에 실패했습니다."); }
@@ -561,6 +562,7 @@ const CreatorProfile = () => {
 
         {/* TAB CONTENT */}
         <div className="pt-4 space-y-4">
+          <Suspense fallback={<div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
           {activeTab === "overview" && (
             <OverviewTab
               creator={creator}
@@ -601,38 +603,41 @@ const CreatorProfile = () => {
               setFeedTab={setFeedTab}
             />
           )}
+          </Suspense>
         </div>
       </main>
 
       <Footer />
 
       {/* Modals */}
-      {showShare && id && creator && (
-        <ShareCard creatorId={id} creatorName={creator.name} rank={creator.rank} votesCount={creator.votes_count} avatarUrl={creator.avatar_url} category={creator.category} rankitScore={creator.rankit_score} onClose={() => { setShowShare(false); setAutoShareCard(false); }} autoGenerate={autoShareCard} onShareBonus={() => toast.success("공유 보너스 투표권 +1! 🎁")} />
-      )}
-      {showFanCert && creator && (
-        <FanCertCard creatorName={creator.name} creatorAvatarUrl={creator.avatar_url} creatorId={creator.id} rank={creator.rank} totalCreators={totalCreators} username={user?.email?.split("@")[0]} totalVotes={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.votes || 0} totalPosts={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.posts || 0} totalComments={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.comments || 0} onClose={() => setShowFanCert(false)} />
-      )}
+      <Suspense fallback={null}>
+        {showShare && id && creator && (
+          <ShareCard creatorId={id} creatorName={creator.name} rank={creator.rank} votesCount={creator.votes_count} avatarUrl={creator.avatar_url} category={creator.category} rankitScore={creator.rankit_score} onClose={() => { setShowShare(false); setAutoShareCard(false); }} autoGenerate={autoShareCard} onShareBonus={() => toast.success("공유 보너스 투표권 +1! 🎁")} />
+        )}
+        {showFanCert && creator && (
+          <FanCertCard creatorName={creator.name} creatorAvatarUrl={creator.avatar_url} creatorId={creator.id} rank={creator.rank} totalCreators={totalCreators} username={user?.email?.split("@")[0]} totalVotes={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.votes || 0} totalPosts={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.posts || 0} totalComments={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.comments || 0} onClose={() => setShowFanCert(false)} />
+        )}
+        {showClaimModal && creator && (
+          <ClaimCreatorModal
+            creatorId={creator.id}
+            creatorName={creator.name}
+            onClose={() => setShowClaimModal(false)}
+            onClaimed={() => {
+              setCreator(prev => prev ? { ...prev, user_id: user?.id, is_verified: true } : prev);
+              toast.success("크리에이터 프로필이 인증되었습니다! ✅");
+            }}
+          />
+        )}
+        {showPromotionModal && creator && (
+          <PromotionRequestModal
+            open={showPromotionModal}
+            onOpenChange={setShowPromotionModal}
+            creatorId={creator.id}
+            creatorName={creator.name}
+          />
+        )}
+      </Suspense>
       <CelebrationEffect show={showCelebration} message={celebrationMsg} onComplete={() => setShowCelebration(false)} />
-      {showClaimModal && creator && (
-        <ClaimCreatorModal
-          creatorId={creator.id}
-          creatorName={creator.name}
-          onClose={() => setShowClaimModal(false)}
-          onClaimed={() => {
-            setCreator(prev => prev ? { ...prev, user_id: user?.id, is_verified: true } : prev);
-            toast.success("크리에이터 프로필이 인증되었습니다! ✅");
-          }}
-        />
-      )}
-      {showPromotionModal && creator && (
-        <PromotionRequestModal
-          open={showPromotionModal}
-          onOpenChange={setShowPromotionModal}
-          creatorId={creator.id}
-          creatorName={creator.name}
-        />
-      )}
     </div>
   );
 };

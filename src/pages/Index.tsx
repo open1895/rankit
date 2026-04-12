@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useCountdown } from "@/hooks/use-countdown";
 import { Link, useNavigate } from "react-router-dom";
 import { Creator } from "@/lib/data";
@@ -8,28 +8,30 @@ import { useTickets } from "@/hooks/useTickets";
 import RankingCard from "@/components/RankingCard";
 import RankitLogo from "@/components/RankitLogo";
 import CountdownTimer from "@/components/CountdownTimer";
-import LiveFeed from "@/components/LiveFeed";
 import NotificationBell from "@/components/NotificationBell";
 import ScrollReveal from "@/components/ScrollReveal";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
-import HeroSection from "@/components/HeroSection";
-import HomepageHero from "@/components/HomepageHero";
-import HomepageSections from "@/components/HomepageSections";
-import SocialProofCounters from "@/components/SocialProofCounters";
-import CreatorRecommendations from "@/components/CreatorRecommendations";
-import TrendingNowSection from "@/components/TrendingNowSection";
-import CreatorLeagueSection from "@/components/CreatorLeagueSection";
-import FeaturedCreatorsSection from "@/components/FeaturedCreatorsSection";
-import CreatorBattleSection from "@/components/CreatorBattleSection";
-import MonthlyTop3Widget from "@/components/MonthlyTop3Widget";
-import SeasonRewardsBanner from "@/components/SeasonRewardsBanner";
 import EventBanner from "@/components/EventBanner";
+
+// Lazy-load heavy sections
+const LiveFeed = lazy(() => import("@/components/LiveFeed"));
+const HeroSection = lazy(() => import("@/components/HeroSection"));
+const HomepageHero = lazy(() => import("@/components/HomepageHero"));
+const HomepageSections = lazy(() => import("@/components/HomepageSections"));
+const SocialProofCounters = lazy(() => import("@/components/SocialProofCounters"));
+const CreatorRecommendations = lazy(() => import("@/components/CreatorRecommendations"));
+const TrendingNowSection = lazy(() => import("@/components/TrendingNowSection"));
+const CreatorLeagueSection = lazy(() => import("@/components/CreatorLeagueSection"));
+const FeaturedCreatorsSection = lazy(() => import("@/components/FeaturedCreatorsSection"));
+const CreatorBattleSection = lazy(() => import("@/components/CreatorBattleSection"));
+const MonthlyTop3Widget = lazy(() => import("@/components/MonthlyTop3Widget"));
+const SeasonRewardsBanner = lazy(() => import("@/components/SeasonRewardsBanner"));
+const PopularPosts = lazy(() => import("@/components/PopularPosts"));
+const LandingHero = lazy(() => import("@/components/LandingHero"));
+const NewUserWelcome = lazy(() => import("@/components/NewUserWelcome"));
+const PushNotificationPrompt = lazy(() => import("@/components/PushNotificationPrompt"));
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
-import NewUserWelcome from "@/components/NewUserWelcome";
-import PopularPosts from "@/components/PopularPosts";
-import LandingHero from "@/components/LandingHero";
-import PushNotificationPrompt from "@/components/PushNotificationPrompt";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -362,10 +364,10 @@ const Index = () => {
 
       {/* Landing page for non-logged-in users */}
       {!user && !loading && (
-        <>
+        <Suspense fallback={null}>
           <LandingHero />
           <Footer />
-        </>
+        </Suspense>
       )}
 
       {/* Show full app only for logged-in users or during loading */}
@@ -523,6 +525,7 @@ const Index = () => {
         </div>
       )}
 
+      <Suspense fallback={null}>
       {/* ===== NEW HOMEPAGE STRUCTURE ===== */}
 
       {/* 0.5. Event Banners */}
@@ -712,6 +715,7 @@ const Index = () => {
 
       {/* Modals */}
       <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
+      </Suspense>
       </>
       )}
     </div>
