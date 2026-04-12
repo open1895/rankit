@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { getPublishedUrl } from "@/lib/clipboard";
 import { Link } from "react-router-dom";
 import { Creator, getVotesUntilNext } from "@/lib/data";
@@ -22,6 +22,17 @@ interface RankingCardProps {
   hasVoted?: boolean;
 }
 
+// Pre-generate fire effect emojis to avoid re-computation on each render
+const FIRE_EMOJIS = ["🔥", "✨", "💥", "⚡"];
+const fireParticles = Array.from({ length: 30 }, (_, i) => ({
+  key: i,
+  emoji: FIRE_EMOJIS[i % 4],
+  left: `${(i * 37 + 13) % 100}%`,
+  top: `${(i * 53 + 7) % 100}%`,
+  delay: `${(i % 5) * 0.1}s`,
+  duration: `${0.8 + (i % 3) * 0.6}s`,
+}));
+
 const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false }: RankingCardProps) => {
   const hallOfFameWins = useHallOfFameWins();
   const { user } = useAuth();
@@ -40,8 +51,30 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
   const [showPlusOne, setShowPlusOne] = useState(false);
   const [microReward, setMicroReward] = useState<string | null>(null);
   const prevRankRef = useRef(creator.rank);
+  const timersRef = useRef<number[]>([]);
   const votesUntilNext = getVotesUntilNext(creator, creators);
   const rankDiff = creator.previousRank - creator.rank;
+
+  // Memoize aboveCreator calculation to avoid sorting on every render
+  const aboveCreator = useMemo(() => {
+    const sorted = [...creators].sort((a, b) => a.rank - b.rank);
+    const idx = sorted.findIndex(c => c.id === creator.id);
+    return idx > 0 ? sorted[idx - 1] : null;
+  }, [creators, creator.id]);
+
+  // Cleanup all timers on unmount
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach(clearTimeout);
+      timersRef.current = [];
+    };
+  }, []);
+
+  const addTimer = useCallback((fn: () => void, ms: number) => {
+    const id = window.setTimeout(fn, ms);
+    timersRef.current.push(id);
+    return id;
+  }, []);
 
   useEffect(() => {
     if (prevRankRef.current !== creator.rank) {
@@ -53,31 +86,28 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
       }
 
       prevRankRef.current = creator.rank;
-      const timer = setTimeout(() => setRankAnim(null), 1500);
+      const timer = addTimer(() => setRankAnim(null), 1500);
       return () => clearTimeout(timer);
     }
-  }, [creator.rank]);
+  }, [creator.rank, addTimer]);
 
   const handleVote = async () => {
     setIsVoting(true);
     const success = await onVote(creator.id);
-    setTimeout(() => {
+    addTimer(() => {
       setIsVoting(false);
       if (success) {
-        // +1🔥 float animation
         setShowPlusOne(true);
-        setTimeout(() => setShowPlusOne(false), 1200);
+        addTimer(() => setShowPlusOne(false), 1200);
 
-        // Shake effect
         setIsShaking(true);
-        setTimeout(() => setIsShaking(false), 500);
+        addTimer(() => setIsShaking(false), 500);
 
         const gap = getVotesUntilNext(creator, creators);
         setVoteGap(gap);
         setShowVoteModal(true);
         setShowCommentInput(true);
 
-        // Micro-reward message with specific gap info
         if (aboveCreator === null) {
           setMicroReward("👑 1위! 계속 달려요!");
         } else if (gap !== null && gap <= 10) {
@@ -87,15 +117,10 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
         } else {
           setMicroReward("💜 투표 완료! 계속 응원해요!");
         }
-        setTimeout(() => setMicroReward(null), 3000);
+        addTimer(() => setMicroReward(null), 3000);
       }
     }, 600);
   };
-
-  // Find the creator directly above in rank
-  const sorted = [...creators].sort((a, b) => a.rank - b.rank);
-  const idx = sorted.findIndex(c => c.id === creator.id);
-  const aboveCreator = idx > 0 ? sorted[idx - 1] : null;
 
   const handleFireVote = async () => {
     if (!user) {
