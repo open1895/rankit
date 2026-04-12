@@ -33,7 +33,6 @@ const NewUserWelcome = lazy(() => import("@/components/NewUserWelcome"));
 const PushNotificationPrompt = lazy(() => import("@/components/PushNotificationPrompt"));
 import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
 import { toast } from "sonner";
-import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
