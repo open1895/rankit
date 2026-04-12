@@ -13,6 +13,7 @@ import DesktopNavBar from "@/components/DesktopNavBar";
 import PredictionWinPopup from "@/components/PredictionWinPopup";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Lazy-loaded pages
 const Index = lazy(() => import("./pages/Index"));
