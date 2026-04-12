@@ -561,6 +561,7 @@ const CreatorProfile = () => {
 
         {/* TAB CONTENT */}
         <div className="pt-4 space-y-4">
+          <Suspense fallback={<div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
           {activeTab === "overview" && (
             <OverviewTab
               creator={creator}
@@ -601,6 +602,7 @@ const CreatorProfile = () => {
               setFeedTab={setFeedTab}
             />
           )}
+          </Suspense>
         </div>
       </main>
 
