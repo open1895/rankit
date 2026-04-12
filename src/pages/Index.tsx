@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useCountdown } from "@/hooks/use-countdown";
 import { Link, useNavigate } from "react-router-dom";
 import { Creator } from "@/lib/data";
@@ -16,7 +16,7 @@ import SEOHead from "@/components/SEOHead";
 import HeroSection from "@/components/HeroSection";
 import HomepageHero from "@/components/HomepageHero";
 import HomepageSections from "@/components/HomepageSections";
-
+import SocialProofCounters from "@/components/SocialProofCounters";
 import CreatorRecommendations from "@/components/CreatorRecommendations";
 import TrendingNowSection from "@/components/TrendingNowSection";
 import CreatorLeagueSection from "@/components/CreatorLeagueSection";
@@ -51,7 +51,7 @@ const CATEGORY_TABS = [
 
 const PAGE_SIZE = 20;
 
-const NOMINATION_CATEGORIES = ["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크", "아트", "교육", "댄스", "요리", "반려동물", "유머"];
+const NOMINATION_CATEGORIES = ["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크", "아트", "교육", "댄스"];
 
 const NominationSection = ({ externalOpen, onOpenChange }: { externalOpen?: boolean; onOpenChange?: (v: boolean) => void }) => {
   const [internalOpen, setInternalOpen] = useState(false);
@@ -171,75 +171,82 @@ const Index = () => {
   const { days } = useCountdown();
   const navigate = useNavigate();
   const [creators, setCreators] = useState<Creator[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [extraVotes, setExtraVotes] = useState(0);
   const [isCharging, setIsCharging] = useState(false);
   const [todayVoted, setTodayVoted] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [nominationOpen, setNominationOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [page, setPage] = useState(0);
 
-  const filteredCreators = useMemo(() => {
-    let result = creators;
-    if (selectedCategory !== "all") {
-      result = result.filter((c) => c.category.includes(selectedCategory));
+  // 서버사이드 fetch (카테고리/검색/페이지 반영)
+  const fetchCreators = useCallback(async (
+    category: string,
+    search: string,
+    pageIndex: number,
+    append: boolean
+  ) => {
+    if (pageIndex === 0) setLoading(true);
+    else setLoadingMore(true);
+
+    let query = supabase
+      .from("creators")
+      .select("*", { count: "exact" })
+      .order("rank", { ascending: true })
+      .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);
+
+    if (category !== "all") {
+      query = query.ilike("category", `%${category}%`);
     }
-    if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase();
-      result = result.filter((c) => c.name.toLowerCase().includes(q));
+    if (search.trim()) {
+      query = query.ilike("name", `%${search.trim()}%`);
     }
-    return result;
-  }, [creators, selectedCategory, searchQuery]);
 
-  const visibleCreators = useMemo(
-    () => filteredCreators.slice(0, visibleCount),
-    [filteredCreators, visibleCount]
-  );
+    const { data, error, count } = await query;
 
-  const hasMore = visibleCount < filteredCreators.length;
-
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [selectedCategory, searchQuery]);
-
-  useEffect(() => {
-    const fetchCreators = async () => {
-      const { data, error } = await supabase
-        .from("creators")
-        .select("*")
-        .order("rank", { ascending: true });
-
-      if (error) {
-        console.error("Failed to fetch creators:", error);
-        return;
-      }
-
-      setCreators(
-        (data || []).map((c: any) => ({
-          id: c.id,
-          name: c.name,
-          category: c.category,
-          avatar_url: c.avatar_url,
-          votes_count: c.votes_count,
-          subscriber_count: c.subscriber_count ?? 0,
-          rank: c.rank,
-          previousRank: c.rank,
-          is_verified: c.is_verified,
-          youtube_subscribers: c.youtube_subscribers ?? 0,
-          chzzk_followers: c.chzzk_followers ?? 0,
-          instagram_followers: c.instagram_followers ?? 0,
-          tiktok_followers: c.tiktok_followers ?? 0,
-          rankit_score: c.rankit_score ?? 0,
-          last_stats_updated: c.last_stats_updated ?? null,
-        }))
-      );
+    if (error) {
+      console.error("Failed to fetch creators:", error);
       setLoading(false);
-    };
+      setLoadingMore(false);
+      return;
+    }
 
-    fetchCreators();
+    const mapped: Creator[] = (data || []).map((c: any) => ({
+      id: c.id,
+      name: c.name,
+      category: c.category,
+      avatar_url: c.avatar_url,
+      votes_count: c.votes_count,
+      subscriber_count: c.subscriber_count ?? 0,
+      rank: c.rank,
+      previousRank: c.rank,
+      is_verified: c.is_verified,
+      youtube_subscribers: c.youtube_subscribers ?? 0,
+      chzzk_followers: c.chzzk_followers ?? 0,
+      instagram_followers: c.instagram_followers ?? 0,
+      tiktok_followers: c.tiktok_followers ?? 0,
+      rankit_score: c.rankit_score ?? 0,
+      last_stats_updated: c.last_stats_updated ?? null,
+    }));
 
+    setCreators((prev) => (append ? [...prev, ...mapped] : mapped));
+    setTotalCount(count ?? 0);
+    setLoading(false);
+    setLoadingMore(false);
+  }, []);
+
+  // 카테고리/검색 변경 시 첫 페이지부터 다시 fetch
+  useEffect(() => {
+    setPage(0);
+    fetchCreators(selectedCategory, searchQuery, 0, false);
+  }, [selectedCategory, searchQuery, fetchCreators]);
+
+  // Realtime 구독 (현재 목록에 있는 크리에이터만 업데이트)
+  useEffect(() => {
     const channel = supabase
       .channel("creators-ranking")
       .on(
@@ -248,12 +255,15 @@ const Index = () => {
         (payload) => {
           const updated = payload.new as any;
           setCreators((prev) => {
-            const newList = prev.map((c) =>
-              c.id === updated.id
-                ? { ...c, previousRank: c.rank, votes_count: updated.votes_count, rank: updated.rank }
-                : c
-            );
-            return newList.sort((a, b) => a.rank - b.rank);
+            const exists = prev.some((c) => c.id === updated.id);
+            if (!exists) return prev;
+            return prev
+              .map((c) =>
+                c.id === updated.id
+                  ? { ...c, previousRank: c.rank, votes_count: updated.votes_count, rank: updated.rank }
+                  : c
+              )
+              .sort((a, b) => a.rank - b.rank);
           });
         }
       )
@@ -263,6 +273,16 @@ const Index = () => {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchCreators(selectedCategory, searchQuery, nextPage, true);
+  };
+
+  const hasMore = creators.length < totalCount;
+  const visibleCreators = creators;
+  const filteredCreators = creators;
 
   const handleVote = async (id: string): Promise<boolean> => {
     if (!user) {
@@ -337,16 +357,19 @@ const Index = () => {
         path="/"
       />
 
-      {/* Live Banner */}
-      <div className="bg-gradient-to-r from-orange-500 via-red-500 to-purple-600 text-white py-3 text-center">
-        <h1 className="text-lg font-bold tracking-wide">🔥 Rankit LIVE 🚀</h1>
-      </div>
-
       {/* Push Notification Prompt */}
       <PushNotificationPrompt />
 
-      {/* Show full app for all users */}
-      {!loading && (
+      {/* Landing page for non-logged-in users */}
+      {!user && !loading && (
+        <>
+          <LandingHero />
+          <Footer />
+        </>
+      )}
+
+      {/* Show full app only for logged-in users or during loading */}
+      {(user || loading) && (
       <>
 
       {/* Mobile Header */}
@@ -475,11 +498,11 @@ const Index = () => {
             )}
             {hasMore && filteredCreators.length > 0 && (
               <button
-                onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
+                onClick={handleLoadMore}
                 className="w-full py-2.5 glass-sm rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-1"
               >
                 <ChevronDown className="w-3.5 h-3.5" />
-                더 보기 ({filteredCreators.length - visibleCount}명 남음)
+                더 보기 ({totalCount - creators.length}명 남음)
               </button>
             )}
             {searchQuery.trim() && filteredCreators.length > 0 && (
@@ -508,14 +531,14 @@ const Index = () => {
       {/* 1. Hero Section */}
       <HomepageHero />
 
+      {/* 1.5. Social Proof Counters */}
+      <SocialProofCounters />
 
       {/* 2. Section Cards */}
       <HomepageSections />
 
       {/* 2.5. Trending Now - 급상승 크리에이터 */}
-      <div id="trending-section">
-        <TrendingNowSection />
-      </div>
+      <TrendingNowSection />
 
       {/* 2.6. Creator League */}
       <CreatorLeagueSection />
@@ -648,11 +671,11 @@ const Index = () => {
               ))}
               {hasMore && (
                 <button
-                  onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
+                  onClick={handleLoadMore}
                   className="w-full glass-sm glass-hover p-3 flex items-center justify-center gap-2 text-sm font-medium text-neon-cyan rounded-xl"
                 >
                   <ChevronDown className="w-4 h-4" />
-                  더 보기 ({filteredCreators.length - visibleCount}명 남음)
+                  더 보기 ({totalCount - creators.length}명 남음)
                 </button>
               )}
             </>
