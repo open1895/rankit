@@ -11,7 +11,7 @@ const ClaimCreatorModal = lazy(() => import("@/components/ClaimCreatorModal"));
 import CelebrationEffect from "@/components/CelebrationEffect";
 const TournamentChampionBadge = lazy(() => import("@/components/TournamentChampionBadge"));
 const PromotionRequestModal = lazy(() => import("@/components/PromotionRequestModal"));
-import type { generateWeeklyPDF as GenerateWeeklyPDFType } from "@/lib/pdfReport";
+// pdfReport is dynamically imported in handleDownloadPDF
 import { useHallOfFameWins, getWinTitle } from "@/hooks/useHallOfFame";
 import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
 import { isCreatorRising } from "@/components/RisingInfluenceCreators";
@@ -291,6 +291,7 @@ const CreatorProfile = () => {
       const now = new Date(); const weekStart = new Date(now); weekStart.setDate(now.getDate() - 7);
       const weekLabel = `${weekStart.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })} ~ ${now.toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}`;
       const cd = rankHistory.map((h) => ({ time: new Date(h.recorded_at).toLocaleDateString("ko-KR", { month: "short", day: "numeric" }), rank: h.rank, votes: h.votes_count }));
+      const { generateWeeklyPDF } = await import("@/lib/pdfReport");
       generateWeeklyPDF({ name: creator.name, category: creator.category, rank: creator.rank, votes_count: creator.votes_count, rankit_score: creator.rankit_score, youtube_subscribers: creator.youtube_subscribers, chzzk_followers: creator.chzzk_followers, instagram_followers: creator.instagram_followers, tiktok_followers: creator.tiktok_followers, is_verified: creator.is_verified, rankHistory: cd, fanRanking, weekLabel });
       toast.success("PDF 리포트가 다운로드되었습니다! 📄");
     } catch { toast.error("PDF 생성에 실패했습니다."); }
