@@ -525,6 +525,7 @@ const Index = () => {
         </div>
       )}
 
+      <Suspense fallback={null}>
       {/* ===== NEW HOMEPAGE STRUCTURE ===== */}
 
       {/* 0.5. Event Banners */}
