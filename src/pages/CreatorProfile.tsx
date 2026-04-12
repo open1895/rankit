@@ -610,32 +610,34 @@ const CreatorProfile = () => {
       <Footer />
 
       {/* Modals */}
-      {showShare && id && creator && (
-        <ShareCard creatorId={id} creatorName={creator.name} rank={creator.rank} votesCount={creator.votes_count} avatarUrl={creator.avatar_url} category={creator.category} rankitScore={creator.rankit_score} onClose={() => { setShowShare(false); setAutoShareCard(false); }} autoGenerate={autoShareCard} onShareBonus={() => toast.success("공유 보너스 투표권 +1! 🎁")} />
-      )}
-      {showFanCert && creator && (
-        <FanCertCard creatorName={creator.name} creatorAvatarUrl={creator.avatar_url} creatorId={creator.id} rank={creator.rank} totalCreators={totalCreators} username={user?.email?.split("@")[0]} totalVotes={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.votes || 0} totalPosts={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.posts || 0} totalComments={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.comments || 0} onClose={() => setShowFanCert(false)} />
-      )}
+      <Suspense fallback={null}>
+        {showShare && id && creator && (
+          <ShareCard creatorId={id} creatorName={creator.name} rank={creator.rank} votesCount={creator.votes_count} avatarUrl={creator.avatar_url} category={creator.category} rankitScore={creator.rankit_score} onClose={() => { setShowShare(false); setAutoShareCard(false); }} autoGenerate={autoShareCard} onShareBonus={() => toast.success("공유 보너스 투표권 +1! 🎁")} />
+        )}
+        {showFanCert && creator && (
+          <FanCertCard creatorName={creator.name} creatorAvatarUrl={creator.avatar_url} creatorId={creator.id} rank={creator.rank} totalCreators={totalCreators} username={user?.email?.split("@")[0]} totalVotes={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.votes || 0} totalPosts={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.posts || 0} totalComments={fanRanking.find(f => f.nickname === user?.email?.split("@")[0])?.comments || 0} onClose={() => setShowFanCert(false)} />
+        )}
+        {showClaimModal && creator && (
+          <ClaimCreatorModal
+            creatorId={creator.id}
+            creatorName={creator.name}
+            onClose={() => setShowClaimModal(false)}
+            onClaimed={() => {
+              setCreator(prev => prev ? { ...prev, user_id: user?.id, is_verified: true } : prev);
+              toast.success("크리에이터 프로필이 인증되었습니다! ✅");
+            }}
+          />
+        )}
+        {showPromotionModal && creator && (
+          <PromotionRequestModal
+            open={showPromotionModal}
+            onOpenChange={setShowPromotionModal}
+            creatorId={creator.id}
+            creatorName={creator.name}
+          />
+        )}
+      </Suspense>
       <CelebrationEffect show={showCelebration} message={celebrationMsg} onComplete={() => setShowCelebration(false)} />
-      {showClaimModal && creator && (
-        <ClaimCreatorModal
-          creatorId={creator.id}
-          creatorName={creator.name}
-          onClose={() => setShowClaimModal(false)}
-          onClaimed={() => {
-            setCreator(prev => prev ? { ...prev, user_id: user?.id, is_verified: true } : prev);
-            toast.success("크리에이터 프로필이 인증되었습니다! ✅");
-          }}
-        />
-      )}
-      {showPromotionModal && creator && (
-        <PromotionRequestModal
-          open={showPromotionModal}
-          onOpenChange={setShowPromotionModal}
-          creatorId={creator.id}
-          creatorName={creator.name}
-        />
-      )}
     </div>
   );
 };
