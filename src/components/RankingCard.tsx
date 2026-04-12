@@ -141,8 +141,8 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
       toast.success("🔥 불꽃 투표! 5표가 한 번에 반영되었습니다!");
       setShowFireEffect(true);
       setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 500);
-      setTimeout(() => setShowFireEffect(false), 3000);
+      addTimer(() => setIsShaking(false), 500);
+      addTimer(() => setShowFireEffect(false), 3000);
       await refreshTickets();
     }
     setIsFireVoting(false);
