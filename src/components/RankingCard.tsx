@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import { getPublishedUrl } from "@/lib/clipboard";
 import { Link } from "react-router-dom";
 import { Creator, getVotesUntilNext } from "@/lib/data";
@@ -374,6 +374,8 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
       />
     </div>
   );
-};
+});
+
+RankingCard.displayName = "RankingCard";
 
 export default RankingCard;
