@@ -60,27 +60,6 @@ const PointShop = () => {
     fetchData();
   }, [user]);
 
-  const handleWatchAd = async () => {
-    if (!user || watchingAd || adCooldown) return;
-    setWatchingAd(true);
-
-    // Simulate ad watching (3 seconds)
-    await new Promise((r) => setTimeout(r, 3000));
-
-    const { data, error } = await supabase.functions.invoke("points", {
-      body: { action: "earn_ad_reward" },
-    });
-
-    if (error || data?.error) {
-      toast.error(data?.error || "보상 지급에 실패했습니다.");
-    } else {
-      setBalance(data.balance);
-      toast.success(`🎉 +${data.earned} RP 획득! (현재: ${data.balance} RP)`);
-      setAdCooldown(true);
-      setTimeout(() => setAdCooldown(false), 30000); // 30s cooldown between ads
-    }
-    setWatchingAd(false);
-  };
 
   const handlePurchase = async (item: ShopItem) => {
     if (!user || purchasing) return;
