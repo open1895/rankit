@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ChevronDown, Link2 } from "lucide-react";
+import { Link2 } from "lucide-react";
 import { copyToClipboard, getPublishedUrl } from "@/lib/clipboard";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +11,6 @@ const Footer = () => {
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
-  const [bizOpen, setBizOpen] = useState(false);
 
   const handleCopyLink = async () => {
     const url = getPublishedUrl();
@@ -61,26 +60,11 @@ const Footer = () => {
           </button>
         </div>
 
-        <a href="mailto:steelmind7777@naver.com" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-          steelmind7777@naver.com
-        </a>
-
-        {/* 사업자 정보 - 접기/펼치기 */}
-        <div className="flex flex-col items-center gap-1">
-          <button
-            onClick={() => setBizOpen(v => !v)}
-            className="flex items-center gap-1 text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-          >
-            사업자 정보
-            <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${bizOpen ? "rotate-180" : ""}`} />
-          </button>
-          {bizOpen && (
-            <div className="flex flex-col items-center gap-0.5 text-[10px] text-muted-foreground/70 mt-1">
-              <span>상호명: 크리에이트 펄스  |  대표자: 윤상길</span>
-              <span>사업자등록번호: 366-40-01453</span>
-              <span>주소: 충북 청주시 상당구 중앙로 18</span>
-            </div>
-          )}
+        <div className="flex flex-col items-center gap-0.5 text-[11px] text-muted-foreground/70">
+          <span>상호명: 크리에이트 펄스  |  대표자: 윤상길</span>
+          <span>사업자등록번호: 366-40-01453</span>
+          <span>주소: 충북 청주시 상당구 중앙로 18</span>
+          <span>이메일: steelmind7777@naver.com</span>
         </div>
 
         <p
