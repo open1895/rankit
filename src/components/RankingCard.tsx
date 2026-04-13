@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import { getPublishedUrl } from "@/lib/clipboard";
 import { Link } from "react-router-dom";
 import { Creator, getVotesUntilNext } from "@/lib/data";
@@ -33,7 +33,7 @@ const fireParticles = Array.from({ length: 30 }, (_, i) => ({
   duration: `${0.8 + (i % 3) * 0.6}s`,
 }));
 
-const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false }: RankingCardProps) => {
+const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = false }: RankingCardProps) => {
   const hallOfFameWins = useHallOfFameWins();
   const { user } = useAuth();
   const { tickets, refreshTickets } = useTickets();
@@ -374,6 +374,8 @@ const RankingCard = ({ creator, creators, onVote, onBonusVote, hasVoted = false 
       />
     </div>
   );
-};
+});
+
+RankingCard.displayName = "RankingCard";
 
 export default RankingCard;
