@@ -74,14 +74,6 @@ const HomepageHero = () => {
       setTotalVotes(sum + 128500);
     };
     fetchStats();
-
-    const channel = supabase
-      .channel("hero-stats")
-      .on("postgres_changes", { event: "*", schema: "public", table: "creators" }, () => fetchStats())
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "votes" }, () => fetchStats())
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
   }, []);
   return (
     <section className="relative overflow-hidden">
