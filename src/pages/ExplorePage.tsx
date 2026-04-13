@@ -65,40 +65,23 @@ const ExplorePage = () => {
 
         {/* Community & Point Shop Links */}
         <ScrollReveal delay={30}>
-          <div className="grid grid-cols-2 gap-3">
-            <Link
-              to="/community"
-              className="glass glass-hover rounded-2xl p-4 flex flex-col items-center gap-2 group transition-all hover:scale-[1.02] active:scale-[0.98] text-center"
-              style={{ borderColor: "hsl(var(--neon-green) / 0.2)" }}
+          <Link
+            to="/community"
+            className="glass glass-hover rounded-2xl p-5 flex items-center gap-4 group transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={{ borderColor: "hsl(var(--neon-green) / 0.2)" }}
+          >
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, hsl(var(--neon-green)), hsl(var(--primary)))" }}
             >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: "linear-gradient(135deg, hsl(var(--neon-green)), hsl(var(--primary)))" }}
-              >
-                <MessageSquare className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">💬 커뮤니티</h3>
-                <p className="text-[10px] text-muted-foreground mt-0.5">팬들과 소통하기</p>
-              </div>
-            </Link>
-            <Link
-              to="/shop"
-              className="glass glass-hover rounded-2xl p-4 flex flex-col items-center gap-2 group transition-all hover:scale-[1.02] active:scale-[0.98] text-center"
-              style={{ borderColor: "hsl(var(--neon-pink) / 0.2)" }}
-            >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: "linear-gradient(135deg, hsl(var(--neon-pink)), hsl(var(--primary)))" }}
-              >
-                <ShoppingBag className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">🛍️ 포인트샵</h3>
-                <p className="text-[10px] text-muted-foreground mt-0.5">포인트로 아이템 교환</p>
-              </div>
-            </Link>
-          </div>
+              <MessageSquare className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-foreground">💬 커뮤니티</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">팬들과 소통하기</p>
+            </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+          </Link>
         </ScrollReveal>
 
         {/* Streak Tracker */}
