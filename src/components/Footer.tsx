@@ -64,6 +64,13 @@ const Footer = () => {
           steelmind7777@naver.com
         </a>
 
+        {/* 사업자 정보 */}
+        <div className="flex flex-col items-center gap-0.5 text-[10px] text-muted-foreground/70">
+          <span>상호명: 크리에이트 펄스  |  대표자: 윤상길</span>
+          <span>사업자등록번호: 366-40-01453</span>
+          <span>주소: 충북 청주시 상당구 중앙로 18</span>
+        </div>
+
         <p
           className="text-xs text-muted-foreground text-center cursor-default select-none"
           onClick={handleCopyrightClick}
