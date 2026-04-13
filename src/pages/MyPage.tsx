@@ -739,13 +739,6 @@ const MyPage = () => {
                 <Coins className="w-4 h-4 text-yellow-400" />
                 <span className="text-xs font-bold">내 RP</span>
               </div>
-              <button
-                onClick={() => navigate("/shop")}
-                className="flex items-center gap-1 text-[10px] text-neon-cyan hover:underline"
-              >
-                <ShoppingBag className="w-3 h-3" />
-                포인트 샵
-              </button>
             </div>
             <div className="glass-sm p-4 text-center space-y-2 relative overflow-hidden">
               <div className="text-3xl font-black gradient-text neon-text-purple">
@@ -772,14 +765,6 @@ const MyPage = () => {
               >
                 <Zap className="w-4 h-4" />
                 ⚡ RP 충전
-              </Button>
-              <Button
-                onClick={() => navigate("/shop")}
-                variant="outline"
-                className="min-h-[44px] border-border/50 font-bold rounded-xl gap-1.5"
-              >
-                <Coins className="w-4 h-4" />
-                RP 사용 내역
               </Button>
             </div>
             {/* Ad reward button */}

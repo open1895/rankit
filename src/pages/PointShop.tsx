@@ -10,10 +10,8 @@ import {
   ArrowLeft,
   Coins,
   ShoppingBag,
-  Gift,
   Vote,
   Sparkles,
-  Play,
   Check,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -29,7 +27,6 @@ interface ShopItem {
 }
 
 const categoryLabels: Record<string, { label: string; icon: React.ReactNode }> = {
-  gift: { label: "기프티콘", icon: <Gift className="w-4 h-4" /> },
   vote: { label: "투표권", icon: <Vote className="w-4 h-4" /> },
   badge: { label: "뱃지", icon: <Sparkles className="w-4 h-4" /> },
 };
@@ -41,8 +38,6 @@ const PointShop = () => {
   const [balance, setBalance] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [purchasing, setPurchasing] = useState<string | null>(null);
-  const [watchingAd, setWatchingAd] = useState(false);
-  const [adCooldown, setAdCooldown] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -65,27 +60,6 @@ const PointShop = () => {
     fetchData();
   }, [user]);
 
-  const handleWatchAd = async () => {
-    if (!user || watchingAd || adCooldown) return;
-    setWatchingAd(true);
-
-    // Simulate ad watching (3 seconds)
-    await new Promise((r) => setTimeout(r, 3000));
-
-    const { data, error } = await supabase.functions.invoke("points", {
-      body: { action: "earn_ad_reward" },
-    });
-
-    if (error || data?.error) {
-      toast.error(data?.error || "보상 지급에 실패했습니다.");
-    } else {
-      setBalance(data.balance);
-      toast.success(`🎉 +${data.earned} RP 획득! (현재: ${data.balance} RP)`);
-      setAdCooldown(true);
-      setTimeout(() => setAdCooldown(false), 30000); // 30s cooldown between ads
-    }
-    setWatchingAd(false);
-  };
 
   const handlePurchase = async (item: ShopItem) => {
     if (!user || purchasing) return;
@@ -108,7 +82,8 @@ const PointShop = () => {
     setPurchasing(null);
   };
 
-  const filteredItems = selectedCategory === "all" ? items : items.filter((i) => i.category === selectedCategory);
+  const baseItems = items.filter((i) => i.category !== "gift");
+  const filteredItems = selectedCategory === "all" ? baseItems : baseItems.filter((i) => i.category === selectedCategory);
 
   if (authLoading || loading) {
     return (
@@ -120,7 +95,7 @@ const PointShop = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
-      <SEOHead title="포인트 샵" description="포인트로 기프티콘, 프리미엄 투표권 등을 교환하세요." path="/shop" />
+      <SEOHead title="보상 센터" description="포인트로 프리미엄 투표권, 뱃지 등을 교환하세요." path="/shop" />
 
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
@@ -130,7 +105,7 @@ const PointShop = () => {
           </button>
           <div className="flex items-center gap-2 flex-1">
             <ShoppingBag className="w-5 h-5 text-neon-purple" />
-            <span className="text-lg font-bold gradient-text">포인트 샵</span>
+            <span className="text-lg font-bold gradient-text">보상 센터</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-sm">
@@ -144,41 +119,10 @@ const PointShop = () => {
       </header>
 
       <main className="container max-w-lg mx-auto px-4 py-6 space-y-6">
-        {/* Ad Reward Section */}
-        <div className="glass p-5 space-y-3 animate-fade-in-up gradient-border">
-          <div className="flex items-center gap-2">
-            <Play className="w-4 h-4 text-neon-cyan" />
-            <h3 className="text-sm font-bold">광고 시청하고 포인트 받기</h3>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            짧은 광고를 시청하면 즉시 <span className="text-neon-cyan font-bold">50 RP</span>를 받을 수 있어요! (하루 최대 5회)
-          </p>
-          <Button
-            onClick={handleWatchAd}
-            disabled={watchingAd || adCooldown}
-            className="w-full h-11 gradient-primary text-primary-foreground font-bold rounded-xl"
-          >
-            {watchingAd ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                광고 시청 중...
-              </div>
-            ) : adCooldown ? (
-              "잠시 후 다시 시청 가능"
-            ) : (
-              <>
-                <Play className="w-4 h-4 mr-2" />
-                광고 시청하기 (+50 RP)
-              </>
-            )}
-          </Button>
-        </div>
-
         {/* Category Tabs */}
         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
           {[
             { key: "all", label: "전체" },
-            { key: "gift", label: "🎁 기프티콘" },
             { key: "vote", label: "🗳️ 투표권" },
             { key: "badge", label: "💎 뱃지" },
           ].map((cat) => (
