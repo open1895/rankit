@@ -10,6 +10,7 @@ import RankitLogo from "@/components/RankitLogo";
 import CountdownTimer from "@/components/CountdownTimer";
 import NotificationBell from "@/components/NotificationBell";
 import ScrollReveal from "@/components/ScrollReveal";
+import LazySection from "@/components/LazySection";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import EventBanner from "@/components/EventBanner";
@@ -541,40 +542,40 @@ const Index = () => {
       <HomepageSections />
 
       {/* 2.5. Trending Now - 급상승 크리에이터 */}
-      <TrendingNowSection />
+      <LazySection>
+        <TrendingNowSection />
+      </LazySection>
 
       {/* 2.6. Creator League */}
-      <CreatorLeagueSection />
+      <LazySection>
+        <CreatorLeagueSection />
+      </LazySection>
 
       {/* 2.7. Featured Creators */}
-      <ScrollReveal>
+      <LazySection>
         <FeaturedCreatorsSection />
-      </ScrollReveal>
+      </LazySection>
 
       {/* 2.7. Creator Battle */}
-      <ScrollReveal>
+      <LazySection>
         <CreatorBattleSection />
-      </ScrollReveal>
+      </LazySection>
 
       {/* Monthly TOP 3 + Season Rewards */}
-      <div className="container max-w-5xl mx-auto px-4 space-y-4">
-        <ScrollReveal>
+      <LazySection>
+        <div className="container max-w-5xl mx-auto px-4 space-y-4">
           <MonthlyTop3Widget />
-        </ScrollReveal>
-        <ScrollReveal delay={80}>
           <SeasonRewardsBanner />
-        </ScrollReveal>
-      </div>
+        </div>
+      </LazySection>
 
       {/* 3. Live VS Battle + Countdown */}
-      <div className="container max-w-5xl mx-auto px-4 space-y-6">
-        <ScrollReveal>
+      <LazySection>
+        <div className="container max-w-5xl mx-auto px-4 space-y-6">
           {creators.length >= 2 && <HeroSection creators={creators} />}
-        </ScrollReveal>
-        <ScrollReveal delay={80}>
           <CountdownTimer />
-        </ScrollReveal>
-      </div>
+        </div>
+      </LazySection>
 
       {/* 4. Full Rankings */}
       <main className="container max-w-5xl mx-auto px-4 py-6 space-y-5">
@@ -657,20 +658,15 @@ const Index = () => {
             </div>
           ) : (
             <>
-              {visibleCreators.map((creator, i) => (
-                <div
+              {visibleCreators.map((creator) => (
+                <RankingCard
                   key={creator.id}
-                  style={{ animationDelay: `${i * 50}ms` }}
-                  className="animate-fade-in-up"
-                >
-                  <RankingCard
-                    creator={creator}
-                    creators={creators}
-                    onVote={handleVote}
-                    onBonusVote={() => setExtraVotes((v) => v + 1)}
-                    hasVoted={todayVoted.has(creator.id)}
-                  />
-                </div>
+                  creator={creator}
+                  creators={creators}
+                  onVote={handleVote}
+                  onBonusVote={() => setExtraVotes((v) => v + 1)}
+                  hasVoted={todayVoted.has(creator.id)}
+                />
               ))}
               {hasMore && (
                 <button
@@ -687,29 +683,31 @@ const Index = () => {
 
         {/* AI Recommendations */}
         {!searchQuery.trim() && (
-          <ScrollReveal>
+          <LazySection>
             <CreatorRecommendations
               mode={user ? "user" : "popular"}
               userId={user?.id}
               title={user ? "🎯 맞춤 추천 크리에이터" : "🔥 인기 추천 크리에이터"}
               subtitle="AI 추천"
             />
-          </ScrollReveal>
+          </LazySection>
         )}
 
         {/* Nomination */}
-        <ScrollReveal>
-          <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
-        </ScrollReveal>
+        <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
       </main>
 
       {/* Popular Posts */}
-      <section className="container max-w-5xl mx-auto px-4 py-2">
-        <PopularPosts />
-      </section>
+      <LazySection>
+        <section className="container max-w-5xl mx-auto px-4 py-2">
+          <PopularPosts />
+        </section>
+      </LazySection>
 
       {/* Live Feed */}
-      <LiveFeed />
+      <LazySection>
+        <LiveFeed />
+      </LazySection>
 
       <Footer />
 
