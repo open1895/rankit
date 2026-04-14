@@ -15,16 +15,14 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Work Sans',
+  				'Pretendard',
+  				'Noto Sans KR',
   				'ui-sans-serif',
   				'system-ui',
   				'-apple-system',
   				'BlinkMacSystemFont',
   				'Segoe UI',
   				'Roboto',
-  				'Helvetica Neue',
-  				'Arial',
-  				'Noto Sans',
   				'sans-serif'
   			],
   			serif: [
