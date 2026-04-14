@@ -155,15 +155,24 @@ const NotificationBell = () => {
           <div className="fixed left-2 right-2 top-14 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 rounded-xl p-3 space-y-2 z-50 shadow-xl border border-border/50 bg-background max-h-[80vh] overflow-hidden">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold text-foreground">🔔 알림 센터</h4>
-              {unreadCount > 0 && (
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllRead}
+                    className="flex items-center gap-1 text-[10px] text-primary hover:underline"
+                  >
+                    <Check className="w-3 h-3" />
+                    모두 읽음
+                  </button>
+                )}
                 <button
-                  onClick={markAllRead}
-                  className="flex items-center gap-1 text-[10px] text-primary hover:underline"
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 rounded-full hover:bg-muted/60 transition-colors"
+                  aria-label="닫기"
                 >
-                  <Check className="w-3 h-3" />
-                  모두 읽음
+                  <X className="w-4 h-4 text-muted-foreground" />
                 </button>
-              )}
+              </div>
             </div>
 
             <div className="max-h-72 overflow-y-auto space-y-1 scrollbar-hide">
