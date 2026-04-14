@@ -15,22 +15,18 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Parse body for cron detection
     let body: any = {};
     try { body = await req.clone().json(); } catch { /* empty */ }
     const isCronCall = body?.cron === true;
 
-    // Auth: accept service role key, anon key, cron body flag, or admin user
     const authHeader = req.headers.get("Authorization");
     const token = authHeader?.replace("Bearer ", "") || "";
-
     const isTrustedCall = token === serviceKey || token === anonKey || isCronCall;
 
     if (!isTrustedCall) {
       if (!authHeader) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const userClient = createClient(supabaseUrl, anonKey, {
@@ -39,28 +35,22 @@ Deno.serve(async (req) => {
       const { data: { user } } = await userClient.auth.getUser();
       if (!user) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const adminClient = createClient(supabaseUrl, serviceKey);
       const { data: roleData } = await adminClient
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle();
+        .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
       if (!roleData) {
         return new Response(JSON.stringify({ error: "Forbidden: admin only" }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }
 
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Step 1: Close expired battles and determine winners
+    // Step 1: Close ALL expired battles (ends_at passed but still active)
     const { data: expiredBattles } = await supabase
       .from("battles")
       .select("id, votes_a, votes_b, creator_a_id, creator_b_id")
@@ -82,7 +72,7 @@ Deno.serve(async (req) => {
       console.log(`Closed ${expiredBattles.length} expired battles`);
     }
 
-    // Step 2: Resolve prediction events linked to completed battles
+    // Step 2: Resolve prediction events
     const { data: openPredictions } = await supabase
       .from("prediction_events")
       .select("id, creator_a_id, creator_b_id")
@@ -91,7 +81,6 @@ Deno.serve(async (req) => {
 
     if (openPredictions && openPredictions.length > 0) {
       for (const pred of openPredictions) {
-        // Find matching completed battle
         const { data: matchedBattle } = await supabase
           .from("battles")
           .select("winner_id, votes_a, votes_b")
@@ -102,13 +91,11 @@ Deno.serve(async (req) => {
           .maybeSingle();
 
         if (matchedBattle?.winner_id) {
-          // Mark prediction as resolved
           await supabase
             .from("prediction_events")
             .update({ status: "resolved", winner_id: matchedBattle.winner_id, resolved_at: new Date().toISOString() })
             .eq("id", pred.id);
 
-          // Get total bets for this event
           const { data: allBets } = await supabase
             .from("prediction_bets")
             .select("id, user_id, predicted_creator_id, amount")
@@ -126,7 +113,6 @@ Deno.serve(async (req) => {
               if (isWinner && winnerPool > 0) {
                 const odds = Math.min(5, Math.max(1.2, totalPool / winnerPool));
                 rewardAmount = Math.round(bet.amount * odds);
-                // Give back tickets
                 await supabase.rpc("add_tickets", {
                   p_user_id: bet.user_id,
                   p_amount: rewardAmount,
@@ -146,15 +132,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Step 3: Generate new battles (up to 3 active)
+    // Step 3: Generate new battles (maintain 3 active with valid ends_at)
     const { data: activeBattles } = await supabase
       .from("battles")
       .select("id, creator_a_id, creator_b_id")
-      .eq("status", "active");
+      .eq("status", "active")
+      .gt("ends_at", new Date().toISOString());
 
     const activeCount = activeBattles?.length || 0;
     const needed = Math.max(0, 3 - activeCount);
-
     let newBattleCount = 0;
 
     if (needed > 0) {
@@ -169,6 +155,7 @@ Deno.serve(async (req) => {
         );
 
         const newBattles: any[] = [];
+        const ends48h = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
 
         // Group by category
         const byCategory: Record<string, typeof creators> = {};
@@ -199,6 +186,7 @@ Deno.serve(async (req) => {
                 creator_b_id: b.id,
                 category: cat,
                 featured: i === 0 && activeCount === 0,
+                ends_at: ends48h,
               });
               pool.splice(j, 2);
               found = true;
@@ -224,6 +212,7 @@ Deno.serve(async (req) => {
                 creator_b_id: b.id,
                 category: a.category || b.category || '크로스',
                 featured: newBattles.length === 0 && activeCount === 0,
+                ends_at: ends48h,
               });
               remaining.splice(idx, 2);
             }
@@ -236,10 +225,9 @@ Deno.serve(async (req) => {
             console.error("Battle insert error:", insertErr);
           } else {
             newBattleCount = newBattles.length;
-            console.log(`Generated ${newBattleCount} new battles`);
+            console.log(`Generated ${newBattleCount} new battles (ends_at: ${ends48h})`);
 
             // Step 4: Auto-create prediction events for new battles
-            // Get the newly created battles to get their IDs and end times
             const { data: latestBattles } = await supabase
               .from("battles")
               .select("id, creator_a_id, creator_b_id, category, ends_at")
@@ -248,19 +236,15 @@ Deno.serve(async (req) => {
               .limit(newBattleCount);
 
             if (latestBattles && latestBattles.length > 0) {
-              // Get creator names for titles
               const creatorIds = latestBattles.flatMap(b => [b.creator_a_id, b.creator_b_id]);
               const { data: creatorNames } = await supabase
-                .from("creators")
-                .select("id, name")
-                .in("id", creatorIds);
+                .from("creators").select("id, name").in("id", creatorIds);
 
               const nameMap = new Map((creatorNames || []).map(c => [c.id, c.name]));
 
               const predictionEvents = latestBattles.map(battle => {
                 const nameA = nameMap.get(battle.creator_a_id) || "크리에이터A";
                 const nameB = nameMap.get(battle.creator_b_id) || "크리에이터B";
-                // Bet deadline = 1 hour before battle ends
                 const endsAt = new Date(battle.ends_at);
                 const betDeadline = new Date(endsAt.getTime() - 60 * 60 * 1000);
 

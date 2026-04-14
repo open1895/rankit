@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Swords, Vote, Eye, GitCompareArrows, Zap } from "lucide-react";
+import { Swords, Vote, Eye, GitCompareArrows, Zap, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 interface BattleCreator {
@@ -29,12 +29,43 @@ interface Battle {
   creator_b?: BattleCreator;
 }
 
+function useCountdownStr(endsAt: string) {
+  const [text, setText] = useState("");
+  const [expired, setExpired] = useState(false);
+
+  useEffect(() => {
+    const tick = () => {
+      const diff = new Date(endsAt).getTime() - Date.now();
+      if (diff <= 0) { setExpired(true); setText("종료"); return; }
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setText(h > 0 ? `${h}시간 ${m}분` : `${m}분 ${s}초`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [endsAt]);
+
+  return { text, expired };
+}
+
+const BattleCountdown = ({ endsAt }: { endsAt: string }) => {
+  const { text } = useCountdownStr(endsAt);
+  return (
+    <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+      <Clock className="w-3 h-3" /> {text}
+    </span>
+  );
+};
+
 const CreatorBattleSection = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [battles, setBattles] = useState<Battle[]>([]);
   const [loading, setLoading] = useState(true);
   const [votingId, setVotingId] = useState<string | null>(null);
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchBattles = async () => {
@@ -42,6 +73,7 @@ const CreatorBattleSection = () => {
         .from("battles")
         .select("*")
         .eq("status", "active")
+        .gt("ends_at", new Date().toISOString())
         .order("featured", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(3);
@@ -51,7 +83,6 @@ const CreatorBattleSection = () => {
         return;
       }
 
-      // Fetch creator details
       const creatorIds = new Set<string>();
       data.forEach((b: any) => {
         creatorIds.add(b.creator_a_id);
@@ -89,6 +120,19 @@ const CreatorBattleSection = () => {
 
     return () => { supabase.removeChannel(channel); };
   }, []);
+
+  // Check expiration every second and hide expired battles
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      battles.forEach((b) => {
+        if (new Date(b.ends_at).getTime() <= now && !hiddenIds.has(b.id)) {
+          setHiddenIds((prev) => new Set(prev).add(b.id));
+        }
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [battles, hiddenIds]);
 
   const handleVote = async (battleId: string, creatorId: string) => {
     if (!user) {
@@ -135,9 +179,11 @@ const CreatorBattleSection = () => {
     toast.success("배틀 투표 완료! 🔥");
   };
 
-  if (loading || battles.length === 0) return null;
+  const visibleBattles = battles.filter((b) => !hiddenIds.has(b.id));
 
-  const featured = battles[0];
+  if (loading || visibleBattles.length === 0) return null;
+
+  const featured = visibleBattles[0];
   const totalVotes = featured.votes_a + featured.votes_b;
   const pctA = totalVotes > 0 ? Math.round((featured.votes_a / totalVotes) * 100) : 50;
   const pctB = 100 - pctA;
@@ -156,9 +202,12 @@ const CreatorBattleSection = () => {
             <span className="text-[10px] font-bold uppercase tracking-wider text-destructive bg-destructive/10 px-2 py-0.5 rounded-full">
               LIVE BATTLE
             </span>
-            <span className="text-[10px] text-muted-foreground">
-              {totalVotes}표 참여 중
-            </span>
+            <div className="flex items-center gap-2">
+              <BattleCountdown endsAt={featured.ends_at} />
+              <span className="text-[10px] text-muted-foreground">
+                {totalVotes}표 참여 중
+              </span>
+            </div>
           </div>
 
           {/* VS Layout */}
@@ -259,13 +308,16 @@ const CreatorBattleSection = () => {
         </div>
 
         {/* Other Battles */}
-        {battles.length > 1 && (
+        {visibleBattles.length > 1 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-            {battles.slice(1).map((battle) => {
+            {visibleBattles.slice(1).map((battle) => {
               const total = battle.votes_a + battle.votes_b;
               const pA = total > 0 ? Math.round((battle.votes_a / total) * 100) : 50;
               return (
                 <div key={battle.id} className="glass rounded-xl p-3 space-y-2 border border-border/30">
+                  <div className="flex items-center justify-between">
+                    <BattleCountdown endsAt={battle.ends_at} />
+                  </div>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <Avatar className="w-8 h-8 flex-shrink-0">
