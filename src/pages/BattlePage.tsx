@@ -8,7 +8,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Swords, Vote, Zap, GitCompareArrows, Share2, Users, TrendingUp, Star, ArrowLeft } from "lucide-react";
+import { Swords, Vote, Zap, GitCompareArrows, Share2, Users, TrendingUp, Star, ArrowLeft, Clock } from "lucide-react";
 import { toast } from "sonner";
 import BoostVoteButton from "@/components/BoostVoteButton";
 
@@ -37,6 +37,36 @@ interface Battle {
   creator_b?: BattleCreator;
 }
 
+function useBattleCountdown(endsAt: string) {
+  const [text, setText] = useState("");
+  const [expired, setExpired] = useState(false);
+
+  useEffect(() => {
+    const tick = () => {
+      const diff = new Date(endsAt).getTime() - Date.now();
+      if (diff <= 0) { setExpired(true); setText("종료됨"); return; }
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setText(h > 0 ? `${h}시간 ${m}분 ${s}초` : `${m}분 ${s}초`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [endsAt]);
+
+  return { text, expired };
+}
+
+const BattleCountdownBadge = ({ endsAt }: { endsAt: string }) => {
+  const { text } = useBattleCountdown(endsAt);
+  return (
+    <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+      <Clock className="w-3 h-3" /> {text}
+    </span>
+  );
+};
+
 const BattlePage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -44,11 +74,12 @@ const BattlePage = () => {
   const [completedBattles, setCompletedBattles] = useState<Battle[]>([]);
   const [loading, setLoading] = useState(true);
   const [votingId, setVotingId] = useState<string | null>(null);
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchBattles = async () => {
       const [activeRes, completedRes] = await Promise.all([
-        supabase.from("battles").select("*").eq("status", "active").order("featured", { ascending: false }).order("created_at", { ascending: false }),
+        supabase.from("battles").select("*").eq("status", "active").gt("ends_at", new Date().toISOString()).order("featured", { ascending: false }).order("created_at", { ascending: false }),
         supabase.from("battles").select("*").eq("status", "completed").order("created_at", { ascending: false }).limit(10),
       ]);
 
@@ -81,7 +112,28 @@ const BattlePage = () => {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  // Auto-hide expired battles client-side
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      battles.forEach((b) => {
+        if (new Date(b.ends_at).getTime() <= now && !hiddenIds.has(b.id)) {
+          setHiddenIds((prev) => new Set(prev).add(b.id));
+        }
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [battles, hiddenIds]);
+
   const handleVote = async (battleId: string, creatorId: string) => {
+    // Check if battle is expired client-side
+    const battle = battles.find((b) => b.id === battleId);
+    if (battle && new Date(battle.ends_at).getTime() <= Date.now()) {
+      setHiddenIds((prev) => new Set(prev).add(battleId));
+      toast.info("이 배틀은 종료되었습니다.");
+      return;
+    }
+
     if (!user) { toast.error("투표하려면 로그인이 필요합니다."); navigate("/auth"); return; }
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData.session?.access_token) { toast.error("세션이 만료되었습니다. 다시 로그인해주세요."); navigate("/auth"); return; }
@@ -113,6 +165,8 @@ const BattlePage = () => {
     }
   };
 
+  const visibleBattles = battles.filter((b) => !hiddenIds.has(b.id));
+
   const BattleCard = ({ battle, isCompleted = false }: { battle: Battle; isCompleted?: boolean }) => {
     const total = battle.votes_a + battle.votes_b;
     const pctA = total > 0 ? Math.round((battle.votes_a / total) * 100) : 50;
@@ -124,15 +178,18 @@ const BattlePage = () => {
     return (
       <Card className="overflow-hidden border-border/30">
         <CardContent className="p-5 space-y-4">
-          {battle.featured && !isCompleted && (
-            <div className="flex items-center gap-1.5">
-              <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-              <span className="text-[10px] font-bold text-yellow-600 uppercase tracking-wider">Featured Battle</span>
-            </div>
-          )}
-          {isCompleted && (
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-muted px-2 py-0.5 rounded-full">종료됨</span>
-          )}
+          <div className="flex items-center justify-between">
+            {battle.featured && !isCompleted && (
+              <div className="flex items-center gap-1.5">
+                <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                <span className="text-[10px] font-bold text-yellow-600 uppercase tracking-wider">Featured Battle</span>
+              </div>
+            )}
+            {isCompleted && (
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-muted px-2 py-0.5 rounded-full">종료됨</span>
+            )}
+            {!isCompleted && <BattleCountdownBadge endsAt={battle.ends_at} />}
+          </div>
 
           <div className="flex items-center gap-4">
             <div className={`flex-1 text-center space-y-2 ${winner === "a" ? "ring-2 ring-yellow-400 rounded-xl p-2" : ""}`}>
@@ -210,20 +267,8 @@ const BattlePage = () => {
               {user && (
                 <div className="flex items-center gap-2 justify-center">
                   <span className="text-[10px] text-muted-foreground">부스트:</span>
-                  <BoostVoteButton
-                    creatorId={battle.creator_a_id}
-                    creatorName={a?.name || ""}
-                    votesUntilNext={Math.abs(battle.votes_a - battle.votes_b)}
-                    context="battle"
-                    onBoostComplete={() => {}}
-                  />
-                  <BoostVoteButton
-                    creatorId={battle.creator_b_id}
-                    creatorName={b?.name || ""}
-                    votesUntilNext={Math.abs(battle.votes_a - battle.votes_b)}
-                    context="battle"
-                    onBoostComplete={() => {}}
-                  />
+                  <BoostVoteButton creatorId={battle.creator_a_id} creatorName={a?.name || ""} votesUntilNext={Math.abs(battle.votes_a - battle.votes_b)} context="battle" onBoostComplete={() => {}} />
+                  <BoostVoteButton creatorId={battle.creator_b_id} creatorName={b?.name || ""} votesUntilNext={Math.abs(battle.votes_a - battle.votes_b)} context="battle" onBoostComplete={() => {}} />
                 </div>
               )}
             </div>
@@ -264,7 +309,7 @@ const BattlePage = () => {
           <div className="space-y-4">
             {[1, 2, 3].map((i) => <div key={i} className="glass rounded-2xl h-48 animate-pulse" />)}
           </div>
-        ) : battles.length === 0 ? (
+        ) : visibleBattles.length === 0 ? (
           <div className="text-center py-16 glass rounded-2xl">
             <Swords className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
             <p className="text-sm text-muted-foreground">진행 중인 배틀이 없습니다</p>
@@ -273,7 +318,7 @@ const BattlePage = () => {
         ) : (
           <>
             <div className="space-y-4">
-              {battles.map((battle) => (
+              {visibleBattles.map((battle) => (
                 <ScrollReveal key={battle.id}>
                   <BattleCard battle={battle} />
                 </ScrollReveal>
