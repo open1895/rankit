@@ -51,6 +51,9 @@ Deno.serve(async (req) => {
     // ── 4. Close competitor alerts ──
     await detectCloseCompetitors(supabase, pendingNotifs);
 
+    // ── 5. Fan overtake alerts (notify fans when their creator can overtake) ──
+    await detectFanOvertakeAlerts(supabase, pendingNotifs);
+
     // ── 5. Apply throttling & insert ──
     let inserted = 0;
     if (dryRun) {
@@ -291,6 +294,51 @@ async function detectCloseCompetitors(supabase: any, notifs: NotifPayload[]) {
           title: "🔥 역전 가능!",
           message: `${creator.name}님과 ${aboveCreator.name}님의 차이가 ${voteDiff}표! 역전 기회입니다!`,
           link: `/creator/${creator.id}`,
+        });
+      }
+    }
+  }
+}
+
+// ── Fan overtake alerts (notify FANS when their creator is close to overtaking) ──
+async function detectFanOvertakeAlerts(supabase: any, notifs: NotifPayload[]) {
+  // Get all creators sorted by rank
+  const { data: allCreators } = await supabase
+    .from("creators")
+    .select("id, name, rank, votes_count")
+    .order("rank", { ascending: true })
+    .limit(100); // top 100
+
+  if (!allCreators || allCreators.length < 2) return;
+
+  for (let i = 1; i < allCreators.length; i++) {
+    const current = allCreators[i];
+    const above = allCreators[i - 1];
+    const voteDiff = above.votes_count - current.votes_count;
+
+    // Only alert when gap is 10 votes or less (overtake-able with a few fan votes)
+    if (voteDiff >= 0 && voteDiff <= 10) {
+      // Get recent unique fans who voted for this creator (last 7 days)
+      const { data: recentVoters } = await supabase
+        .from("votes")
+        .select("user_id")
+        .eq("creator_id", current.id)
+        .not("user_id", "is", null)
+        .gte("created_at", new Date(Date.now() - 7 * 86400000).toISOString())
+        .limit(50);
+
+      if (!recentVoters) continue;
+
+      // Deduplicate user_ids
+      const uniqueFans = [...new Set(recentVoters.map((v: any) => v.user_id))];
+
+      for (const fanUserId of uniqueFans) {
+        notifs.push({
+          user_id: fanUserId as string,
+          type: "fan_overtake",
+          title: "🔥 역전 기회! 지금 투표하세요!",
+          message: `${current.name}님이 ${above.name}님과 ${voteDiff}표 차이! 당신의 투표로 역전할 수 있어요!`,
+          link: `/creator/${current.id}`,
         });
       }
     }
