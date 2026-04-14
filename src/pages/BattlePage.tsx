@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Swords, Vote, Zap, GitCompareArrows, Share2, Users, TrendingUp, Star, ArrowLeft, Clock } from "lucide-react";
 import { toast } from "sonner";
 import BoostVoteButton from "@/components/BoostVoteButton";
+import BattleHistory from "@/components/BattleHistory";
 
 interface BattleCreator {
   id: string;
@@ -325,19 +326,9 @@ const BattlePage = () => {
               ))}
             </div>
 
-            {completedBattles.length > 0 && (
-              <>
-                <div className="section-divider" />
-                <h2 className="text-sm font-bold text-muted-foreground">🏆 최근 종료된 배틀</h2>
-                <div className="space-y-3">
-                  {completedBattles.map((battle) => (
-                    <ScrollReveal key={battle.id}>
-                      <BattleCard battle={battle} isCompleted />
-                    </ScrollReveal>
-                  ))}
-                </div>
-              </>
-            )}
+            {/* Battle History Section */}
+            <div className="section-divider" />
+            <BattleHistory />
           </>
         )}
       </div>
