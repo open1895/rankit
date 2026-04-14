@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Bell, BellRing, Check } from "lucide-react";
+import { Bell, BellRing, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface Notification {
