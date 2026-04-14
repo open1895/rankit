@@ -83,6 +83,8 @@ const DesktopNavBar = () => {
               <Zap className="w-4 h-4" />
               <span>RP 충전</span>
             </button>
+            <div className="w-px h-5 bg-border/40" />
+            <NotificationBell />
           </nav>
         </div>
       </div>
