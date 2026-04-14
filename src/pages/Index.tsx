@@ -376,7 +376,7 @@ const Index = () => {
       <>
 
       {/* Mobile Header */}
-      <header className="sticky top-0 z-40 w-full overflow-x-hidden glass border-b border-glass-border/50 md:hidden">
+      <header className="sticky top-0 z-40 w-full glass border-b border-glass-border/50 md:hidden">
         <div className="w-full py-2.5 flex items-center justify-between gap-1 px-2">
           <RankitLogo size="md" className="flex-shrink-0 ml-1" />
           <nav
