@@ -3,51 +3,83 @@ interface RankitLogoProps {
   className?: string;
 }
 
-const scaleMap = {
-  sm: "scale-[0.6]",
-  md: "scale-[0.8]",
-  lg: "scale-100",
-  xl: "scale-[1.3]",
+const sizeStyles = {
+  sm: { fontSize: "1.25rem", boltSize: "0.9rem", gap: "1px" },
+  md: { fontSize: "1.6rem", boltSize: "1.1rem", gap: "2px" },
+  lg: { fontSize: "2rem", boltSize: "1.4rem", gap: "2px" },
+  xl: { fontSize: "2.6rem", boltSize: "1.8rem", gap: "3px" },
 };
 
 const RankitLogo = ({ size = "md", className = "" }: RankitLogoProps) => {
   const showTagline = size === "lg" || size === "xl";
+  const s = sizeStyles[size];
+
   return (
-    <div className={`flex flex-col ${className}`} style={{ transformOrigin: "left center" }}>
-      <svg
-        width="180"
-        height="50"
-        viewBox="0 0 180 50"
-        xmlns="http://www.w3.org/2000/svg"
-        className={`${scaleMap[size]} origin-left`}
-      >
-        <defs>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
-            <feMerge>
-              <feMergeNode in="coloredBlur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <linearGradient id="boltGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#06B6D4" />
-            <stop offset="100%" stopColor="#A855F7" />
-          </linearGradient>
-        </defs>
-        <text x="10" y="35" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="32" fill="currentColor" className="text-foreground">
+    <div className={`flex flex-col ${className}`}>
+      <div className="flex items-center" style={{ gap: s.gap }}>
+        {/* "Rank" - solid foreground */}
+        <span
+          className="font-black tracking-tight text-foreground"
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: s.fontSize,
+            lineHeight: 1,
+          }}
+        >
           Rank
-        </text>
-        {/* Lightning bolt between Rank and it */}
-        <g transform="translate(85, 5) scale(1.5)" filter="url(#glow)">
-          <path d="M7 0 L2 9 L6 9 L3 16 L12 6 L8 6 L11 0 Z" fill="url(#boltGradient)" />
-        </g>
-        <text x="105" y="35" fontFamily="Arial, sans-serif" fontWeight="300" fontSize="32" fill="#A855F7" filter="url(#glow)">
+        </span>
+
+        {/* Lightning bolt - neon cyan/purple */}
+        <span
+          className="inline-flex items-center"
+          style={{
+            fontSize: s.boltSize,
+            lineHeight: 1,
+            filter: "drop-shadow(0 0 6px hsl(187 94% 42% / 0.7)) drop-shadow(0 0 12px hsl(270 91% 60% / 0.4))",
+            background: "linear-gradient(180deg, hsl(187 94% 50%), hsl(270 91% 60%))",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}
+        >
+          ⚡
+        </span>
+
+        {/* "it" - neon purple glow */}
+        <span
+          className="font-light tracking-tight"
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: s.fontSize,
+            lineHeight: 1,
+            color: "hsl(270 91% 60%)",
+            textShadow:
+              "0 0 7px hsl(270 91% 60% / 0.6), 0 0 20px hsl(270 91% 60% / 0.3), 0 0 40px hsl(270 91% 60% / 0.15)",
+          }}
+        >
           it
-        </text>
-        <path d="M135 15 L140 8 L145 15" stroke="#06B6D4" strokeWidth="3" fill="none" filter="url(#glow)" />
-      </svg>
+        </span>
+
+        {/* Rising arrow - neon cyan */}
+        <span
+          className="font-bold"
+          style={{
+            fontSize: `calc(${s.fontSize} * 0.6)`,
+            lineHeight: 1,
+            color: "hsl(187 94% 45%)",
+            textShadow:
+              "0 0 6px hsl(187 94% 45% / 0.6), 0 0 16px hsl(187 94% 45% / 0.25)",
+            marginLeft: "2px",
+            alignSelf: "flex-start",
+            marginTop: "2px",
+          }}
+        >
+          ▲
+        </span>
+      </div>
+
       {showTagline && (
-        <span className="text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-medium ml-2 -mt-1">
+        <span className="text-[9px] sm:text-[10px] tracking-widest uppercase text-muted-foreground font-medium ml-0.5 -mt-0.5">
           The Creator Competition Platform
         </span>
       )}
