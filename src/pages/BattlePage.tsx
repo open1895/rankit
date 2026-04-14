@@ -72,19 +72,18 @@ const BattlePage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [battles, setBattles] = useState<Battle[]>([]);
-  const [completedBattles, setCompletedBattles] = useState<Battle[]>([]);
+  const [completedBattles] = useState<Battle[]>([]);
   const [loading, setLoading] = useState(true);
   const [votingId, setVotingId] = useState<string | null>(null);
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchBattles = async () => {
-      const [activeRes, completedRes] = await Promise.all([
+      const [activeRes] = await Promise.all([
         supabase.from("battles").select("*").eq("status", "active").gt("ends_at", new Date().toISOString()).order("featured", { ascending: false }).order("created_at", { ascending: false }),
-        supabase.from("battles").select("*").eq("status", "completed").order("created_at", { ascending: false }).limit(10),
       ]);
 
-      const allBattles = [...(activeRes.data || []), ...(completedRes.data || [])];
+      const allBattles = [...(activeRes.data || [])];
       const creatorIds = new Set<string>();
       allBattles.forEach((b: any) => { creatorIds.add(b.creator_a_id); creatorIds.add(b.creator_b_id); });
 
@@ -97,7 +96,6 @@ const BattlePage = () => {
       const enrich = (b: any) => ({ ...b, creator_a: map.get(b.creator_a_id), creator_b: map.get(b.creator_b_id) });
 
       setBattles((activeRes.data || []).map(enrich));
-      setCompletedBattles((completedRes.data || []).map(enrich));
       setLoading(false);
     };
     fetchBattles();
