@@ -7,6 +7,7 @@ import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 const ShareCard = lazy(() => import("@/components/ShareCard"));
 const FanCertCard = lazy(() => import("@/components/FanCertCard"));
+import CreatorRankCard from "@/components/CreatorRankCard";
 const ClaimCreatorModal = lazy(() => import("@/components/ClaimCreatorModal"));
 import CelebrationEffect from "@/components/CelebrationEffect";
 const TournamentChampionBadge = lazy(() => import("@/components/TournamentChampionBadge"));
@@ -469,10 +470,23 @@ const CreatorProfile = () => {
             <Button onClick={() => setShowShare(true)} variant="outline" className="h-11 px-3 rounded-xl glass-sm border-glass-border">
               <Share2 className="w-4 h-4" />
             </Button>
-            <button onClick={() => setShowFanCert(true)} className="h-11 px-3 rounded-xl glass-sm border border-primary/20 hover:border-primary/40 transition-colors flex items-center">
+           <button onClick={() => setShowFanCert(true)} className="h-11 px-3 rounded-xl glass-sm border border-primary/20 hover:border-primary/40 transition-colors flex items-center">
               📸
             </button>
           </div>
+
+          {/* Creator Rank Card CTA */}
+          {creator.rank > 0 && (
+            <CreatorRankCard
+              creatorId={creator.id}
+              creatorName={creator.name}
+              rank={creator.rank}
+              votesCount={creator.votes_count}
+              avatarUrl={creator.avatar_url}
+              category={creator.category}
+              rankitScore={creator.rankit_score}
+            />
+          )}
 
           {!user && (
             <div className="text-center text-xs text-muted-foreground py-1">
