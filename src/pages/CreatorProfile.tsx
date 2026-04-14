@@ -29,6 +29,7 @@ const OverviewTab = lazy(() => import("@/components/creator-profile/OverviewTab"
 const AnalyticsTab = lazy(() => import("@/components/creator-profile/AnalyticsTab"));
 const FansTab = lazy(() => import("@/components/creator-profile/FansTab"));
 const CommunityTab = lazy(() => import("@/components/creator-profile/CommunityTab"));
+const BattleRecord = lazy(() => import("@/components/creator-profile/BattleRecord"));
 import {
   CreatorProfileData, CommentItem, RankHistoryPoint,
   FanPeriod, FanRankingEntry, ProfileTab,
@@ -537,6 +538,13 @@ const CreatorProfile = () => {
               <p className="text-[10px] text-muted-foreground mt-1">관리자 심사가 진행 중입니다. 결과는 알림으로 안내됩니다.</p>
             </div>
           )}
+        </div>
+
+        {/* Battle Record */}
+        <div className="mt-4">
+          <Suspense fallback={null}>
+            <BattleRecord creatorId={id!} />
+          </Suspense>
         </div>
 
         {/* TAB BAR */}
