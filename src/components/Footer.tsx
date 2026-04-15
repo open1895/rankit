@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Link2 } from "lucide-react";
 import { copyToClipboard, getPublishedUrl } from "@/lib/clipboard";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PrivacyPolicyModal, TermsOfServiceModal } from "@/components/LegalModals";
 
 const Footer = () => {
@@ -59,9 +59,9 @@ const Footer = () => {
             이용약관
           </button>
           <span>|</span>
-          <button onClick={() => navigate("/pricing")} className="hover:text-foreground transition-colors underline-offset-2 hover:underline">
+          <Link to="/pricing" className="hover:text-foreground transition-colors underline-offset-2 hover:underline">
             요금 안내
-          </button>
+          </Link>
         </div>
 
         <div className="flex flex-col items-center gap-0.5 text-[11px] text-muted-foreground/70">
