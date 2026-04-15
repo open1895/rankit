@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,6 @@ const products = [
 ];
 
 const PricingPage = () => {
-  const navigate = useNavigate();
-
   return (
     <>
       <SEOHead
@@ -53,8 +51,10 @@ const PricingPage = () => {
           </div>
 
           <div className="flex flex-col items-center gap-4 mb-8">
-            <Button onClick={() => navigate("/recharge")} size="lg" className="w-full max-w-xs gap-2">
-              <Zap className="w-4 h-4" /> 충전하러 가기
+            <Button asChild size="lg" className="w-full max-w-xs gap-2">
+              <Link to="/recharge">
+                <Zap className="w-4 h-4" /> 충전하러 가기
+              </Link>
             </Button>
             <p className="text-xs text-muted-foreground">부가세 포함 가격입니다</p>
           </div>
