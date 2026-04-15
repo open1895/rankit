@@ -84,6 +84,9 @@ const RPChargeModal = ({ open, onOpenChange }: RPChargeModalProps) => {
               <ShoppingCart className="w-4 h-4 mr-2" />
               {RP_PRODUCTS.find(p => p.id === selectedId)?.priceLabel} 충전하기
             </Button>
+            <p className="text-[10px] text-center text-muted-foreground -mt-1">
+              부가세 포함 가격입니다
+            </p>
             <Button
               variant="outline"
               className="w-full h-11 text-sm font-semibold border-primary/30 hover:bg-primary/5"
