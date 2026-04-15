@@ -173,6 +173,7 @@ const Index = () => {
   const { tickets } = useTickets();
   const { days } = useCountdown();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [creators, setCreators] = useState<Creator[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [extraVotes, setExtraVotes] = useState(0);
@@ -185,6 +186,17 @@ const Index = () => {
   const [nominationOpen, setNominationOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [page, setPage] = useState(0);
+
+  // URL의 ?category= 파라미터 읽어서 카테고리 필터 적용 + 랭킹 섹션으로 스크롤
+  useEffect(() => {
+    const catParam = searchParams.get("category");
+    if (catParam) {
+      setSelectedCategory(catParam);
+      setTimeout(() => {
+        document.getElementById("ranking-section")?.scrollIntoView({ behavior: "smooth" });
+      }, 500);
+    }
+  }, [searchParams]);
 
   // 서버사이드 fetch (카테고리/검색/페이지 반영)
   const fetchCreators = useCallback(async (
