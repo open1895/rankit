@@ -4,13 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
 import SEOHead from "@/components/SEOHead";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import MissionItem, { type MissionData } from "@/components/MissionItem";
 import Footer from "@/components/Footer";
 import NotificationBell from "@/components/NotificationBell";
 import RankitLogo from "@/components/RankitLogo";
 import {
   Zap, Gift, Ticket, Star, Sparkles, Megaphone, ExternalLink,
-  Search, User, MessageCircle, FileText,
+  Search, User, MessageCircle, FileText, ShoppingCart, Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -35,6 +38,13 @@ const MISSION_DESCRIPTIONS: Record<string, string> = {
   first_post: "커뮤니티에 첫 게시글을 작성하세요",
 };
 
+const RP_PRODUCTS = [
+  { id: "rp_100", rp: 100, price: 1000, priceLabel: "1,000원", discount: null, popular: false },
+  { id: "rp_500", rp: 500, price: 4500, priceLabel: "4,500원", discount: "10%", popular: false },
+  { id: "rp_1000", rp: 1000, price: 8000, priceLabel: "8,000원", discount: "20%", popular: true },
+  { id: "rp_3000", rp: 3000, price: 20000, priceLabel: "20,000원", discount: "33%", popular: false },
+];
+
 const TABS = [
   { key: "all", label: "전체", icon: Star },
   { key: "참여형", label: "간편참여", icon: Sparkles },
@@ -49,6 +59,7 @@ const RechargePage = () => {
   const [claimingKey, setClaimingKey] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [glowPulse, setGlowPulse] = useState(false);
+  const [selectedRPId, setSelectedRPId] = useState("rp_1000");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -218,6 +229,58 @@ const RechargePage = () => {
 
             <NotificationBell />
           </div>
+        </div>
+
+        {/* ── RP 충전 가격표 ── */}
+        <div className="relative z-10 mx-4 sm:mx-5 mt-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className="w-4 h-4 text-yellow-500" />
+            <h3 className="text-sm font-bold text-foreground">RP 충전 상품</h3>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            {RP_PRODUCTS.map((product) => (
+              <button
+                key={product.id}
+                onClick={() => setSelectedRPId(product.id)}
+                className={cn(
+                  "relative flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all duration-200",
+                  selectedRPId === product.id
+                    ? "border-primary bg-primary/5 shadow-[0_0_16px_hsl(var(--primary)/0.15)]"
+                    : "border-border/50 hover:border-primary/30 bg-card"
+                )}
+              >
+                {product.discount && (
+                  <Badge className="absolute -top-2 -right-1 text-[9px] px-1.5 py-0 bg-gradient-to-r from-primary to-secondary text-primary-foreground border-0">
+                    {product.discount} 할인
+                  </Badge>
+                )}
+                {product.popular && (
+                  <Badge className="absolute -top-2 -left-1 text-[9px] px-1.5 py-0 bg-yellow-500 text-primary-foreground border-0">
+                    인기
+                  </Badge>
+                )}
+                <span className="text-lg font-black text-foreground">{product.rp.toLocaleString()} RP</span>
+                <span className="text-sm font-semibold text-primary">{product.priceLabel}</span>
+                {selectedRPId === product.id && (
+                  <div className="absolute top-1.5 left-1.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                    <Check className="w-2.5 h-2.5 text-primary-foreground" />
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <Button
+            onClick={() => navigate("/ticket-store")}
+            className="w-full h-11 mt-3 text-sm font-bold bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+          >
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            {RP_PRODUCTS.find(p => p.id === selectedRPId)?.priceLabel} 충전하기
+          </Button>
+          <p className="text-[10px] text-center text-muted-foreground mt-1.5">
+            부가세 포함 가격입니다
+          </p>
         </div>
 
         {/* ── Available Reward Banner ── */}
