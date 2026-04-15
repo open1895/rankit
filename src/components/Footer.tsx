@@ -58,6 +58,10 @@ const Footer = () => {
           <button onClick={() => setTermsOpen(true)} className="hover:text-foreground transition-colors underline-offset-2 hover:underline">
             이용약관
           </button>
+          <span>|</span>
+          <button onClick={() => navigate("/pricing")} className="hover:text-foreground transition-colors underline-offset-2 hover:underline">
+            요금 안내
+          </button>
         </div>
 
         <div className="flex flex-col items-center gap-0.5 text-[11px] text-muted-foreground/70">
