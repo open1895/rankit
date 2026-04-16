@@ -292,6 +292,16 @@ const Auth = () => {
                 </div>
               )}
 
+              {/* Naver Login */}
+              <Button
+                onClick={handleNaverLogin}
+                className="w-full h-12 text-sm font-bold text-white hover:opacity-90"
+                style={{ backgroundColor: "#03C75A" }}
+              >
+                <span className="mr-2 inline-flex items-center justify-center w-5 h-5 rounded bg-white text-[#03C75A] font-extrabold text-xs">N</span>
+                네이버로 계속하기
+              </Button>
+
               {/* Google Login */}
               <Button
                 onClick={handleGoogleLogin}
