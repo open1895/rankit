@@ -9,6 +9,7 @@ import RankingCard from "@/components/RankingCard";
 import RankitLogo from "@/components/RankitLogo";
 import CountdownTimer from "@/components/CountdownTimer";
 import NotificationBell from "@/components/NotificationBell";
+import ThemeToggle from "@/components/ThemeToggle";
 import ScrollReveal from "@/components/ScrollReveal";
 import LazySection from "@/components/LazySection";
 import Footer from "@/components/Footer";
@@ -564,6 +565,7 @@ const Index = () => {
               </Link>
             )}
             <div className="w-px h-5 bg-border/40" />
+            <ThemeToggle size="sm" />
             <NotificationBell />
           </nav>
         </div>
