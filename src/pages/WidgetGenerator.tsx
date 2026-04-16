@@ -59,9 +59,10 @@ const WidgetGenerator = () => {
 
   const codes = useMemo(() => {
     if (!selected) return null;
+    const badgeUrl = `https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/creator-badge?id=${selected.id}&theme=${theme}`;
     const iframe = `<iframe src="${ORIGIN}/widget/creator/${selected.id}?type=${type}&theme=${theme}" width="${size.w}" height="${size.h}" frameborder="0" scrolling="no" style="border:0;"></iframe>`;
-    const badge = `<a href="${ORIGIN}/creator/${selected.id}" target="_blank" rel="noopener"><img src="${ORIGIN}/widget/creator/${selected.id}/badge.svg?theme=${theme}" alt="${selected.name} Rankit 순위" /></a>`;
-    const markdown = `[![${selected.name} Rankit 순위](${ORIGIN}/widget/creator/${selected.id}/badge.svg?theme=${theme})](${ORIGIN}/creator/${selected.id})`;
+    const badge = `<a href="${ORIGIN}/creator/${selected.id}" target="_blank" rel="noopener"><img src="${badgeUrl}" alt="${selected.name} Rankit 순위" /></a>`;
+    const markdown = `[![${selected.name} Rankit 순위](${badgeUrl})](${ORIGIN}/creator/${selected.id})`;
     return { iframe, badge, markdown };
   }, [selected, type, theme, size]);
 
