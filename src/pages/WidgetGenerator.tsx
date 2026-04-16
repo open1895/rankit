@@ -81,7 +81,7 @@ const WidgetGenerator = () => {
       <SEOHead
         title="랭킷 위젯 | 내 크리에이터 순위를 SNS에 공유하세요"
         description="랭킷 위젯 생성기로 내가 좋아하는 크리에이터의 실시간 순위를 블로그, SNS, 노션에 임베드하세요."
-        canonical="https://rankit.today/widget-generator"
+        path="/widget-generator"
       />
       <div className="min-h-screen pb-28 px-4 pt-6 max-w-3xl mx-auto">
         <header className="mb-6">
