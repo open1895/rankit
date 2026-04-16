@@ -45,6 +45,7 @@ const MonthlyTop3 = lazy(() => import("./pages/MonthlyTop3"));
 const TicketStore = lazy(() => import("./pages/TicketStore"));
 const InviteLanding = lazy(() => import("./pages/InviteLanding"));
 const PricingPage = lazy(() => import("./pages/PricingPage"));
+const WidgetGenerator = lazy(() => import("./pages/WidgetGenerator"));
 const queryClient = new QueryClient();
 
 const PageFallback = () => (
@@ -100,6 +101,7 @@ const App = () => (
                     <Route path="/widget/creator/:id" element={<WidgetPage />} />
                     <Route path="/invite" element={<InviteLanding />} />
                     <Route path="/pricing" element={<PricingPage />} />
+                    <Route path="/widget-generator" element={<WidgetGenerator />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   </Suspense>

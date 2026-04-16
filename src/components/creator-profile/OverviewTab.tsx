@@ -1,4 +1,5 @@
-import { Code2, Check, Copy, FileDown } from "lucide-react";
+import { Code2, Check, Copy, FileDown, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 import AICreatorInsights from "@/components/AICreatorInsights";
 import RankitVerifiedBadge from "@/components/RankitVerifiedBadge";
 import CreatorPerformanceBadge from "@/components/CreatorPerformanceBadge";
@@ -88,6 +89,10 @@ const OverviewTab = ({
             </button>
           </div>
         )}
+        <Link to={`/widget-generator?creator=${creator.id}`}
+          className="w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 bg-gradient-to-r from-primary/20 to-secondary/20 border border-primary/30 text-primary hover:from-primary/30 hover:to-secondary/30 transition-all">
+          <ExternalLink className="w-3.5 h-3.5" /> 내 위젯 가져가기 (3종 + 테마)
+        </Link>
       </div>
       <CreatorRewards creatorId={creator.id} currentVotes={creator.votes_count} />
     </div>
