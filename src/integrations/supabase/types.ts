@@ -509,10 +509,62 @@ export type Database = {
           },
         ]
       }
+      creator_donations: {
+        Row: {
+          amount: number
+          created_at: string
+          creator_id: string
+          donor_id: string
+          donor_nickname: string
+          id: string
+          is_message_public: boolean
+          message: string | null
+          net_amount: number
+          order_id: string
+          payment_id: string
+          platform_fee: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          creator_id: string
+          donor_id: string
+          donor_nickname?: string
+          id?: string
+          is_message_public?: boolean
+          message?: string | null
+          net_amount?: number
+          order_id: string
+          payment_id: string
+          platform_fee?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          creator_id?: string
+          donor_id?: string
+          donor_nickname?: string
+          id?: string
+          is_message_public?: boolean
+          message?: string | null
+          net_amount?: number
+          order_id?: string
+          payment_id?: string
+          platform_fee?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       creator_earnings: {
         Row: {
           created_at: string
           creator_id: string
+          donation_total: number
           id: string
           pending_amount: number
           settled_amount: number
@@ -522,6 +574,7 @@ export type Database = {
         Insert: {
           created_at?: string
           creator_id: string
+          donation_total?: number
           id?: string
           pending_amount?: number
           settled_amount?: number
@@ -531,6 +584,7 @@ export type Database = {
         Update: {
           created_at?: string
           creator_id?: string
+          donation_total?: number
           id?: string
           pending_amount?: number
           settled_amount?: number
@@ -2394,6 +2448,19 @@ export type Database = {
         Returns: boolean
       }
       batch_recalculate_ranks: { Args: never; Returns: undefined }
+      confirm_donation: {
+        Args: {
+          p_amount: number
+          p_creator_id: string
+          p_donor_id: string
+          p_donor_nickname: string
+          p_is_message_public: boolean
+          p_message: string
+          p_order_id: string
+          p_payment_id: string
+        }
+        Returns: string
+      }
       confirm_payment: {
         Args: {
           p_amount: number
