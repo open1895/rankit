@@ -135,6 +135,7 @@ const MyPage = () => {
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [showRPCharge, setShowRPCharge] = useState(false);
+  const [showGiftModal, setShowGiftModal] = useState(false);
   const [convertCount, setConvertCount] = useState(1);
   const [converting, setConverting] = useState(false);
 
