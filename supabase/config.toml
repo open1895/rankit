@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.creator-badge]
 verify_jwt = false
+
+[functions.donation-confirm]
+verify_jwt = false

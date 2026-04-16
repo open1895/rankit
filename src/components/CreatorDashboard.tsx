@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FanActivityInsights from "@/components/FanActivityInsights";
 import CreatorAnnouncement from "@/components/CreatorAnnouncement";
+import CreatorDonationEarnings from "@/components/CreatorDonationEarnings";
 import {
   TrendingUp, TrendingDown, Users, BarChart3, Clock,
   MessageSquare, FileText, Sparkles, Crown, Activity,
@@ -510,6 +511,9 @@ const CreatorDashboard = ({ creatorId, creatorName }: CreatorDashboardProps) => 
 
       {/* ═══ 5. Announcement Tool ═══ */}
       <CreatorAnnouncement creatorId={creatorId} creatorName={creatorName} />
+
+      {/* ═══ 6. Donation Earnings ═══ */}
+      <CreatorDonationEarnings creatorId={creatorId} />
 
       {/* Fan Activity Insights (existing component) */}
       <div className="glass p-5">
