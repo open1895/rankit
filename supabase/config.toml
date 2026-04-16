@@ -65,3 +65,9 @@ verify_jwt = false
 
 [functions.donation-confirm]
 verify_jwt = false
+
+[functions.push-send]
+verify_jwt = false
+
+[functions.vote-reminder]
+verify_jwt = false
