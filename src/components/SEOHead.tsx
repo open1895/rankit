@@ -11,6 +11,8 @@ interface SEOHeadProps {
   ogImage?: string;
   ogType?: string;
   noIndex?: boolean;
+  keywords?: string;
+  structuredData?: object | object[];
 }
 
 const SEOHead = ({
@@ -20,14 +22,23 @@ const SEOHead = ({
   ogImage = DEFAULT_OG_IMAGE,
   ogType = "website",
   noIndex = false,
+  keywords,
+  structuredData,
 }: SEOHeadProps) => {
   const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - The Creator Competition Platform`;
   const url = `${BASE_URL}${path}`;
+
+  const structuredDataArray = Array.isArray(structuredData)
+    ? structuredData
+    : structuredData
+    ? [structuredData]
+    : [];
 
   return (
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
+      {keywords && <meta name="keywords" content={keywords} />}
       <link rel="canonical" href={url} />
       {noIndex && <meta name="robots" content="noindex, nofollow" />}
 
@@ -47,6 +58,13 @@ const SEOHead = ({
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
+
+      {/* JSON-LD Structured Data */}
+      {structuredDataArray.map((data, i) => (
+        <script key={i} type="application/ld+json">
+          {JSON.stringify(data)}
+        </script>
+      ))}
     </Helmet>
   );
 };
