@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 const ShareCard = lazy(() => import("@/components/ShareCard"));
 const FanCertCard = lazy(() => import("@/components/FanCertCard"));
 import CreatorRankCard from "@/components/CreatorRankCard";
+import FanclubJoinButton from "@/components/FanclubJoinButton";
 const DonationModal = lazy(() => import("@/components/DonationModal"));
+const CreatorMessageModal = lazy(() => import("@/components/CreatorMessageModal"));
 const DonationStats = lazy(() => import("@/components/DonationStats"));
 const ClaimCreatorModal = lazy(() => import("@/components/ClaimCreatorModal"));
 import CelebrationEffect from "@/components/CelebrationEffect";
@@ -90,6 +92,7 @@ const CreatorProfile = () => {
   const [searchParams] = useSearchParams();
   const [superVotes, setSuperVotes] = useState(0);
   const [comboCount, setComboCount] = useState(0);
+  const [showFanMessage, setShowFanMessage] = useState(false);
 
   // Timer cleanup
   const addTimer = useCallback((fn: () => void, ms: number) => {
@@ -519,6 +522,22 @@ const CreatorProfile = () => {
             </button>
           </div>
 
+          {/* Fanclub Join + Direct Message Buttons */}
+          {creator.user_id !== user?.id && (
+            <div className="grid grid-cols-2 gap-2">
+              <FanclubJoinButton creatorId={creator.id} creatorName={creator.name} />
+              <button
+                onClick={() => {
+                  if (!user) { toast.info("응원 메시지는 로그인이 필요해요."); navigate("/auth"); return; }
+                  setShowFanMessage(true);
+                }}
+                className="h-11 rounded-xl text-sm font-bold gap-1.5 flex items-center justify-center glass-sm border border-purple-500/30 text-purple-300 hover:border-purple-500/60 transition-all"
+              >
+                💌 응원 메시지
+              </button>
+            </div>
+          )}
+
           {/* Donation CTA — only for claimed creators, not own profile */}
           {creator.claimed && creator.user_id && creator.user_id !== user?.id && (
             <button
@@ -726,6 +745,14 @@ const CreatorProfile = () => {
             onSuccess={() => {
               // refresh donation stats by remounting via key, or just rely on natural re-render
             }}
+          />
+        )}
+        {showFanMessage && creator && (
+          <CreatorMessageModal
+            open={showFanMessage}
+            onClose={() => setShowFanMessage(false)}
+            creatorId={creator.id}
+            creatorName={creator.name}
           />
         )}
       </Suspense>

@@ -7,6 +7,7 @@ import { ArrowLeft, Crown, Medal, Trophy, Star, Share2, Sparkles } from "lucide-
 import SEOHead from "@/components/SEOHead";
 import FanLevelBadge from "@/components/FanLevelBadge";
 import FanAchievementBadges from "@/components/FanAchievementBadges";
+import FanclubLeaderboard from "@/components/FanclubLeaderboard";
 import { calculateFanPoints, getFanLevel } from "@/lib/fanLevel";
 import { copyToClipboard, getPublishedOrigin } from "@/lib/clipboard";
 import { toast } from "sonner";
@@ -21,12 +22,14 @@ interface FanEntry {
 }
 
 type Period = "all" | "weekly" | "monthly";
+type View = "personal" | "fanclub";
 
 const FanLeaderboard = () => {
   const navigate = useNavigate();
   const [fans, setFans] = useState<FanEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<Period>("all");
+  const [view, setView] = useState<View>("personal");
 
   useEffect(() => {
     fetchFans(period);

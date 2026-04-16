@@ -430,6 +430,7 @@ export type Database = {
           created_at: string
           creator_id: string
           id: string
+          is_fanclub: boolean
           message: string
           nickname: string
         }
@@ -437,6 +438,7 @@ export type Database = {
           created_at?: string
           creator_id: string
           id?: string
+          is_fanclub?: boolean
           message: string
           nickname: string
         }
@@ -444,6 +446,7 @@ export type Database = {
           created_at?: string
           creator_id?: string
           id?: string
+          is_fanclub?: boolean
           message?: string
           nickname?: string
         }
@@ -672,6 +675,54 @@ export type Database = {
           },
           {
             foreignKeyName: "creator_feed_posts_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_messages: {
+        Row: {
+          created_at: string
+          creator_id: string
+          fan_level: number
+          id: string
+          is_read: boolean
+          message: string
+          sender_id: string
+          sender_nickname: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          fan_level?: number
+          id?: string
+          is_read?: boolean
+          message: string
+          sender_id: string
+          sender_nickname?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          fan_level?: number
+          id?: string
+          is_read?: boolean
+          message?: string
+          sender_id?: string
+          sender_nickname?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_messages_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_messages_creator_id_fkey"
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "creators_public"
@@ -1174,6 +1225,42 @@ export type Database = {
           title?: string
         }
         Relationships: []
+      }
+      fanclub_members: {
+        Row: {
+          creator_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          creator_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          creator_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fanclub_members_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fanclub_members_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       hall_of_fame: {
         Row: {
@@ -2842,6 +2929,13 @@ export type Database = {
         Returns: {
           vote_count: number
           vote_date: string
+        }[]
+      }
+      get_creator_fan_level: {
+        Args: { p_creator_id: string; p_user_id: string }
+        Returns: {
+          fan_level: number
+          fan_points: number
         }[]
       }
       get_creator_hourly_votes: {
