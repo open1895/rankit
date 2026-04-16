@@ -113,7 +113,12 @@ const NotificationBell = () => {
     switch (type) {
       case "comment": return "💬";
       case "prediction": return "🎯";
-      case "rank": return "📊";
+      case "rank": return "📈";
+      case "rank_change": return "📈";
+      case "battle_result": return "⚔️";
+      case "donation": return "💝";
+      case "vote_reminder": return "🗳️";
+      case "season_ending": return "⏰";
       default: return "🔔";
     }
   };

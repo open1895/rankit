@@ -929,6 +929,15 @@ const MyPage = () => {
         {/* My Donation History */}
         <MyDonationHistory />
 
+        {/* Notification Settings */}
+        <div className="glass p-6 space-y-3 animate-fade-in-up">
+          <div className="flex items-center gap-2">
+            <span className="text-base">🔔</span>
+            <h3 className="text-sm font-bold gradient-text">알림 설정</h3>
+          </div>
+          <NotificationSettings />
+        </div>
+
         {/* Creator Profile Edit Section */}
         {myCreator && (
           <div className="glass p-6 space-y-4 animate-fade-in-up" style={{ animationDelay: "50ms" }}>
