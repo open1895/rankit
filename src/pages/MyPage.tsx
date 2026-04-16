@@ -951,6 +951,9 @@ const MyPage = () => {
         </button>
         <GiftRPModal open={showGiftModal} onOpenChange={setShowGiftModal} />
 
+        {/* RP Gift History */}
+        <MyGiftHistory />
+
         {/* My Donation History */}
         <MyDonationHistory />
 
