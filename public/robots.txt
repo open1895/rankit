@@ -12,5 +12,24 @@ Allow: /
 
 User-agent: *
 Allow: /
+Allow: /creator/
+Allow: /category/
+Allow: /battle
+Allow: /tournament
+Allow: /predictions
+Allow: /prediction
+Allow: /hall-of-fame
+Allow: /monthly-top3
+Allow: /rising
+Allow: /community
+Allow: /compare
+Allow: /pricing
+Disallow: /admin
+Disallow: /admin-panel
+Disallow: /mypage
+Disallow: /my
+Disallow: /recharge
+Disallow: /shop
+Disallow: /ticket-store
 
 Sitemap: https://rankit.today/sitemap.xml

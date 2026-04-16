@@ -492,9 +492,23 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24 overflow-x-hidden">
       <SEOHead
-        title="Rankit – Creator Influence Ranking Platform"
-        description="팬의 투표로 결정되는 크리에이터 영향력 순위! 투표하고, 예측하고, 좋아하는 크리에이터를 응원하세요."
+        title="크리에이터 영향력 랭킹 TOP 100"
+        description="팬 투표로 결정되는 실시간 크리에이터 영향력 순위. 게임, 먹방, 뷰티, 음악 등 카테고리별 유튜버/스트리머 순위를 확인하세요. 투표하고 배틀로 응원하세요!"
         path="/"
+        keywords="크리에이터 순위, 유튜버 순위, 스트리머 순위, 인플루언서 랭킹, 팬 투표, 크리에이터 영향력, 게임 유튜버 순위, 먹방 유튜버 순위, 뷰티 유튜버 순위, 음악 유튜버 순위, 랭킷, Rankit"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "크리에이터 영향력 랭킹 TOP 10",
+          url: "https://rankit.today/",
+          numberOfItems: Math.min(creators.length, 10),
+          itemListElement: creators.slice(0, 10).map((c, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            name: c.name,
+            url: `https://rankit.today/creator/${c.id}`,
+          })),
+        }}
       />
 
       {/* Push Notification Prompt */}

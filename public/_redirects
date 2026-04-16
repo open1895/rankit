@@ -1,5 +1,6 @@
 # Redirect www to non-www (canonical domain)
 /pricing /pricing/index.html 200
 /pricing/ /pricing/index.html 200
+/sitemap.xml https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/sitemap 200
 http://www.rankit.today/* https://rankit.today/:splat 301!
 https://www.rankit.today/* https://rankit.today/:splat 301!
