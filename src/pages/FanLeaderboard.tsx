@@ -124,6 +124,27 @@ const FanLeaderboard = () => {
       </header>
 
       <main className="container max-w-lg mx-auto px-4 py-6 space-y-4">
+        {/* View Tabs: Personal vs Fanclub */}
+        <div className="flex gap-2">
+          {([["personal", "👤 개인 랭킹"], ["fanclub", "💜 팬클럽 랭킹"]] as const).map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setView(key)}
+              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+                view === key
+                  ? "gradient-primary text-primary-foreground"
+                  : "glass-sm text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {view === "fanclub" ? (
+          <FanclubLeaderboard />
+        ) : (
+        <>
         {/* Weekly Featured Fan */}
         {!loading && fans.length > 0 && period === "weekly" && (
           <div className="glass p-5 space-y-3 border border-[hsl(var(--neon-purple)/0.3)] animate-glow-pulse">
@@ -227,6 +248,8 @@ const FanLeaderboard = () => {
               </div>
             ))}
           </div>
+        )}
+        </>
         )}
       </main>
       <Footer />

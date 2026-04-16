@@ -17,6 +17,7 @@ import EventBanner from "@/components/EventBanner";
 import GoldenTimeBanner from "@/components/GoldenTimeBanner";
 import DailyMatchupCard from "@/components/DailyMatchupCard";
 import DailySummaryCard from "@/components/DailySummaryCard";
+import TopFandomWidget from "@/components/TopFandomWidget";
 
 // Lazy-load heavy sections
 const LiveFeed = lazy(() => import("@/components/LiveFeed"));
@@ -832,6 +833,9 @@ const Index = () => {
 
       {/* Daily Summary (logged in only) */}
       <DailySummaryCard />
+
+      {/* 👑 This Week's Top Fandom */}
+      <TopFandomWidget />
 
       {/* 1. Hero Section */}
       <HomepageHero />
