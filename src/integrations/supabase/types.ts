@@ -1009,6 +1009,45 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          battle_result: boolean
+          created_at: string
+          donation_received: boolean
+          id: string
+          push_enabled: boolean
+          rank_change: boolean
+          season_ending: boolean
+          updated_at: string
+          user_id: string
+          vote_reminder: boolean
+        }
+        Insert: {
+          battle_result?: boolean
+          created_at?: string
+          donation_received?: boolean
+          id?: string
+          push_enabled?: boolean
+          rank_change?: boolean
+          season_ending?: boolean
+          updated_at?: string
+          user_id: string
+          vote_reminder?: boolean
+        }
+        Update: {
+          battle_result?: boolean
+          created_at?: string
+          donation_received?: boolean
+          id?: string
+          push_enabled?: boolean
+          rank_change?: boolean
+          season_ending?: boolean
+          updated_at?: string
+          user_id?: string
+          vote_reminder?: boolean
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1436,6 +1475,42 @@ export type Database = {
           super_votes?: number
           tickets?: number
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          created_at: string
+          device_type: string
+          endpoint: string
+          id: string
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth_key?: string
+          created_at?: string
+          device_type?: string
+          endpoint: string
+          id?: string
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth_key?: string
+          created_at?: string
+          device_type?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: []
