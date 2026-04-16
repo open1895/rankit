@@ -208,8 +208,14 @@ const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName 
             <div className="text-[10px] text-muted-foreground text-right">{message.length}/100</div>
           </div>
 
+          <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-2.5 text-center">
+            <p className="text-xs font-semibold text-emerald-400">
+              ✨ 수수료 없이 100% 전달돼요 🎁
+            </p>
+          </div>
+
           <button
-            disabled={sending || !receiver || amount <= 0 || amount > tickets}
+            disabled={sending || !receiver || amount < MIN_AMOUNT || amount > tickets}
             onClick={handleSend}
             className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-primary text-white font-bold flex items-center justify-center gap-2 disabled:opacity-50 hover:shadow-[0_4px_20px_hsl(var(--primary)/0.4)] transition-all"
           >
@@ -218,7 +224,7 @@ const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName 
           </button>
 
           <p className="text-[10px] text-muted-foreground text-center">
-            🎁 선물한 RP는 즉시 상대방 계정에 적립됩니다 (1회 최대 10,000 RP)
+            🎁 즉시 상대방 계정에 적립 · 최소 {MIN_AMOUNT} RP · 1회 최대 10,000 RP
           </p>
         </div>
       </DialogContent>
