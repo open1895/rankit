@@ -13,6 +13,7 @@ import VoteResultModal from "./VoteResultModal";
 import BoostVoteButton from "./BoostVoteButton";
 import CelebrationEffect from "./CelebrationEffect";
 import { toast } from "sonner";
+import { highlightMatch } from "@/lib/highlight";
 
 interface RankingCardProps {
   creator: Creator;
@@ -20,6 +21,7 @@ interface RankingCardProps {
   onVote: (id: string) => Promise<boolean>;
   onBonusVote?: () => void;
   hasVoted?: boolean;
+  highlightQuery?: string;
 }
 
 // Pre-generate fire effect emojis to avoid re-computation on each render
@@ -33,7 +35,7 @@ const fireParticles = Array.from({ length: 30 }, (_, i) => ({
   duration: `${0.8 + (i % 3) * 0.6}s`,
 }));
 
-const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = false }: RankingCardProps) => {
+const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = false, highlightQuery = "" }: RankingCardProps) => {
   const hallOfFameWins = useHallOfFameWins();
   const { user } = useAuth();
   const { tickets, refreshTickets } = useTickets();
@@ -236,7 +238,7 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <Link to={`/creator/${creator.id}`} className="font-semibold text-sm truncate hover:text-neon-cyan transition-colors">{creator.name}</Link>
+            <Link to={`/creator/${creator.id}`} className="font-semibold text-sm truncate hover:text-neon-cyan transition-colors">{highlightMatch(creator.name, highlightQuery)}</Link>
             {creatorWins > 0 && (
               <span className="shrink-0 flex items-center gap-0.5" title={winTitle || ""}>
                 <Crown className="w-3.5 h-3.5 text-yellow-400" />
