@@ -130,9 +130,19 @@ Deno.serve(async (req) => {
       comboBonus = getComboBonus(comboCount);
     }
 
-    // ── Super vote handling ──
+    // ── Golden Time check (KST 20:00 ~ 21:00 → 2x weight) ──
     let voteWeight = 1;
     let usedSuper = false;
+    let isGoldenTime = false;
+    {
+      const nowUtc = new Date();
+      const kstNow = new Date(nowUtc.getTime() + 9 * 60 * 60 * 1000);
+      const kstHour = kstNow.getUTCHours();
+      if (kstHour === 20) {
+        voteWeight = 2;
+        isGoldenTime = true;
+      }
+    }
 
     if (userId && use_super === true) {
       const { data: profile } = await supabase
@@ -142,7 +152,7 @@ Deno.serve(async (req) => {
         .single();
 
       if (profile && profile.super_votes > 0) {
-        voteWeight = 3;
+        voteWeight = isGoldenTime ? 6 : 3; // golden time stacks with super
         usedSuper = true;
         await supabase
           .from("profiles")
@@ -385,6 +395,7 @@ Deno.serve(async (req) => {
         combo_bonus: comboBonus,
         vote_weight: voteWeight,
         used_super: usedSuper,
+        is_golden_time: isGoldenTime,
         rp_earned: rpEarned,
         milestone: milestoneReached,
       }),

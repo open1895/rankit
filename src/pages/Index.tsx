@@ -14,6 +14,9 @@ import LazySection from "@/components/LazySection";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import EventBanner from "@/components/EventBanner";
+import GoldenTimeBanner from "@/components/GoldenTimeBanner";
+import DailyMatchupCard from "@/components/DailyMatchupCard";
+import DailySummaryCard from "@/components/DailySummaryCard";
 
 // Lazy-load heavy sections
 const LiveFeed = lazy(() => import("@/components/LiveFeed"));
@@ -804,8 +807,17 @@ const Index = () => {
       <Suspense fallback={null}>
       {/* ===== NEW HOMEPAGE STRUCTURE ===== */}
 
+      {/* Golden Time top banner */}
+      <GoldenTimeBanner />
+
       {/* 0.5. Event Banners */}
       <EventBanner />
+
+      {/* Daily Matchup */}
+      <DailyMatchupCard />
+
+      {/* Daily Summary (logged in only) */}
+      <DailySummaryCard />
 
       {/* 1. Hero Section */}
       <HomepageHero />

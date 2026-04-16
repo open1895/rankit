@@ -928,6 +928,118 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_matchup_votes: {
+        Row: {
+          created_at: string
+          id: string
+          matchup_id: string
+          user_id: string
+          voted_creator_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          matchup_id: string
+          user_id: string
+          voted_creator_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          matchup_id?: string
+          user_id?: string
+          voted_creator_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_matchup_votes_matchup_id_fkey"
+            columns: ["matchup_id"]
+            isOneToOne: false
+            referencedRelation: "daily_matchups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_matchups: {
+        Row: {
+          created_at: string
+          creator_a_id: string
+          creator_b_id: string
+          date: string
+          id: string
+          votes_a: number
+          votes_b: number
+        }
+        Insert: {
+          created_at?: string
+          creator_a_id: string
+          creator_b_id: string
+          date: string
+          id?: string
+          votes_a?: number
+          votes_b?: number
+        }
+        Update: {
+          created_at?: string
+          creator_a_id?: string
+          creator_b_id?: string
+          date?: string
+          id?: string
+          votes_a?: number
+          votes_b?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_matchups_creator_a_id_fkey"
+            columns: ["creator_a_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_matchups_creator_a_id_fkey"
+            columns: ["creator_a_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_matchups_creator_b_id_fkey"
+            columns: ["creator_b_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_matchups_creator_b_id_fkey"
+            columns: ["creator_b_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_summary_dismissals: {
+        Row: {
+          dismissed_at: string
+          id: string
+          summary_date: string
+          user_id: string
+        }
+        Insert: {
+          dismissed_at?: string
+          id?: string
+          summary_date: string
+          user_id: string
+        }
+        Update: {
+          dismissed_at?: string
+          id?: string
+          summary_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
