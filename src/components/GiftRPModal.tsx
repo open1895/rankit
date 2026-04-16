@@ -20,6 +20,7 @@ interface ProfileResult {
 }
 
 const PRESETS = [10, 50, 100, 500];
+const MIN_AMOUNT = 10;
 
 const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName }: Props) => {
   const { user } = useAuth();
