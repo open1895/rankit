@@ -136,6 +136,11 @@ const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName 
                 placeholder="닉네임 검색..."
                 className="w-full px-3 py-2 rounded-xl bg-glass-bg border border-glass-border text-sm focus:outline-none focus:border-primary"
               />
+              {query.trim().length >= 2 && results.length === 0 && (
+                <div className="text-xs text-muted-foreground text-center py-2">
+                  존재하지 않는 유저입니다
+                </div>
+              )}
               {results.length > 0 && (
                 <div className="space-y-1 max-h-40 overflow-y-auto">
                   {results.map((r) => (
