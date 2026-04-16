@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AICommentSummary from "@/components/AICommentSummary";
+import CommentFanLevelBadge from "@/components/CommentFanLevelBadge";
 import { MessageCircle, Heart } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -12,6 +13,7 @@ interface Comment {
   vote_count: number;
   post_count: number;
   created_at: string;
+  creator_id: string;
   creator_name?: string;
 }
 
@@ -189,6 +191,7 @@ const FanComments = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-xs font-bold text-foreground">{comment.nickname}</span>
+                      <CommentFanLevelBadge nickname={comment.nickname} creatorId={comment.creator_id} />
                       <span className="text-[10px] text-neon-cyan font-medium bg-neon-cyan/10 px-1.5 py-0.5 rounded-full border border-neon-cyan/20">
                         {comment.creator_name}
                       </span>

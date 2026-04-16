@@ -16,6 +16,7 @@ const ActiveBoostCampaigns = lazy(() => import("@/components/ActiveBoostCampaign
 const FeaturedChampion = lazy(() => import("@/components/FeaturedChampion"));
 const StreakTracker = lazy(() => import("@/components/StreakTracker"));
 const LivePredictionBattle = lazy(() => import("@/components/LivePredictionBattle"));
+const FandomTournament = lazy(() => import("@/components/FandomTournament"));
 
 const SectionFallback = () => (
   <div className="glass rounded-2xl p-8 animate-pulse h-40" />
@@ -109,6 +110,13 @@ const ExplorePage = () => {
         <Suspense fallback={<SectionFallback />}>
           <ScrollReveal delay={100}>
             <WeeklyHighlights />
+          </ScrollReveal>
+        </Suspense>
+
+        {/* Fandom Tournament */}
+        <Suspense fallback={<SectionFallback />}>
+          <ScrollReveal delay={110}>
+            <FandomTournament />
           </ScrollReveal>
         </Suspense>
 
