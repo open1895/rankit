@@ -101,7 +101,7 @@ const Unsubscribe = () => {
               {status === "validating" || status === "submitting" ? (
                 <Loader2 className="w-12 h-12 animate-spin text-primary" />
               ) : status === "success" || status === "already" ? (
-                <CheckCircle2 className="w-12 h-12 text-green-500" />
+                <CheckCircle2 className="w-12 h-12 text-primary" />
               ) : status === "valid" ? (
                 <MailX className="w-12 h-12 text-primary" />
               ) : (
