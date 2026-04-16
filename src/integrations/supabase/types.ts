@@ -1933,6 +1933,36 @@ export type Database = {
         }
         Relationships: []
       }
+      rp_gifts: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          message: string
+          receiver_id: string
+          sender_id: string
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          message?: string
+          receiver_id: string
+          sender_id: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          message?: string
+          receiver_id?: string
+          sender_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       season_awards: {
         Row: {
           award_key: string
@@ -1990,6 +2020,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      season_limited_badges: {
+        Row: {
+          badge_key: string
+          created_at: string
+          current_supply: number
+          description: string
+          emoji: string
+          id: string
+          is_active: boolean
+          max_supply: number | null
+          name: string
+          price_rp: number
+          rarity: string
+          sale_ends_at: string
+          sale_starts_at: string
+          season_number: number | null
+        }
+        Insert: {
+          badge_key: string
+          created_at?: string
+          current_supply?: number
+          description?: string
+          emoji?: string
+          id?: string
+          is_active?: boolean
+          max_supply?: number | null
+          name: string
+          price_rp?: number
+          rarity?: string
+          sale_ends_at?: string
+          sale_starts_at?: string
+          season_number?: number | null
+        }
+        Update: {
+          badge_key?: string
+          created_at?: string
+          current_supply?: number
+          description?: string
+          emoji?: string
+          id?: string
+          is_active?: boolean
+          max_supply?: number | null
+          name?: string
+          price_rp?: number
+          rarity?: string
+          sale_ends_at?: string
+          sale_starts_at?: string
+          season_number?: number | null
+        }
+        Relationships: []
       }
       season_rankings: {
         Row: {
@@ -2600,6 +2681,41 @@ export type Database = {
           },
         ]
       }
+      user_badges: {
+        Row: {
+          acquired_at: string
+          acquired_via: string
+          badge_id: string
+          id: string
+          season_number: number | null
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          acquired_via?: string
+          badge_id: string
+          id?: string
+          season_number?: number | null
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          acquired_via?: string
+          badge_id?: string
+          id?: string
+          season_number?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "season_limited_badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_missions: {
         Row: {
           completed_at: string
@@ -2975,6 +3091,15 @@ export type Database = {
           wins: number
         }[]
       }
+      gift_rp: {
+        Args: {
+          p_amount: number
+          p_message?: string
+          p_receiver_id: string
+          p_sender_id: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2990,6 +3115,10 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      purchase_season_badge: {
+        Args: { p_badge_id: string; p_user_id: string }
+        Returns: string
       }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
