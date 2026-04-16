@@ -7,6 +7,9 @@ import CreatorDashboard from "@/components/CreatorDashboard";
 import CreatorRecommendations from "@/components/CreatorRecommendations";
 import MyDonationHistory from "@/components/MyDonationHistory";
 import MyFanclubsSection from "@/components/MyFanclubsSection";
+import SeasonBadgeShop from "@/components/SeasonBadgeShop";
+import MyBadgesShowcase from "@/components/MyBadgesShowcase";
+import GiftRPModal from "@/components/GiftRPModal";
 import NotificationSettings from "@/components/NotificationSettings";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -926,6 +929,10 @@ const MyPage = () => {
         {myCreator && (
           <CreatorDashboard creatorId={myCreator.id} creatorName={myCreator.name} />
         )}
+
+        {/* Season Badges */}
+        <MyBadgesShowcase />
+        <SeasonBadgeShop />
 
         {/* My Donation History */}
         <MyDonationHistory />
