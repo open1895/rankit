@@ -934,6 +934,22 @@ const MyPage = () => {
         <MyBadgesShowcase />
         <SeasonBadgeShop />
 
+        {/* RP Gift CTA */}
+        <button
+          onClick={() => setShowGiftModal(true)}
+          className="w-full glass rounded-2xl p-4 flex items-center gap-3 hover:border-pink-400/40 transition-all"
+        >
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-primary flex items-center justify-center text-2xl shrink-0">
+            🎁
+          </div>
+          <div className="flex-1 text-left min-w-0">
+            <div className="font-bold text-sm">친구에게 RP 선물하기</div>
+            <div className="text-[11px] text-muted-foreground">응원 메시지와 함께 보유 RP를 전송할 수 있어요</div>
+          </div>
+          <span className="text-xs text-pink-400 font-bold shrink-0">선물 →</span>
+        </button>
+        <GiftRPModal open={showGiftModal} onOpenChange={setShowGiftModal} />
+
         {/* My Donation History */}
         <MyDonationHistory />
 
