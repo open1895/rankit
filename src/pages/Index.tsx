@@ -32,11 +32,56 @@ const PopularPosts = lazy(() => import("@/components/PopularPosts"));
 const LandingHero = lazy(() => import("@/components/LandingHero"));
 const NewUserWelcome = lazy(() => import("@/components/NewUserWelcome"));
 const PushNotificationPrompt = lazy(() => import("@/components/PushNotificationPrompt"));
-import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
+import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home, ArrowUpDown, Clock, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { highlightMatch } from "@/lib/highlight";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+type SortBy = "rank" | "votes" | "score" | "new";
+type SubscriberFilter = "all" | "10k" | "100k" | "1m";
+
+const SORT_OPTIONS: { value: SortBy; label: string }[] = [
+  { value: "rank", label: "순위순" },
+  { value: "votes", label: "투표순" },
+  { value: "score", label: "스코어순" },
+  { value: "new", label: "신규순" },
+];
+
+const SUBSCRIBER_OPTIONS: { value: SubscriberFilter; label: string }[] = [
+  { value: "all", label: "전체" },
+  { value: "10k", label: "1만↑" },
+  { value: "100k", label: "10만↑" },
+  { value: "1m", label: "100만↑" },
+];
+
+const RECENT_SEARCH_KEY = "recent_searches";
+const MAX_RECENT_SEARCHES = 5;
+
+const loadRecentSearches = (): string[] => {
+  try {
+    const raw = localStorage.getItem(RECENT_SEARCH_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((v) => typeof v === "string").slice(0, MAX_RECENT_SEARCHES) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveRecentSearch = (term: string): string[] => {
+  const t = term.trim();
+  if (!t) return loadRecentSearches();
+  const current = loadRecentSearches().filter((v) => v.toLowerCase() !== t.toLowerCase());
+  const next = [t, ...current].slice(0, MAX_RECENT_SEARCHES);
+  try {
+    localStorage.setItem(RECENT_SEARCH_KEY, JSON.stringify(next));
+  } catch {}
+  return next;
+};
+
 
 const CATEGORY_TABS = [
   { label: "전체", value: "all" },
@@ -183,6 +228,12 @@ const Index = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [sortBy, setSortBy] = useState<SortBy>("rank");
+  const [subscriberFilter, setSubscriberFilter] = useState<SubscriberFilter>("all");
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => loadRecentSearches());
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [similarCreators, setSimilarCreators] = useState<Creator[]>([]);
   const [nominationOpen, setNominationOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [page, setPage] = useState(0);
@@ -198,10 +249,12 @@ const Index = () => {
     }
   }, [searchParams]);
 
-  // 서버사이드 fetch (카테고리/검색/페이지 반영)
+  // 서버사이드 fetch (카테고리/검색/정렬/구독자 필터/페이지 반영)
   const fetchCreators = useCallback(async (
     category: string,
     search: string,
+    sort: SortBy,
+    subFilter: SubscriberFilter,
     pageIndex: number,
     append: boolean
   ) => {
@@ -211,8 +264,13 @@ const Index = () => {
     let query = supabase
       .from("creators")
       .select("*", { count: "exact" })
-      .order("rank", { ascending: true })
       .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);
+
+    // 정렬
+    if (sort === "rank") query = query.order("rank", { ascending: true });
+    else if (sort === "votes") query = query.order("votes_count", { ascending: false });
+    else if (sort === "score") query = query.order("rankit_score", { ascending: false });
+    else if (sort === "new") query = query.order("created_at", { ascending: false });
 
     if (category !== "all") {
       query = query.ilike("category", `%${category}%`);
@@ -220,6 +278,9 @@ const Index = () => {
     if (search.trim()) {
       query = query.ilike("name", `%${search.trim()}%`);
     }
+    if (subFilter === "10k") query = query.gte("subscriber_count", 10000);
+    else if (subFilter === "100k") query = query.gte("subscriber_count", 100000);
+    else if (subFilter === "1m") query = query.gte("subscriber_count", 1000000);
 
     const { data, error, count } = await query;
 
@@ -254,11 +315,61 @@ const Index = () => {
     setLoadingMore(false);
   }, []);
 
-  // 카테고리/검색 변경 시 첫 페이지부터 다시 fetch
+  // 카테고리/검색/정렬/필터 변경 시 첫 페이지부터 다시 fetch
   useEffect(() => {
     setPage(0);
-    fetchCreators(selectedCategory, searchQuery, 0, false);
-  }, [selectedCategory, searchQuery, fetchCreators]);
+    fetchCreators(selectedCategory, searchQuery, sortBy, subscriberFilter, 0, false);
+  }, [selectedCategory, searchQuery, sortBy, subscriberFilter, fetchCreators]);
+
+  // 검색어 디바운스 → searchQuery 동기화 + 최근 검색어 저장
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearchQuery(searchInput);
+      if (searchInput.trim().length >= 2) {
+        setRecentSearches(saveRecentSearch(searchInput));
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  // 검색결과 0건일 때 비슷한 크리에이터 추천 (이름 첫 글자 기반)
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (!searchOpen || !q || creators.length > 0 || loading) {
+      setSimilarCreators([]);
+      return;
+    }
+    const firstChar = q.charAt(0);
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("creators")
+        .select("id, name, category, avatar_url, votes_count, subscriber_count, rank, is_verified, rankit_score")
+        .ilike("name", `%${firstChar}%`)
+        .order("rank", { ascending: true })
+        .limit(3);
+      if (cancelled) return;
+      const mapped: Creator[] = (data || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        category: c.category,
+        avatar_url: c.avatar_url,
+        votes_count: c.votes_count,
+        subscriber_count: c.subscriber_count ?? 0,
+        rank: c.rank,
+        previousRank: c.rank,
+        is_verified: c.is_verified,
+        youtube_subscribers: 0,
+        chzzk_followers: 0,
+        instagram_followers: 0,
+        tiktok_followers: 0,
+        rankit_score: c.rankit_score ?? 0,
+        last_stats_updated: null,
+      }));
+      setSimilarCreators(mapped);
+    })();
+    return () => { cancelled = true; };
+  }, [searchQuery, searchOpen, creators.length, loading]);
 
   // Realtime 구독 (현재 목록에 있는 크리에이터만 업데이트)
   useEffect(() => {
@@ -292,7 +403,18 @@ const Index = () => {
   const handleLoadMore = () => {
     const nextPage = page + 1;
     setPage(nextPage);
-    fetchCreators(selectedCategory, searchQuery, nextPage, true);
+    fetchCreators(selectedCategory, searchQuery, sortBy, subscriberFilter, nextPage, true);
+  };
+
+  const removeRecentSearch = (term: string) => {
+    const next = recentSearches.filter((v) => v !== term);
+    setRecentSearches(next);
+    try { localStorage.setItem(RECENT_SEARCH_KEY, JSON.stringify(next)); } catch {}
+  };
+
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+    try { localStorage.removeItem(RECENT_SEARCH_KEY); } catch {}
   };
 
   const hasMore = creators.length < totalCount;
@@ -438,12 +560,15 @@ const Index = () => {
               <input
                 autoFocus
                 type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
                 placeholder="크리에이터 검색..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50 transition-all"
+                className="w-full pl-10 pr-9 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50 transition-all"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && searchQuery.trim()) {
+                  if (e.key === "Enter" && searchInput.trim()) {
+                    setRecentSearches(saveRecentSearch(searchInput));
                     setSearchOpen(false);
                     setTimeout(() => {
                       document.getElementById("ranking-section")?.scrollIntoView({ behavior: "smooth" });
@@ -451,16 +576,75 @@ const Index = () => {
                   }
                 }}
               />
+              {searchInput && (
+                <button
+                  onClick={() => setSearchInput("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                  aria-label="검색어 지우기"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
             <button
-              onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+              onClick={() => { setSearchOpen(false); setSearchInput(""); setSearchQuery(""); }}
               className="p-2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="container max-w-lg mx-auto px-4 pb-2">
+          {/* Recent searches dropdown */}
+          {searchFocused && !searchInput.trim() && recentSearches.length > 0 && (
+            <div className="container max-w-lg mx-auto px-4 pb-2">
+              <div className="glass-sm rounded-xl p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    <Clock className="w-3.5 h-3.5" />
+                    최근 검색
+                  </div>
+                  <button
+                    onClick={clearRecentSearches}
+                    className="text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    전체 삭제
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {recentSearches.map((term) => (
+                    <div
+                      key={term}
+                      className="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-full glass-sm text-xs"
+                    >
+                      <button
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setSearchInput(term);
+                        }}
+                        className="text-foreground hover:text-neon-purple transition-colors"
+                      >
+                        {term}
+                      </button>
+                      <button
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          removeRecentSearch(term);
+                        }}
+                        className="p-0.5 text-muted-foreground hover:text-destructive transition-colors"
+                        aria-label={`${term} 삭제`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="container max-w-lg mx-auto px-4 pb-2 space-y-2">
+            {/* Categories */}
             <div className="overflow-x-auto scrollbar-hide">
               <div className="flex gap-2 pb-1 w-max">
                 {CATEGORY_TABS.map((tab) => (
@@ -478,8 +662,47 @@ const Index = () => {
                 ))}
               </div>
             </div>
+
+            {/* Sort buttons */}
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-1.5 pb-1 w-max">
+                {SORT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSortBy(opt.value)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all ${
+                      sortBy === opt.value
+                        ? "bg-neon-purple/20 text-neon-purple border border-neon-purple/40"
+                        : "glass-sm text-muted-foreground hover:text-foreground border border-transparent"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Subscriber filter */}
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-1.5 pb-1 w-max">
+                {SUBSCRIBER_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSubscriberFilter(opt.value)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all ${
+                      subscriberFilter === opt.value
+                        ? "bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/40"
+                        : "glass-sm text-muted-foreground hover:text-foreground border border-transparent"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {!loading && (
-              <div className="text-xs text-muted-foreground mt-2">
+              <div className="text-xs text-muted-foreground">
                 {searchQuery ? `"${searchQuery}" 검색 결과: ` : ""}
                 {filteredCreators.length}명의 크리에이터
               </div>
@@ -488,17 +711,51 @@ const Index = () => {
 
           <div className="flex-1 overflow-y-auto container max-w-lg mx-auto px-4 pb-6 space-y-3">
             {filteredCreators.length === 0 ? (
-              <div className="text-center py-12 glass rounded-2xl space-y-3">
-                <p className="text-muted-foreground text-sm">
-                  {searchQuery ? `"${searchQuery}"에 대한 결과가 없습니다` : "해당 카테고리의 크리에이터가 없습니다"}
-                </p>
-                <button
-                  onClick={() => { setSearchOpen(false); setNominationOpen(true); }}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-neon-purple hover:underline transition-colors"
-                >
-                  <Megaphone className="w-3.5 h-3.5" />
-                  크리에이터 추천하기
-                </button>
+              <div className="space-y-3">
+                <div className="text-center py-8 glass rounded-2xl space-y-3">
+                  <p className="text-muted-foreground text-sm">
+                    {searchQuery ? `"${searchQuery}"에 대한 결과가 없습니다` : "해당 카테고리의 크리에이터가 없습니다"}
+                  </p>
+                  <button
+                    onClick={() => { setSearchOpen(false); setNominationOpen(true); }}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-neon-purple hover:underline transition-colors"
+                  >
+                    <Megaphone className="w-3.5 h-3.5" />
+                    크리에이터 추천하기
+                  </button>
+                </div>
+
+                {/* Similar creator suggestions */}
+                {searchQuery.trim() && similarCreators.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground px-1">
+                      혹시 이 크리에이터를 찾으셨나요?
+                    </p>
+                    {similarCreators.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => { setSearchOpen(false); navigate(`/creator/${c.id}`); }}
+                        className="w-full flex items-center gap-3 p-3 glass-sm rounded-xl hover:bg-card/50 transition text-left"
+                      >
+                        {c.avatar_url?.startsWith("http") ? (
+                          <img src={c.avatar_url} alt={c.name} className="w-10 h-10 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
+                            {c.name.slice(0, 2)}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold truncate">
+                            {highlightMatch(c.name, searchQuery)}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            #{c.rank} · {c.category}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               visibleCreators.map((creator) => (
@@ -507,7 +764,12 @@ const Index = () => {
                   onClick={() => { setSearchOpen(false); navigate(`/creator/${creator.id}`); }}
                   className="cursor-pointer"
                 >
-                  <RankingCard creator={creator} creators={filteredCreators} onVote={async () => false} />
+                  <RankingCard
+                    creator={creator}
+                    creators={filteredCreators}
+                    onVote={async () => false}
+                    highlightQuery={searchQuery}
+                  />
                 </div>
               ))
             )}
@@ -537,6 +799,7 @@ const Index = () => {
           </div>
         </div>
       )}
+
 
       <Suspense fallback={null}>
       {/* ===== NEW HOMEPAGE STRUCTURE ===== */}
@@ -604,14 +867,14 @@ const Index = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="크리에이터 검색..."
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50 transition-all"
               />
-              {searchQuery && (
+              {searchInput && (
                 <button
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => setSearchInput("")}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   ✕
@@ -619,24 +882,40 @@ const Index = () => {
               )}
             </div>
 
-            {/* Category Tabs */}
-            <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-              <div className="flex gap-2 pb-1 w-max">
-                {CATEGORY_TABS.map((tab) => (
-                  <button
-                    key={tab.value}
-                    onClick={() => setSelectedCategory(tab.value)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 ${
-                      selectedCategory === tab.value
-                        ? "gradient-primary text-primary-foreground shadow-lg shadow-primary/20"
-                        : "glass-sm text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
+            {/* Category Tabs + Sort dropdown */}
+            <div className="flex items-center gap-2">
+              <div className="overflow-x-auto scrollbar-hide flex-1 min-w-0">
+                <div className="flex gap-2 pb-1 w-max">
+                  {CATEGORY_TABS.map((tab) => (
+                    <button
+                      key={tab.value}
+                      onClick={() => setSelectedCategory(tab.value)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 ${
+                        selectedCategory === tab.value
+                          ? "gradient-primary text-primary-foreground shadow-lg shadow-primary/20"
+                          : "glass-sm text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
               </div>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
+                <SelectTrigger className="w-[110px] h-8 rounded-full text-xs glass-sm border-glass-border/50 flex-shrink-0">
+                  <ArrowUpDown className="w-3 h-3 mr-1 text-neon-purple" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="z-50">
+                  {SORT_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
 
             {!loading && (
               <div className="text-xs text-muted-foreground">
@@ -678,6 +957,7 @@ const Index = () => {
                   onVote={handleVote}
                   onBonusVote={() => setExtraVotes((v) => v + 1)}
                   hasVoted={todayVoted.has(creator.id)}
+                  highlightQuery={searchQuery}
                 />
               ))}
               {hasMore && (
