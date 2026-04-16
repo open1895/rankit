@@ -182,6 +182,17 @@ const Auth = () => {
     }
   };
 
+  const handleNaverLogin = () => {
+    if (isWebView) {
+      toast.error("인앱 브라우저에서는 네이버 로그인이 제한될 수 있습니다. 외부 브라우저에서 열어주세요.");
+      return;
+    }
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    const returnTo = "/";
+    const startUrl = `https://${projectId}.supabase.co/functions/v1/naver-auth-start?return_to=${encodeURIComponent(returnTo)}`;
+    window.location.href = startUrl;
+  };
+
   return (
     <div className="min-h-screen bg-background mesh-bg flex flex-col">
       <SEOHead title="로그인" description="Rank It에 로그인하여 크리에이터에게 투표하고 팬 랭킹에 참여하세요." path="/auth" noIndex />
