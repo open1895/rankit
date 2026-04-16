@@ -957,6 +957,7 @@ const Index = () => {
                   onVote={handleVote}
                   onBonusVote={() => setExtraVotes((v) => v + 1)}
                   hasVoted={todayVoted.has(creator.id)}
+                  highlightQuery={searchQuery}
                 />
               ))}
               {hasMore && (
