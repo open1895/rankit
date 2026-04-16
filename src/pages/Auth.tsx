@@ -34,6 +34,24 @@ const Auth = () => {
     if (inApp) setWebViewName(getInAppBrowserName());
   }, []);
 
+  // Handle Naver OAuth error redirected back to /auth
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes("naver_error=")) {
+      const params = new URLSearchParams(hash.substring(1));
+      const err = params.get("naver_error");
+      const map: Record<string, string> = {
+        token_exchange_failed: "네이버 인증 토큰 발급에 실패했습니다.",
+        profile_fetch_failed: "네이버 프로필 정보를 가져올 수 없습니다.",
+        user_create_failed: "사용자 생성에 실패했습니다.",
+        session_failed: "세션 생성에 실패했습니다.",
+        no_code: "네이버 로그인이 취소되었습니다.",
+      };
+      toast.error(map[err || ""] || "네이버 로그인에 실패했습니다.");
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
+
   useEffect(() => {
     if (user) navigate("/");
   }, [user, navigate]);
