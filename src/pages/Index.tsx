@@ -403,7 +403,18 @@ const Index = () => {
   const handleLoadMore = () => {
     const nextPage = page + 1;
     setPage(nextPage);
-    fetchCreators(selectedCategory, searchQuery, nextPage, true);
+    fetchCreators(selectedCategory, searchQuery, sortBy, subscriberFilter, nextPage, true);
+  };
+
+  const removeRecentSearch = (term: string) => {
+    const next = recentSearches.filter((v) => v !== term);
+    setRecentSearches(next);
+    try { localStorage.setItem(RECENT_SEARCH_KEY, JSON.stringify(next)); } catch {}
+  };
+
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+    try { localStorage.removeItem(RECENT_SEARCH_KEY); } catch {}
   };
 
   const hasMore = creators.length < totalCount;
