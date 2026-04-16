@@ -867,14 +867,14 @@ const Index = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="크리에이터 검색..."
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50 transition-all"
               />
-              {searchQuery && (
+              {searchInput && (
                 <button
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => setSearchInput("")}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   ✕
@@ -882,24 +882,40 @@ const Index = () => {
               )}
             </div>
 
-            {/* Category Tabs */}
-            <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-              <div className="flex gap-2 pb-1 w-max">
-                {CATEGORY_TABS.map((tab) => (
-                  <button
-                    key={tab.value}
-                    onClick={() => setSelectedCategory(tab.value)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 ${
-                      selectedCategory === tab.value
-                        ? "gradient-primary text-primary-foreground shadow-lg shadow-primary/20"
-                        : "glass-sm text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
+            {/* Category Tabs + Sort dropdown */}
+            <div className="flex items-center gap-2">
+              <div className="overflow-x-auto scrollbar-hide flex-1 min-w-0">
+                <div className="flex gap-2 pb-1 w-max">
+                  {CATEGORY_TABS.map((tab) => (
+                    <button
+                      key={tab.value}
+                      onClick={() => setSelectedCategory(tab.value)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 ${
+                        selectedCategory === tab.value
+                          ? "gradient-primary text-primary-foreground shadow-lg shadow-primary/20"
+                          : "glass-sm text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
               </div>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
+                <SelectTrigger className="w-[110px] h-8 rounded-full text-xs glass-sm border-glass-border/50 flex-shrink-0">
+                  <ArrowUpDown className="w-3 h-3 mr-1 text-neon-purple" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="z-50">
+                  {SORT_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
 
             {!loading && (
               <div className="text-xs text-muted-foreground">
