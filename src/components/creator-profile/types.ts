@@ -21,6 +21,7 @@ export type CreatorProfileData = Creator & {
   verification_status?: string;
   performance_tier?: string;
   featured_until?: string | null;
+  claimed?: boolean;
 };
 
 export interface FanRankingEntry {

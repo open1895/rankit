@@ -5,6 +5,7 @@ import RankitVerifiedBadge from "@/components/RankitVerifiedBadge";
 import CreatorPerformanceBadge from "@/components/CreatorPerformanceBadge";
 import CreatorRewards from "@/components/CreatorRewards";
 import PowerBoostSection from "@/components/PowerBoostCard";
+import DonationStats from "@/components/DonationStats";
 import { CreatorProfileData } from "./types";
 
 interface OverviewTabProps {
