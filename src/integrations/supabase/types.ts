@@ -679,6 +679,54 @@ export type Database = {
           },
         ]
       }
+      creator_milestone_notifications: {
+        Row: {
+          created_at: string
+          creator_id: string
+          id: string
+          milestone_type: string
+          rank_at_notification: number
+          recipient_email: string
+          sent_at: string
+          votes_at_notification: number
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          id?: string
+          milestone_type: string
+          rank_at_notification: number
+          recipient_email: string
+          sent_at?: string
+          votes_at_notification?: number
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          id?: string
+          milestone_type?: string
+          rank_at_notification?: number
+          recipient_email?: string
+          sent_at?: string
+          votes_at_notification?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_milestone_notifications_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_milestone_notifications_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creator_rewards: {
         Row: {
           created_at: string
