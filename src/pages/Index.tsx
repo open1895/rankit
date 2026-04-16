@@ -560,12 +560,15 @@ const Index = () => {
               <input
                 autoFocus
                 type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setTimeout(() => setSearchFocused(false), 150)}
                 placeholder="크리에이터 검색..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50 transition-all"
+                className="w-full pl-10 pr-9 py-2.5 rounded-xl glass-sm bg-card/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-neon-purple/50 transition-all"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && searchQuery.trim()) {
+                  if (e.key === "Enter" && searchInput.trim()) {
+                    setRecentSearches(saveRecentSearch(searchInput));
                     setSearchOpen(false);
                     setTimeout(() => {
                       document.getElementById("ranking-section")?.scrollIntoView({ behavior: "smooth" });
@@ -573,16 +576,75 @@ const Index = () => {
                   }
                 }}
               />
+              {searchInput && (
+                <button
+                  onClick={() => setSearchInput("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                  aria-label="검색어 지우기"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
             <button
-              onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+              onClick={() => { setSearchOpen(false); setSearchInput(""); setSearchQuery(""); }}
               className="p-2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="container max-w-lg mx-auto px-4 pb-2">
+          {/* Recent searches dropdown */}
+          {searchFocused && !searchInput.trim() && recentSearches.length > 0 && (
+            <div className="container max-w-lg mx-auto px-4 pb-2">
+              <div className="glass-sm rounded-xl p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    <Clock className="w-3.5 h-3.5" />
+                    최근 검색
+                  </div>
+                  <button
+                    onClick={clearRecentSearches}
+                    className="text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    전체 삭제
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {recentSearches.map((term) => (
+                    <div
+                      key={term}
+                      className="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-full glass-sm text-xs"
+                    >
+                      <button
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setSearchInput(term);
+                        }}
+                        className="text-foreground hover:text-neon-purple transition-colors"
+                      >
+                        {term}
+                      </button>
+                      <button
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          removeRecentSearch(term);
+                        }}
+                        className="p-0.5 text-muted-foreground hover:text-destructive transition-colors"
+                        aria-label={`${term} 삭제`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="container max-w-lg mx-auto px-4 pb-2 space-y-2">
+            {/* Categories */}
             <div className="overflow-x-auto scrollbar-hide">
               <div className="flex gap-2 pb-1 w-max">
                 {CATEGORY_TABS.map((tab) => (
@@ -600,8 +662,47 @@ const Index = () => {
                 ))}
               </div>
             </div>
+
+            {/* Sort buttons */}
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-1.5 pb-1 w-max">
+                {SORT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSortBy(opt.value)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all ${
+                      sortBy === opt.value
+                        ? "bg-neon-purple/20 text-neon-purple border border-neon-purple/40"
+                        : "glass-sm text-muted-foreground hover:text-foreground border border-transparent"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Subscriber filter */}
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-1.5 pb-1 w-max">
+                {SUBSCRIBER_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSubscriberFilter(opt.value)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all ${
+                      subscriberFilter === opt.value
+                        ? "bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/40"
+                        : "glass-sm text-muted-foreground hover:text-foreground border border-transparent"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {!loading && (
-              <div className="text-xs text-muted-foreground mt-2">
+              <div className="text-xs text-muted-foreground">
                 {searchQuery ? `"${searchQuery}" 검색 결과: ` : ""}
                 {filteredCreators.length}명의 크리에이터
               </div>
@@ -610,17 +711,51 @@ const Index = () => {
 
           <div className="flex-1 overflow-y-auto container max-w-lg mx-auto px-4 pb-6 space-y-3">
             {filteredCreators.length === 0 ? (
-              <div className="text-center py-12 glass rounded-2xl space-y-3">
-                <p className="text-muted-foreground text-sm">
-                  {searchQuery ? `"${searchQuery}"에 대한 결과가 없습니다` : "해당 카테고리의 크리에이터가 없습니다"}
-                </p>
-                <button
-                  onClick={() => { setSearchOpen(false); setNominationOpen(true); }}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-neon-purple hover:underline transition-colors"
-                >
-                  <Megaphone className="w-3.5 h-3.5" />
-                  크리에이터 추천하기
-                </button>
+              <div className="space-y-3">
+                <div className="text-center py-8 glass rounded-2xl space-y-3">
+                  <p className="text-muted-foreground text-sm">
+                    {searchQuery ? `"${searchQuery}"에 대한 결과가 없습니다` : "해당 카테고리의 크리에이터가 없습니다"}
+                  </p>
+                  <button
+                    onClick={() => { setSearchOpen(false); setNominationOpen(true); }}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-neon-purple hover:underline transition-colors"
+                  >
+                    <Megaphone className="w-3.5 h-3.5" />
+                    크리에이터 추천하기
+                  </button>
+                </div>
+
+                {/* Similar creator suggestions */}
+                {searchQuery.trim() && similarCreators.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground px-1">
+                      혹시 이 크리에이터를 찾으셨나요?
+                    </p>
+                    {similarCreators.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => { setSearchOpen(false); navigate(`/creator/${c.id}`); }}
+                        className="w-full flex items-center gap-3 p-3 glass-sm rounded-xl hover:bg-card/50 transition text-left"
+                      >
+                        {c.avatar_url?.startsWith("http") ? (
+                          <img src={c.avatar_url} alt={c.name} className="w-10 h-10 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
+                            {c.name.slice(0, 2)}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold truncate">
+                            {highlightMatch(c.name, searchQuery)}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            #{c.rank} · {c.category}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               visibleCreators.map((creator) => (
@@ -629,7 +764,12 @@ const Index = () => {
                   onClick={() => { setSearchOpen(false); navigate(`/creator/${creator.id}`); }}
                   className="cursor-pointer"
                 >
-                  <RankingCard creator={creator} creators={filteredCreators} onVote={async () => false} />
+                  <RankingCard
+                    creator={creator}
+                    creators={filteredCreators}
+                    onVote={async () => false}
+                    highlightQuery={searchQuery}
+                  />
                 </div>
               ))
             )}
@@ -659,6 +799,7 @@ const Index = () => {
           </div>
         </div>
       )}
+
 
       <Suspense fallback={null}>
       {/* ===== NEW HOMEPAGE STRUCTURE ===== */}
