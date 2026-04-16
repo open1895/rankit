@@ -46,6 +46,9 @@ const OverviewTab = ({
 
     <AICreatorInsights creatorId={creatorId} />
 
+    <DonationStats creatorId={creatorId} />
+
+
     {/* Detail Stats */}
     <div className="grid grid-cols-3 gap-2">
       <div className="glass-sm p-3 text-center space-y-0.5">
