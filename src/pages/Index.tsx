@@ -249,10 +249,12 @@ const Index = () => {
     }
   }, [searchParams]);
 
-  // 서버사이드 fetch (카테고리/검색/페이지 반영)
+  // 서버사이드 fetch (카테고리/검색/정렬/구독자 필터/페이지 반영)
   const fetchCreators = useCallback(async (
     category: string,
     search: string,
+    sort: SortBy,
+    subFilter: SubscriberFilter,
     pageIndex: number,
     append: boolean
   ) => {
@@ -262,8 +264,13 @@ const Index = () => {
     let query = supabase
       .from("creators")
       .select("*", { count: "exact" })
-      .order("rank", { ascending: true })
       .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);
+
+    // 정렬
+    if (sort === "rank") query = query.order("rank", { ascending: true });
+    else if (sort === "votes") query = query.order("votes_count", { ascending: false });
+    else if (sort === "score") query = query.order("rankit_score", { ascending: false });
+    else if (sort === "new") query = query.order("created_at", { ascending: false });
 
     if (category !== "all") {
       query = query.ilike("category", `%${category}%`);
@@ -271,6 +278,9 @@ const Index = () => {
     if (search.trim()) {
       query = query.ilike("name", `%${search.trim()}%`);
     }
+    if (subFilter === "10k") query = query.gte("subscriber_count", 10000);
+    else if (subFilter === "100k") query = query.gte("subscriber_count", 100000);
+    else if (subFilter === "1m") query = query.gte("subscriber_count", 1000000);
 
     const { data, error, count } = await query;
 
@@ -305,11 +315,61 @@ const Index = () => {
     setLoadingMore(false);
   }, []);
 
-  // 카테고리/검색 변경 시 첫 페이지부터 다시 fetch
+  // 카테고리/검색/정렬/필터 변경 시 첫 페이지부터 다시 fetch
   useEffect(() => {
     setPage(0);
-    fetchCreators(selectedCategory, searchQuery, 0, false);
-  }, [selectedCategory, searchQuery, fetchCreators]);
+    fetchCreators(selectedCategory, searchQuery, sortBy, subscriberFilter, 0, false);
+  }, [selectedCategory, searchQuery, sortBy, subscriberFilter, fetchCreators]);
+
+  // 검색어 디바운스 → searchQuery 동기화 + 최근 검색어 저장
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearchQuery(searchInput);
+      if (searchInput.trim().length >= 2) {
+        setRecentSearches(saveRecentSearch(searchInput));
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  // 검색결과 0건일 때 비슷한 크리에이터 추천 (이름 첫 글자 기반)
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (!searchOpen || !q || creators.length > 0 || loading) {
+      setSimilarCreators([]);
+      return;
+    }
+    const firstChar = q.charAt(0);
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("creators")
+        .select("id, name, category, avatar_url, votes_count, subscriber_count, rank, is_verified, rankit_score")
+        .ilike("name", `%${firstChar}%`)
+        .order("rank", { ascending: true })
+        .limit(3);
+      if (cancelled) return;
+      const mapped: Creator[] = (data || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        category: c.category,
+        avatar_url: c.avatar_url,
+        votes_count: c.votes_count,
+        subscriber_count: c.subscriber_count ?? 0,
+        rank: c.rank,
+        previousRank: c.rank,
+        is_verified: c.is_verified,
+        youtube_subscribers: 0,
+        chzzk_followers: 0,
+        instagram_followers: 0,
+        tiktok_followers: 0,
+        rankit_score: c.rankit_score ?? 0,
+        last_stats_updated: null,
+      }));
+      setSimilarCreators(mapped);
+    })();
+    return () => { cancelled = true; };
+  }, [searchQuery, searchOpen, creators.length, loading]);
 
   // Realtime 구독 (현재 목록에 있는 크리에이터만 업데이트)
   useEffect(() => {
