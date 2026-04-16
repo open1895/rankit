@@ -32,11 +32,56 @@ const PopularPosts = lazy(() => import("@/components/PopularPosts"));
 const LandingHero = lazy(() => import("@/components/LandingHero"));
 const NewUserWelcome = lazy(() => import("@/components/NewUserWelcome"));
 const PushNotificationPrompt = lazy(() => import("@/components/PushNotificationPrompt"));
-import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home } from "lucide-react";
+import { Crown, TrendingUp, Ticket, UserPlus, Trophy, Search, ChevronDown, Calendar, GitCompareArrows, Star, Swords, Sparkles, LogIn, User, Megaphone, X, Zap, Home, ArrowUpDown, Clock, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { highlightMatch } from "@/lib/highlight";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+type SortBy = "rank" | "votes" | "score" | "new";
+type SubscriberFilter = "all" | "10k" | "100k" | "1m";
+
+const SORT_OPTIONS: { value: SortBy; label: string }[] = [
+  { value: "rank", label: "순위순" },
+  { value: "votes", label: "투표순" },
+  { value: "score", label: "스코어순" },
+  { value: "new", label: "신규순" },
+];
+
+const SUBSCRIBER_OPTIONS: { value: SubscriberFilter; label: string }[] = [
+  { value: "all", label: "전체" },
+  { value: "10k", label: "1만↑" },
+  { value: "100k", label: "10만↑" },
+  { value: "1m", label: "100만↑" },
+];
+
+const RECENT_SEARCH_KEY = "recent_searches";
+const MAX_RECENT_SEARCHES = 5;
+
+const loadRecentSearches = (): string[] => {
+  try {
+    const raw = localStorage.getItem(RECENT_SEARCH_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((v) => typeof v === "string").slice(0, MAX_RECENT_SEARCHES) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveRecentSearch = (term: string): string[] => {
+  const t = term.trim();
+  if (!t) return loadRecentSearches();
+  const current = loadRecentSearches().filter((v) => v.toLowerCase() !== t.toLowerCase());
+  const next = [t, ...current].slice(0, MAX_RECENT_SEARCHES);
+  try {
+    localStorage.setItem(RECENT_SEARCH_KEY, JSON.stringify(next));
+  } catch {}
+  return next;
+};
+
 
 const CATEGORY_TABS = [
   { label: "전체", value: "all" },
