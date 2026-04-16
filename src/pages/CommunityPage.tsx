@@ -968,8 +968,9 @@ const CommunityPage = () => {
                               <User className={`${isReply ? "w-3 h-3" : "w-3.5 h-3.5"} text-neon-purple/70`} />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-xs font-semibold text-foreground">{c.nickname}</span>
+                                {/* Fan level badge: requires creator context — board posts are not creator-scoped, so omitted here unless post.creator_id exists */}
                                 <span className="text-[10px] text-muted-foreground">{formatTimeAgo(c.created_at)}</span>
                               </div>
                               <p className="text-xs text-foreground/80 mt-0.5 break-words">{renderWithMentions(c.message)}</p>
