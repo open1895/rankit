@@ -28,7 +28,7 @@ const RARITY_STYLES: Record<string, { ring: string; chip: string; label: string 
 
 const SeasonBadgeShop = () => {
   const { user } = useAuth();
-  const { refresh: refreshTickets } = useTickets();
+  const { refreshTickets } = useTickets();
   const [badges, setBadges] = useState<SeasonBadge[]>([]);
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);

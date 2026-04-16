@@ -23,7 +23,7 @@ const PRESETS = [10, 50, 100, 500];
 
 const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName }: Props) => {
   const { user } = useAuth();
-  const { tickets, refresh } = useTickets();
+  const { tickets, refreshTickets } = useTickets();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ProfileResult[]>([]);
   const [receiver, setReceiver] = useState<ProfileResult | null>(null);
