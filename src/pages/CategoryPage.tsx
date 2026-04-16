@@ -3,9 +3,8 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
-import RankingCard from "@/components/RankingCard";
 import { Creator } from "@/lib/data";
-import { ArrowLeft, Trophy } from "lucide-react";
+import { ArrowLeft, Trophy, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const CATEGORIES = ["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크", "아트", "교육", "댄스"];
@@ -132,16 +131,47 @@ const CategoryPage = () => {
             <p className="text-muted-foreground">아직 {decodedCategory} 카테고리에 등록된 크리에이터가 없습니다.</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {creators.map((creator, idx) => (
-              <RankingCard
-                key={creator.id}
-                creator={creator}
-                rank={idx + 1}
-                onClick={() => navigate(`/creator/${creator.id}`)}
-              />
-            ))}
-          </div>
+          <ol className="space-y-2">
+            {creators.map((creator, idx) => {
+              const totalFollowers =
+                (creator.youtube_subscribers || 0) +
+                (creator.chzzk_followers || 0) +
+                (creator.instagram_followers || 0) +
+                (creator.tiktok_followers || 0);
+              return (
+                <li key={creator.id}>
+                  <Link
+                    to={`/creator/${creator.id}`}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border hover:border-primary/40 hover:shadow-md transition-all"
+                  >
+                    <span className="w-8 text-center font-black text-lg text-primary tabular-nums">
+                      {idx + 1}
+                    </span>
+                    <img
+                      src={creator.avatar_url}
+                      alt={`${creator.name} 프로필 이미지`}
+                      loading="lazy"
+                      className="w-12 h-12 rounded-full object-cover bg-muted"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1">
+                        <h3 className="font-bold text-sm truncate">{creator.name}</h3>
+                        {creator.is_verified && (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        팔로워 {totalFollowers.toLocaleString()} · 투표 {creator.votes_count.toLocaleString()}표
+                      </p>
+                    </div>
+                    <span className="text-xs font-semibold text-primary">
+                      {creator.rankit_score?.toFixed(1) ?? "0"}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
         )}
 
         <nav className="mt-10 pt-6 border-t border-border" aria-label="카테고리 둘러보기">
