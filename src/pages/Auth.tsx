@@ -34,6 +34,24 @@ const Auth = () => {
     if (inApp) setWebViewName(getInAppBrowserName());
   }, []);
 
+  // Handle Naver OAuth error redirected back to /auth
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes("naver_error=")) {
+      const params = new URLSearchParams(hash.substring(1));
+      const err = params.get("naver_error");
+      const map: Record<string, string> = {
+        token_exchange_failed: "네이버 인증 토큰 발급에 실패했습니다.",
+        profile_fetch_failed: "네이버 프로필 정보를 가져올 수 없습니다.",
+        user_create_failed: "사용자 생성에 실패했습니다.",
+        session_failed: "세션 생성에 실패했습니다.",
+        no_code: "네이버 로그인이 취소되었습니다.",
+      };
+      toast.error(map[err || ""] || "네이버 로그인에 실패했습니다.");
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
+
   useEffect(() => {
     if (user) navigate("/");
   }, [user, navigate]);
@@ -164,6 +182,17 @@ const Auth = () => {
     }
   };
 
+  const handleNaverLogin = () => {
+    if (isWebView) {
+      toast.error("인앱 브라우저에서는 네이버 로그인이 제한될 수 있습니다. 외부 브라우저에서 열어주세요.");
+      return;
+    }
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    const returnTo = "/";
+    const startUrl = `https://${projectId}.supabase.co/functions/v1/naver-auth-start?return_to=${encodeURIComponent(returnTo)}`;
+    window.location.href = startUrl;
+  };
+
   return (
     <div className="min-h-screen bg-background mesh-bg flex flex-col">
       <SEOHead title="로그인" description="Rank It에 로그인하여 크리에이터에게 투표하고 팬 랭킹에 참여하세요." path="/auth" noIndex />
@@ -262,6 +291,16 @@ const Auth = () => {
                   </div>
                 </div>
               )}
+
+              {/* Naver Login */}
+              <Button
+                onClick={handleNaverLogin}
+                className="w-full h-12 text-sm font-bold text-white hover:opacity-90"
+                style={{ backgroundColor: "#03C75A" }}
+              >
+                <span className="mr-2 inline-flex items-center justify-center w-5 h-5 rounded bg-white text-[#03C75A] font-extrabold text-xs">N</span>
+                네이버로 계속하기
+              </Button>
 
               {/* Google Login */}
               <Button
