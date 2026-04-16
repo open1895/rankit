@@ -5,6 +5,7 @@ import FanLevelProgress from "@/components/FanLevelProgress";
 import { getEarnedBadges, getAllBadges } from "@/lib/fanBadges";
 import CreatorDashboard from "@/components/CreatorDashboard";
 import CreatorRecommendations from "@/components/CreatorRecommendations";
+import MyDonationHistory from "@/components/MyDonationHistory";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -923,6 +924,9 @@ const MyPage = () => {
         {myCreator && (
           <CreatorDashboard creatorId={myCreator.id} creatorName={myCreator.name} />
         )}
+
+        {/* My Donation History */}
+        <MyDonationHistory />
 
         {/* Creator Profile Edit Section */}
         {myCreator && (
