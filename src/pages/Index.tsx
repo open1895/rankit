@@ -228,6 +228,12 @@ const Index = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [sortBy, setSortBy] = useState<SortBy>("rank");
+  const [subscriberFilter, setSubscriberFilter] = useState<SubscriberFilter>("all");
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => loadRecentSearches());
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [similarCreators, setSimilarCreators] = useState<Creator[]>([]);
   const [nominationOpen, setNominationOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [page, setPage] = useState(0);
