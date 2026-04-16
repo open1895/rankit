@@ -64,6 +64,23 @@ const Footer = () => {
           </Link>
         </div>
 
+        <nav className="w-full pt-2" aria-label="카테고리별 유튜버 순위">
+          <p className="text-[11px] text-muted-foreground/70 text-center mb-2">카테고리별 유튜버 순위</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 text-xs">
+            {["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크"].map((cat, idx) => (
+              <span key={cat} className="flex items-center gap-2">
+                {idx > 0 && <span className="text-muted-foreground/40">|</span>}
+                <Link
+                  to={`/category/${encodeURIComponent(cat)}`}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {cat}
+                </Link>
+              </span>
+            ))}
+          </div>
+        </nav>
+
         <div className="flex flex-col items-center gap-0.5 text-[11px] text-muted-foreground/70">
           <span>상호명: 크리에이트 펄스  |  대표자: 윤상길</span>
           <span>사업자등록번호: 366-40-01453</span>
