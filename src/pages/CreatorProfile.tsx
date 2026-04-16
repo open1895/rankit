@@ -675,6 +675,18 @@ const CreatorProfile = () => {
             creatorName={creator.name}
           />
         )}
+        {showDonation && creator && (
+          <DonationModal
+            open={showDonation}
+            onClose={() => setShowDonation(false)}
+            creatorId={creator.id}
+            creatorName={creator.name}
+            creatorAvatar={creator.avatar_url}
+            onSuccess={() => {
+              // refresh donation stats by remounting via key, or just rely on natural re-render
+            }}
+          />
+        )}
       </Suspense>
       <CelebrationEffect show={showCelebration} message={celebrationMsg} onComplete={() => setShowCelebration(false)} />
     </div>
