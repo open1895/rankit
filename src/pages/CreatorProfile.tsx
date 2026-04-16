@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 const ShareCard = lazy(() => import("@/components/ShareCard"));
 const FanCertCard = lazy(() => import("@/components/FanCertCard"));
 import CreatorRankCard from "@/components/CreatorRankCard";
+const DonationModal = lazy(() => import("@/components/DonationModal"));
+const DonationStats = lazy(() => import("@/components/DonationStats"));
 const ClaimCreatorModal = lazy(() => import("@/components/ClaimCreatorModal"));
 import CelebrationEffect from "@/components/CelebrationEffect";
 const TournamentChampionBadge = lazy(() => import("@/components/TournamentChampionBadge"));
@@ -77,6 +79,7 @@ const CreatorProfile = () => {
   const [embedCopied, setEmbedCopied] = useState(false);
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [showFanCert, setShowFanCert] = useState(false);
+  const [showDonation, setShowDonation] = useState(false);
   const [feedTab, setFeedTab] = useState<"cheer" | "official">("cheer");
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [hasVotedToday, setHasVotedToday] = useState(false);
@@ -474,6 +477,20 @@ const CreatorProfile = () => {
               📸
             </button>
           </div>
+
+          {/* Donation CTA — only for claimed creators, not own profile */}
+          {creator.claimed && creator.user_id && creator.user_id !== user?.id && (
+            <button
+              onClick={() => {
+                if (!user) { toast.info("후원하려면 로그인이 필요합니다."); navigate("/auth"); return; }
+                setShowDonation(true);
+              }}
+              className="w-full h-11 rounded-xl text-sm font-bold gap-1.5 flex items-center justify-center text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-lg shadow-orange-500/30 transition-all active:scale-[0.98]"
+            >
+              <Heart className="w-4 h-4 fill-white" />
+              💝 후원하기
+            </button>
+          )}
 
           {/* Creator Rank Card CTA */}
           {creator.rank > 0 && (
