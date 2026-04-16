@@ -64,7 +64,7 @@ const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName 
   const handleSend = async () => {
     if (!user) return toast.error("로그인이 필요합니다");
     if (!receiver) return toast.error("받을 사람을 선택해주세요");
-    if (amount <= 0) return toast.error("선물 금액을 입력해주세요");
+    if (amount < MIN_AMOUNT) return toast.error(`최소 ${MIN_AMOUNT} RP부터 선물할 수 있어요`);
     if (amount > tickets) return toast.error("RP가 부족해요");
 
     setSending(true);
@@ -80,7 +80,7 @@ const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName 
       toast.error(error.message || "선물 전송에 실패했어요");
       return;
     }
-    toast.success(`🎁 ${receiver.display_name}님에게 ${amount} RP를 선물했어요!`);
+    toast.success(`🎁 선물 완료! ${receiver.display_name}님에게 ${amount} RP를 보냈어요`);
     refreshTickets();
     onOpenChange(false);
   };
