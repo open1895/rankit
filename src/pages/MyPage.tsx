@@ -10,6 +10,7 @@ import MyFanclubsSection from "@/components/MyFanclubsSection";
 import SeasonBadgeShop from "@/components/SeasonBadgeShop";
 import MyBadgesShowcase from "@/components/MyBadgesShowcase";
 import GiftRPModal from "@/components/GiftRPModal";
+import MyGiftHistory from "@/components/MyGiftHistory";
 import NotificationSettings from "@/components/NotificationSettings";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
