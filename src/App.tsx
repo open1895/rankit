@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ThemeProvider } from "@/hooks/useTheme";
 import { TicketProvider } from "@/hooks/useTickets";
 import PageTransition from "@/components/PageTransition";
 import MobileTabBar from "@/components/MobileTabBar";
@@ -48,6 +49,7 @@ const PricingPage = lazy(() => import("./pages/PricingPage"));
 const WidgetGenerator = lazy(() => import("./pages/WidgetGenerator"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
+const FanclubWidgetPage = lazy(() => import("./pages/FanclubWidgetPage"));
 const queryClient = new QueryClient();
 
 const PageFallback = () => (
@@ -59,6 +61,7 @@ const PageFallback = () => (
 const App = () => (
   <ErrorBoundary>
     <HelmetProvider>
+      <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TicketProvider>
@@ -101,6 +104,7 @@ const App = () => (
                     <Route path="/monthly-top3" element={<MonthlyTop3 />} />
                     <Route path="/ticket-store" element={<ProtectedRoute><TicketStore /></ProtectedRoute>} />
                     <Route path="/widget/creator/:id" element={<WidgetPage />} />
+                    <Route path="/widget/fanclub/:id" element={<FanclubWidgetPage />} />
                     <Route path="/invite" element={<InviteLanding />} />
                     <Route path="/pricing" element={<PricingPage />} />
                     <Route path="/widget-generator" element={<WidgetGenerator />} />
@@ -119,6 +123,7 @@ const App = () => (
           </TicketProvider>
         </AuthProvider>
       </QueryClientProvider>
+      </ThemeProvider>
     </HelmetProvider>
   </ErrorBoundary>
 );

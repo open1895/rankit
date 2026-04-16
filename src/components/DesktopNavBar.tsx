@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import RPChargeModal from "./RPChargeModal";
 import NotificationBell from "./NotificationBell";
+import ThemeToggle from "./ThemeToggle";
 
 const tabs = [
   { to: "/", icon: Home, label: "홈" },
@@ -84,6 +85,7 @@ const DesktopNavBar = () => {
               <span>RP 충전</span>
             </button>
             <div className="w-px h-5 bg-border/40" />
+            <ThemeToggle size="sm" />
             <NotificationBell />
           </nav>
         </div>

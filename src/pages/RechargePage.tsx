@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import MissionItem, { type MissionData } from "@/components/MissionItem";
 import Footer from "@/components/Footer";
 import NotificationBell from "@/components/NotificationBell";
+import ThemeToggle from "@/components/ThemeToggle";
 import RankitLogo from "@/components/RankitLogo";
 import {
   Zap, Gift, Ticket, Star, Sparkles, Megaphone, ExternalLink,
@@ -227,6 +228,7 @@ const RechargePage = () => {
 
             <div className="w-px h-5 bg-border/50" />
 
+            <ThemeToggle size="sm" />
             <NotificationBell />
           </div>
         </div>
