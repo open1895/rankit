@@ -47,6 +47,7 @@ const InviteLanding = lazy(() => import("./pages/InviteLanding"));
 const PricingPage = lazy(() => import("./pages/PricingPage"));
 const WidgetGenerator = lazy(() => import("./pages/WidgetGenerator"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
+const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const queryClient = new QueryClient();
 
 const PageFallback = () => (
@@ -104,6 +105,7 @@ const App = () => (
                     <Route path="/pricing" element={<PricingPage />} />
                     <Route path="/widget-generator" element={<WidgetGenerator />} />
                     <Route path="/unsubscribe" element={<Unsubscribe />} />
+                    <Route path="/category/:category" element={<CategoryPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   </Suspense>

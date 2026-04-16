@@ -333,9 +333,50 @@ const CreatorProfile = () => {
   // ═══════════════════════════════════════════════════════
   // RENDER
   // ═══════════════════════════════════════════════════════
+  const totalFollowers =
+    (creator.youtube_subscribers || 0) +
+    (creator.chzzk_followers || 0) +
+    (creator.instagram_followers || 0) +
+    (creator.tiktok_followers || 0);
+  const followerManwon = totalFollowers >= 10000
+    ? `${Math.round(totalFollowers / 10000).toLocaleString()}만명`
+    : `${totalFollowers.toLocaleString()}명`;
+  const seoTitle = `${creator.name} 유튜버 순위`;
+  const seoDescription = `${creator.name}의 현재 랭킹 ${creator.rank}위. 구독자 ${followerManwon}. 누적 투표 ${creator.votes_count.toLocaleString()}표. 팬들이 뽑은 ${creator.category} 크리에이터 영향력 순위를 확인하세요.`;
+  const seoKeywords = `${creator.name}, ${creator.name} 유튜버, ${creator.name} 구독자, ${creator.name} 순위, ${creator.name} 랭킹, ${creator.category} 유튜버 순위, ${creator.category} 크리에이터, 랭킷, Rankit`;
+  const seoStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: creator.name,
+    url: `https://rankit.today/creator/${creator.id}`,
+    image: creator.avatar_url,
+    description: seoDescription,
+    interactionStatistic: [
+      {
+        "@type": "InteractionCounter",
+        interactionType: "https://schema.org/FollowAction",
+        userInteractionCount: totalFollowers,
+      },
+      {
+        "@type": "InteractionCounter",
+        interactionType: "https://schema.org/VoteAction",
+        userInteractionCount: creator.votes_count,
+      },
+    ],
+    ...(creator.channel_link ? { sameAs: [creator.channel_link] } : {}),
+  };
+
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
-      <SEOHead title={`${creator.name} - 크리에이터 프로필`} description={`${creator.name}의 랭킹, 투표 현황, 팬 활동을 확인하세요. 현재 ${creator.rank}위, ${creator.votes_count.toLocaleString()}표 획득!`} path={`/creator/${creator.id}`} ogImage={`https://${import.meta.env.VITE_SUPABASE_PROJECT_ID || 'jcaajxwdeqngihupjaaa'}.supabase.co/functions/v1/og-image?creator_id=${creator.id}&v=1`} ogType="profile" />
+      <SEOHead
+        title={seoTitle}
+        description={seoDescription}
+        path={`/creator/${creator.id}`}
+        ogImage={`https://${import.meta.env.VITE_SUPABASE_PROJECT_ID || 'jcaajxwdeqngihupjaaa'}.supabase.co/functions/v1/og-image?creator_id=${creator.id}&v=1`}
+        ogType="profile"
+        keywords={seoKeywords}
+        structuredData={seoStructuredData}
+      />
 
       {/* ─── Header ─── */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50 md:hidden">
