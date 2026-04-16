@@ -80,7 +80,7 @@ const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName 
       return;
     }
     toast.success(`🎁 ${receiver.display_name}님에게 ${amount} RP를 선물했어요!`);
-    refresh();
+    refreshTickets();
     onOpenChange(false);
   };
 
