@@ -20,6 +20,7 @@ interface ProfileResult {
 }
 
 const PRESETS = [10, 50, 100, 500];
+const MIN_AMOUNT = 10;
 
 const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName }: Props) => {
   const { user } = useAuth();
@@ -63,7 +64,7 @@ const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName 
   const handleSend = async () => {
     if (!user) return toast.error("로그인이 필요합니다");
     if (!receiver) return toast.error("받을 사람을 선택해주세요");
-    if (amount <= 0) return toast.error("선물 금액을 입력해주세요");
+    if (amount < MIN_AMOUNT) return toast.error(`최소 ${MIN_AMOUNT} RP부터 선물할 수 있어요`);
     if (amount > tickets) return toast.error("RP가 부족해요");
 
     setSending(true);
@@ -79,7 +80,7 @@ const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName 
       toast.error(error.message || "선물 전송에 실패했어요");
       return;
     }
-    toast.success(`🎁 ${receiver.display_name}님에게 ${amount} RP를 선물했어요!`);
+    toast.success(`🎁 선물 완료! ${receiver.display_name}님에게 ${amount} RP를 보냈어요`);
     refreshTickets();
     onOpenChange(false);
   };
@@ -135,6 +136,11 @@ const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName 
                 placeholder="닉네임 검색..."
                 className="w-full px-3 py-2 rounded-xl bg-glass-bg border border-glass-border text-sm focus:outline-none focus:border-primary"
               />
+              {query.trim().length >= 2 && results.length === 0 && (
+                <div className="text-xs text-muted-foreground text-center py-2">
+                  존재하지 않는 유저입니다
+                </div>
+              )}
               {results.length > 0 && (
                 <div className="space-y-1 max-h-40 overflow-y-auto">
                   {results.map((r) => (
@@ -202,8 +208,14 @@ const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName 
             <div className="text-[10px] text-muted-foreground text-right">{message.length}/100</div>
           </div>
 
+          <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-2.5 text-center">
+            <p className="text-xs font-semibold text-emerald-400">
+              ✨ 수수료 없이 100% 전달돼요 🎁
+            </p>
+          </div>
+
           <button
-            disabled={sending || !receiver || amount <= 0 || amount > tickets}
+            disabled={sending || !receiver || amount < MIN_AMOUNT || amount > tickets}
             onClick={handleSend}
             className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-primary text-white font-bold flex items-center justify-center gap-2 disabled:opacity-50 hover:shadow-[0_4px_20px_hsl(var(--primary)/0.4)] transition-all"
           >
@@ -212,7 +224,7 @@ const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName 
           </button>
 
           <p className="text-[10px] text-muted-foreground text-center">
-            🎁 선물한 RP는 즉시 상대방 계정에 적립됩니다 (1회 최대 10,000 RP)
+            🎁 즉시 상대방 계정에 적립 · 최소 {MIN_AMOUNT} RP · 1회 최대 10,000 RP
           </p>
         </div>
       </DialogContent>

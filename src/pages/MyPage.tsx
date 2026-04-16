@@ -10,6 +10,7 @@ import MyFanclubsSection from "@/components/MyFanclubsSection";
 import SeasonBadgeShop from "@/components/SeasonBadgeShop";
 import MyBadgesShowcase from "@/components/MyBadgesShowcase";
 import GiftRPModal from "@/components/GiftRPModal";
+import MyGiftHistory from "@/components/MyGiftHistory";
 import NotificationSettings from "@/components/NotificationSettings";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -950,6 +951,9 @@ const MyPage = () => {
           <span className="text-xs text-pink-400 font-bold shrink-0">선물 →</span>
         </button>
         <GiftRPModal open={showGiftModal} onOpenChange={setShowGiftModal} />
+
+        {/* RP Gift History */}
+        <MyGiftHistory />
 
         {/* My Donation History */}
         <MyDonationHistory />
