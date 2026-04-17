@@ -3070,6 +3070,10 @@ export type Database = {
           rp_multiplier: number
         }[]
       }
+      get_my_creator_contact_email: {
+        Args: { p_creator_id: string }
+        Returns: string
+      }
       get_prediction_event_stats: {
         Args: never
         Returns: {
