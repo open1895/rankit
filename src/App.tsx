@@ -19,6 +19,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 // Lazy-loaded pages
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const CreatorProfile = lazy(() => import("./pages/CreatorProfile"));
@@ -78,6 +79,7 @@ const App = () => (
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
+                    <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/creator/:id" element={<CreatorProfile />} />
