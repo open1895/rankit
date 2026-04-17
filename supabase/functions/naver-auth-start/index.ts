@@ -22,7 +22,8 @@ Deno.serve((req) => {
   // CSRF state — also encodes the SPA return URL
   const state = btoa(JSON.stringify({ r: returnTo, n: crypto.randomUUID() }));
 
-  const callbackUrl = `${SUPABASE_URL}/functions/v1/naver-auth-callback`;
+  // Must match exactly what's registered in Naver Developer Center
+  const callbackUrl = "https://rankit.today/auth/callback";
 
   const naverUrl = new URL("https://nid.naver.com/oauth2.0/authorize");
   naverUrl.searchParams.set("response_type", "code");
