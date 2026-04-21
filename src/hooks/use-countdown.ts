@@ -1,30 +1,32 @@
 import { useState, useEffect } from "react";
 
-function getNextSundayMidnight(): Date {
+/**
+ * 월간 시즌 사이클: 매월 1일 00:00 (KST) 종료/시작
+ * 이번 달 말 (= 다음 달 1일 00:00 KST) 까지 남은 시간을 반환
+ */
+function getNextMonthStartKST(): Date {
   const now = new Date();
-  const dayOfWeek = now.getDay(); // 0=Sunday
-  // Calculate days until next Sunday midnight (end of Sunday = Monday 00:00)
-  const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
-  const next = new Date(now);
-  next.setDate(now.getDate() + daysUntilSunday);
-  next.setHours(24, 0, 0, 0); // Sunday midnight = Monday 00:00
-  // If we're already past Sunday midnight (i.e., it's Monday 00:00+), go to next week
-  if (next.getTime() <= now.getTime()) {
-    next.setDate(next.getDate() + 7);
-  }
-  return next;
+  // KST(UTC+9) 기준 현재 연/월 추출
+  const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const year = kstNow.getUTCFullYear();
+  const month = kstNow.getUTCMonth(); // 0-indexed
+  // 다음 달 1일 00:00 KST = UTC로는 (다음 달 1일 - 9시간)
+  // Date.UTC(year, month+1, 1, 0, 0, 0) 은 "다음 달 1일 00:00 UTC"
+  // 우리는 "다음 달 1일 00:00 KST" = Date.UTC(year, month+1, 1, -9, 0, 0)
+  const nextMonthStartUTC = Date.UTC(year, month + 1, 1, -9, 0, 0);
+  return new Date(nextMonthStartUTC);
 }
 
 export function useCountdown() {
-  const [target, setTarget] = useState(getNextSundayMidnight);
+  const [target, setTarget] = useState(getNextMonthStartKST);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
     const tick = () => {
       const diff = Math.max(0, target.getTime() - Date.now());
       if (diff === 0) {
-        // Reset to next Sunday
-        setTarget(getNextSundayMidnight());
+        // 다음 달로 갱신
+        setTarget(getNextMonthStartKST());
       }
       setTimeLeft({
         days: Math.floor(diff / 86400000),
