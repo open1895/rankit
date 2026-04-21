@@ -61,7 +61,7 @@ const PricingPage = () => {
 
           <div className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground space-y-2">
             <p>• 미사용 RP는 구매일로부터 7일 이내 환불 가능합니다.</p>
-            <p>• 문의: steelmind7777@naver.com / 070-7585-1535</p>
+            <p>• 문의: steelmind7777@naver.com / 010-8337-7429</p>
           </div>
         </div>
         <Footer />
