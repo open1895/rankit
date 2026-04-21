@@ -1,40 +1,94 @@
-import { useCountdown } from "@/hooks/use-countdown";
-import { Clock } from "lucide-react";
+import { useHybridCountdown } from "@/hooks/use-countdown";
+import { Clock, Swords, Trophy } from "lucide-react";
 
-const CountdownTimer = () => {
-  const { days, hours, minutes, seconds } = useCountdown();
+type TimeParts = { days: number; hours: number; minutes: number; seconds: number };
 
+const TimerBlock = ({
+  icon,
+  label,
+  sublabel,
+  time,
+  accent,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  sublabel: string;
+  time: TimeParts;
+  accent: "cyan" | "purple";
+}) => {
   const units = [
-    { label: "일", value: days },
-    { label: "시", value: hours },
-    { label: "분", value: minutes },
-    { label: "초", value: seconds },
+    { label: "일", value: time.days },
+    { label: "시", value: time.hours },
+    { label: "분", value: time.minutes },
+    { label: "초", value: time.seconds },
   ];
 
+  const accentText = accent === "cyan" ? "text-neon-cyan" : "text-neon-purple";
+  const dotColor = accent === "cyan" ? "text-neon-cyan/40" : "text-neon-purple/40";
+
   return (
-    <div className="glass p-5 text-center animate-glow-pulse">
-      <div className="flex items-center justify-center gap-2 mb-4">
-        <Clock className="w-4 h-4 text-neon-cyan" />
-        <span className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
-          주간 투표 마감까지
-        </span>
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center justify-center gap-2 mb-3">
+        <span className={accentText}>{icon}</span>
+        <div className="flex flex-col items-start leading-tight">
+          <span className="text-xs font-semibold tracking-wide uppercase text-foreground">
+            {label}
+          </span>
+          <span className="text-[10px] text-muted-foreground">{sublabel}</span>
+        </div>
       </div>
-      <div className="flex items-center justify-center gap-3">
+      <div className="flex items-center justify-center gap-2">
         {units.map((u, i) => (
-          <div key={u.label} className="flex items-center gap-3">
+          <div key={u.label} className="flex items-center gap-2">
             <div className="flex flex-col items-center">
-              <div className="glass-sm px-3 py-2 sm:px-4 sm:py-3 rounded-xl min-w-[48px] sm:min-w-[56px]">
-                <span className="text-2xl sm:text-3xl font-bold gradient-text tabular-nums leading-none">
+              <div className="glass-sm px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg min-w-[40px] sm:min-w-[48px]">
+                <span className="text-xl sm:text-2xl font-bold gradient-text tabular-nums leading-none">
                   {String(u.value).padStart(2, "0")}
                 </span>
               </div>
-              <span className="text-[10px] text-muted-foreground mt-1.5 font-medium">{u.label}</span>
+              <span className="text-[10px] text-muted-foreground mt-1 font-medium">
+                {u.label}
+              </span>
             </div>
             {i < units.length - 1 && (
-              <span className="text-lg font-bold text-neon-purple/40 -mt-5 animate-pulse-neon">:</span>
+              <span className={`text-base font-bold ${dotColor} -mt-4 animate-pulse-neon`}>
+                :
+              </span>
             )}
           </div>
         ))}
+      </div>
+    </div>
+  );
+};
+
+const CountdownTimer = () => {
+  const { monthly, weekly } = useHybridCountdown();
+
+  return (
+    <div className="glass p-5 animate-glow-pulse">
+      <div className="flex items-center justify-center gap-2 mb-5">
+        <Clock className="w-4 h-4 text-neon-cyan" />
+        <span className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
+          하이브리드 시즌 카운트다운
+        </span>
+      </div>
+      <div className="flex flex-col md:flex-row gap-6 md:gap-4">
+        <TimerBlock
+          icon={<Swords className="w-4 h-4" />}
+          label="주간 배틀"
+          sublabel="매주 월요일 00:00 KST 마감"
+          time={weekly}
+          accent="cyan"
+        />
+        <div className="hidden md:block w-px bg-border/40 self-stretch" />
+        <TimerBlock
+          icon={<Trophy className="w-4 h-4" />}
+          label="월간 시즌"
+          sublabel="매월 1일 00:00 KST 보상 정산"
+          time={monthly}
+          accent="purple"
+        />
       </div>
     </div>
   );
