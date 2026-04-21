@@ -3032,6 +3032,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      ensure_current_monthly_season: { Args: never; Returns: string }
       get_creator_activity_stats: {
         Args: { p_creator_id: string }
         Returns: {
