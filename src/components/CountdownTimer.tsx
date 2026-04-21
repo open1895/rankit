@@ -27,31 +27,31 @@ const TimerBlock = ({
   const dotColor = accent === "cyan" ? "text-neon-cyan/40" : "text-neon-purple/40";
 
   return (
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center justify-center gap-2 mb-3">
+    <div className="flex-1 min-w-0 py-2 sm:py-0">
+      <div className="flex items-center justify-center gap-2.5 mb-4">
         <span className={accentText}>{icon}</span>
         <div className="flex flex-col items-start leading-tight">
-          <span className="text-xs font-semibold tracking-wide uppercase text-foreground">
+          <span className="text-sm sm:text-xs font-semibold tracking-wide uppercase text-foreground">
             {label}
           </span>
-          <span className="text-[10px] text-muted-foreground">{sublabel}</span>
+          <span className="text-[11px] sm:text-[10px] text-muted-foreground">{sublabel}</span>
         </div>
       </div>
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex items-center justify-center gap-2.5 sm:gap-2">
         {units.map((u, i) => (
-          <div key={u.label} className="flex items-center gap-2">
+          <div key={u.label} className="flex items-center gap-2.5 sm:gap-2">
             <div className="flex flex-col items-center">
-              <div className="glass-sm px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg min-w-[40px] sm:min-w-[48px]">
-                <span className="text-xl sm:text-2xl font-bold gradient-text tabular-nums leading-none">
+              <div className="glass-sm px-3.5 py-2.5 sm:px-3 sm:py-2 rounded-xl min-w-[52px] sm:min-w-[48px]">
+                <span className="text-3xl sm:text-2xl font-bold gradient-text tabular-nums leading-none">
                   {String(u.value).padStart(2, "0")}
                 </span>
               </div>
-              <span className="text-[10px] text-muted-foreground mt-1 font-medium">
+              <span className="text-xs sm:text-[10px] text-muted-foreground mt-1.5 font-medium">
                 {u.label}
               </span>
             </div>
             {i < units.length - 1 && (
-              <span className={`text-base font-bold ${dotColor} -mt-4 animate-pulse-neon`}>
+              <span className={`text-lg sm:text-base font-bold ${dotColor} -mt-5 sm:-mt-4 animate-pulse-neon`}>
                 :
               </span>
             )}
@@ -73,17 +73,16 @@ const CountdownTimer = () => {
           하이브리드 시즌 카운트다운
         </span>
       </div>
-      <div className="flex flex-col md:flex-row gap-6 md:gap-4">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-4 divide-y md:divide-y-0 md:divide-x divide-border/40">
         <TimerBlock
-          icon={<Swords className="w-4 h-4" />}
+          icon={<Swords className="w-5 h-5 sm:w-4 sm:h-4" />}
           label="주간 배틀"
           sublabel="매주 월요일 00:00 KST 마감"
           time={weekly}
           accent="cyan"
         />
-        <div className="hidden md:block w-px bg-border/40 self-stretch" />
         <TimerBlock
-          icon={<Trophy className="w-4 h-4" />}
+          icon={<Trophy className="w-5 h-5 sm:w-4 sm:h-4" />}
           label="월간 시즌"
           sublabel="매월 1일 00:00 KST 보상 정산"
           time={monthly}
