@@ -73,7 +73,7 @@ const CountdownTimer = () => {
           하이브리드 시즌 카운트다운
         </span>
       </div>
-      <div className="flex flex-col md:flex-row gap-4 md:gap-4 divide-y md:divide-y-0 md:divide-x divide-border/40">
+      <div className="flex flex-col md:flex-row gap-2 md:gap-4 divide-y-2 md:divide-y-0 md:divide-x divide-border/60">
         <TimerBlock
           icon={<Swords className="w-5 h-5 sm:w-4 sm:h-4" />}
           label="주간 배틀"
