@@ -85,7 +85,7 @@ const Footer = () => {
           <span>상호명: 크리에이트 펄스  |  대표자: 윤상길</span>
           <span>사업자등록번호: 366-40-01453</span>
           <span>주소: 충북 청주시 상당구 중앙로 18</span>
-          <span>전화: 070-7585-1535</span>
+          <span>대표번호: 010-8337-7429</span>
           <span>이메일: steelmind7777@naver.com</span>
         </div>
 
