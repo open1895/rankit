@@ -27,7 +27,7 @@ const TimerBlock = ({
   const dotColor = accent === "cyan" ? "text-neon-cyan/40" : "text-neon-purple/40";
 
   return (
-    <div className="flex-1 min-w-0 py-2 sm:py-0">
+    <div className="flex-1 min-w-0 py-5 sm:py-0 px-1">
       <div className="flex items-center justify-center gap-2.5 mb-4">
         <span className={accentText}>{icon}</span>
         <div className="flex flex-col items-start leading-tight">
