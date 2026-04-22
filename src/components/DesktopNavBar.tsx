@@ -86,6 +86,7 @@ const DesktopNavBar = () => {
   return (
     <>
       <div
+        ref={navRef}
         className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-background/95 supports-[backdrop-filter]:bg-background/85 border-b border-border shadow-sm"
         style={{
           backdropFilter: "blur(18px) saturate(180%)",
