@@ -2230,6 +2230,87 @@ export type Database = {
         }
         Relationships: []
       }
+      seed_activity_runs: {
+        Row: {
+          board_posts_added: number
+          comments_added: number
+          created_at: string
+          details: Json
+          fanclub_joins_added: number
+          id: string
+          mode: string
+          run_at: string
+        }
+        Insert: {
+          board_posts_added?: number
+          comments_added?: number
+          created_at?: string
+          details?: Json
+          fanclub_joins_added?: number
+          id?: string
+          mode?: string
+          run_at?: string
+        }
+        Update: {
+          board_posts_added?: number
+          comments_added?: number
+          created_at?: string
+          details?: Json
+          fanclub_joins_added?: number
+          id?: string
+          mode?: string
+          run_at?: string
+        }
+        Relationships: []
+      }
+      seed_activity_settings: {
+        Row: {
+          daily_quota: number
+          enabled: boolean
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          daily_quota?: number
+          enabled?: boolean
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          daily_quota?: number
+          enabled?: boolean
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      seed_bot_pool: {
+        Row: {
+          avatar_seed: string
+          bot_user_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          nickname: string
+        }
+        Insert: {
+          avatar_seed?: string
+          bot_user_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          nickname: string
+        }
+        Update: {
+          avatar_seed?: string
+          bot_user_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          nickname?: string
+        }
+        Relationships: []
+      }
       settlement_requests: {
         Row: {
           amount: number
