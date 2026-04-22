@@ -59,15 +59,15 @@ const DesktopNavBar = () => {
                   key={to}
                   onClick={() => handleClick(to)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 ${
-                    active ? "text-primary" : "text-muted-foreground hover:text-primary/70"
+                    active ? "text-primary" : "text-foreground/85 hover:text-primary"
                   }`}
                 >
                   <div className={`p-1.5 rounded-xl transition-all duration-200 ${
                     active ? "bg-primary/10 shadow-[0_0_12px_hsl(var(--primary)/0.3)]" : ""
                   }`}>
-                    <Icon className={`w-5 h-5 transition-all ${active ? "stroke-[2.5]" : ""}`} />
+                    <Icon className={`w-5 h-5 transition-all ${active ? "stroke-[2.5]" : "stroke-[2.25]"}`} />
                   </div>
-                  <span className={`text-sm leading-tight ${active ? "font-bold" : "font-medium"}`}>
+                  <span className={`text-sm leading-tight ${active ? "font-bold" : "font-semibold"}`}>
                     {label}
                   </span>
                 </button>
