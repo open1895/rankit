@@ -248,80 +248,98 @@ Deno.serve(async (req) => {
       existingCounts.set(category, (existingCounts.get(category) || 0) + 1);
     }
 
-    let totalAdded = 0;
-    const results: { category: string; added: number; requested: number; beforeCount: number; afterCount: number; shortfall: number }[] = [];
+    type CategoryResult = {
+      category: string;
+      added: number;
+      requested: number;
+      beforeCount: number;
+      afterCount: number;
+      shortfall: number;
+      retries: number;
+    };
 
+    let totalAdded = 0;
+    const results = new Map<string, CategoryResult>();
+
+    // Insert helper: inserts channels for a category, updates existingIds.
+    async function insertForCategory(
+      cat: { name: string; query: string },
+      channels: YouTubeChannel[]
+    ): Promise<number> {
+      if (channels.length === 0) return 0;
+      const rows = channels.map((ch) => {
+        const subs = parseInt(ch.statistics.subscriberCount, 10) || 0;
+        const avatarUrl =
+          ch.snippet.thumbnails?.high?.url ||
+          ch.snippet.thumbnails?.default?.url ||
+          "";
+        const channelLink = ch.snippet.customUrl
+          ? `https://youtube.com/${ch.snippet.customUrl}`
+          : `https://youtube.com/channel/${ch.id}`;
+        return {
+          name: ch.snippet.title,
+          category: cat.name,
+          youtube_channel_id: ch.id,
+          youtube_subscribers: subs,
+          avatar_url: avatarUrl,
+          channel_link: channelLink,
+          rank: 0,
+          votes_count: 0,
+          chzzk_followers: 0,
+          instagram_followers: 0,
+          tiktok_followers: 0,
+          rankit_score: 0,
+        };
+      });
+      const { error: insertError } = await supabase.from("creators").insert(rows);
+      if (insertError) {
+        console.error(`Insert error for ${cat.name}:`, insertError);
+        return 0;
+      }
+      channels.forEach((ch) => existingIds.add(ch.id));
+      return channels.length;
+    }
+
+    // Pass 1: primary search variations.
     for (const cat of targetCategories) {
       const beforeCount = existingCounts.get(cat.name) || 0;
       const requested = TARGET_PER_CATEGORY;
-      const toAdd = await gatherEligibleChannels(cat.query, youtubeApiKey, existingIds, requested);
+      const found = await gatherEligibleChannels(cat.query, youtubeApiKey, existingIds, requested);
+      const added = await insertForCategory(cat, found);
+      totalAdded += added;
+      const afterCount = beforeCount + added;
+      existingCounts.set(cat.name, afterCount);
+      results.set(cat.name, {
+        category: cat.name,
+        added,
+        requested,
+        beforeCount,
+        afterCount,
+        shortfall: Math.max(0, requested - added),
+        retries: 0,
+      });
+    }
 
-      if (toAdd.length > 0) {
-        const rows = toAdd.map((ch) => {
-          const subs = parseInt(ch.statistics.subscriberCount, 10) || 0;
-          const avatarUrl =
-            ch.snippet.thumbnails?.high?.url ||
-            ch.snippet.thumbnails?.default?.url ||
-            "";
-          const channelLink = ch.snippet.customUrl
-            ? `https://youtube.com/${ch.snippet.customUrl}`
-            : `https://youtube.com/channel/${ch.id}`;
-
-          return {
-            name: ch.snippet.title,
-            category: cat.name,
-            youtube_channel_id: ch.id,
-            youtube_subscribers: subs,
-            avatar_url: avatarUrl,
-            channel_link: channelLink,
-            rank: 0,
-            votes_count: 0,
-            chzzk_followers: 0,
-            instagram_followers: 0,
-            tiktok_followers: 0,
-            rankit_score: 0,
-          };
-        });
-
-        const { error: insertError } = await supabase
-          .from("creators")
-          .insert(rows);
-
-        if (insertError) {
-          console.error(`Insert error for ${cat.name}:`, insertError);
-          results.push({
-            category: cat.name,
-            added: 0,
-            requested,
-            beforeCount,
-            afterCount: beforeCount,
-            shortfall: requested,
-          });
-        } else {
-          // Mark these as existing to prevent cross-category dupes
-          toAdd.forEach((ch) => existingIds.add(ch.id));
-          totalAdded += toAdd.length;
-          const afterCount = beforeCount + toAdd.length;
-          existingCounts.set(cat.name, afterCount);
-          results.push({
-            category: cat.name,
-            added: toAdd.length,
-            requested,
-            beforeCount,
-            afterCount,
-            shortfall: Math.max(0, requested - toAdd.length),
-          });
-        }
-      } else {
-        results.push({
-          category: cat.name,
-          added: 0,
-          requested,
-          beforeCount,
-          afterCount: beforeCount,
-          shortfall: requested,
-        });
-      }
+    // Pass 2 (auto retry): for any category still short of TARGET_PER_CATEGORY,
+    // retry with the broader fallback variations to make up the gap.
+    for (const cat of targetCategories) {
+      const r = results.get(cat.name)!;
+      if (r.shortfall <= 0) continue;
+      const need = r.shortfall;
+      const found = await gatherEligibleChannels(
+        cat.query,
+        youtubeApiKey,
+        existingIds,
+        need,
+        FALLBACK_VARIATIONS
+      );
+      const added = await insertForCategory(cat, found);
+      totalAdded += added;
+      r.added += added;
+      r.afterCount += added;
+      r.shortfall = Math.max(0, r.requested - r.added);
+      r.retries += 1;
+      existingCounts.set(cat.name, r.afterCount);
     }
 
     // Recalculate ranks if any were added
@@ -330,10 +348,24 @@ Deno.serve(async (req) => {
       console.log("Ranks recalculated after adding new creators");
     }
 
+    const detailsArr = Array.from(results.values());
+    const totalShortfall = detailsArr.reduce((sum, r) => sum + r.shortfall, 0);
+
+    // Persist run summary for monitoring / verification
+    const mode = parsedBody?.mode === "verify" ? "verify" : (isCronCall ? "scheduled" : "manual");
+    await supabase.from("creator_auto_add_runs").insert({
+      mode,
+      total_added: totalAdded,
+      total_shortfall: totalShortfall,
+      details: detailsArr,
+    });
+
     return new Response(
       JSON.stringify({
-        message: `Added ${totalAdded} new creators`,
-        details: results,
+        message: `Added ${totalAdded} new creators (shortfall: ${totalShortfall})`,
+        total_added: totalAdded,
+        total_shortfall: totalShortfall,
+        details: detailsArr,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
