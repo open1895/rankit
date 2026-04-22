@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Home, Trophy, TrendingUp, Compass, User, Zap, Eye, X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Home, Trophy, TrendingUp, Compass, User, Zap, Eye, X, Bug } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import RPChargeModal from "./RPChargeModal";
@@ -46,6 +46,20 @@ const DesktopNavBar = () => {
   const [chargeOpen, setChargeOpen] = useState(false);
   const [contrastOpen, setContrastOpen] = useState(false);
   const [contrastBgIndex, setContrastBgIndex] = useState(0);
+  const [debugOpen, setDebugOpen] = useState(false);
+  const navRef = useRef<HTMLDivElement>(null);
+  const [navHeight, setNavHeight] = useState(0);
+  const [pageTop, setPageTop] = useState(0);
+
+  useEffect(() => {
+    if (navRef.current) {
+      setNavHeight(navRef.current.offsetHeight);
+    }
+    setPageTop(window.scrollY);
+    const handleScroll = () => setPageTop(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const isActive = (to: string) => {
     if (to === "/") return location.pathname === "/";
@@ -72,6 +86,7 @@ const DesktopNavBar = () => {
   return (
     <>
       <div
+        ref={navRef}
         className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-background/95 supports-[backdrop-filter]:bg-background/85 border-b border-border shadow-sm"
         style={{
           backdropFilter: "blur(18px) saturate(180%)",
@@ -130,6 +145,18 @@ const DesktopNavBar = () => {
             <HighContrastToggle size="sm" />
             <ThemeToggle size="sm" />
             <NotificationBell />
+            <button
+              type="button"
+              onClick={() => setDebugOpen((v) => !v)}
+              aria-pressed={debugOpen}
+              aria-label="디버그 오버레이 토글"
+              title="디버그 오버레이"
+              className={`w-8 h-8 flex items-center justify-center rounded-full border border-glass-border bg-glass hover:bg-primary/10 transition-colors ${
+                debugOpen ? "ring-2 ring-primary text-primary" : "text-foreground/70"
+              }`}
+            >
+              <Bug className="w-4 h-4" />
+            </button>
           </nav>
         </div>
       </div>
@@ -184,6 +211,56 @@ const DesktopNavBar = () => {
       )}
 
       <RPChargeModal open={chargeOpen} onOpenChange={setChargeOpen} />
+
+      {/* Debug Overlay */}
+      {debugOpen && (
+        <div className="hidden md:block fixed top-16 left-4 z-[60] bg-card/95 backdrop-blur-sm border border-border rounded-xl shadow-lg p-4 w-72">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold text-primary">🔧 Debug Overlay</span>
+            <button
+              type="button"
+              onClick={() => setDebugOpen(false)}
+              className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground"
+              aria-label="닫기"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          
+          <div className="space-y-2 text-xs">
+            <div className="flex justify-between items-center py-1.5 border-b border-border/50">
+              <span className="text-muted-foreground">Nav Height</span>
+              <span className="font-mono font-bold text-foreground">{navHeight}px</span>
+            </div>
+            <div className="flex justify-between items-center py-1.5 border-b border-border/50">
+              <span className="text-muted-foreground">Page Scroll Y</span>
+              <span className="font-mono font-bold text-foreground">{pageTop}px</span>
+            </div>
+            <div className="flex justify-between items-center py-1.5 border-b border-border/50">
+              <span className="text-muted-foreground">Viewport Width</span>
+              <span className="font-mono font-bold text-foreground">{typeof window !== 'undefined' ? window.innerWidth : 0}px</span>
+            </div>
+            <div className="flex justify-between items-center py-1.5">
+              <span className="text-muted-foreground">Overlap Status</span>
+              <span className={`font-bold ${pageTop < navHeight ? 'text-destructive' : 'text-green-500'}`}>
+                {pageTop < navHeight ? '⚠️ OVERLAP' : '✅ OK'}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-border/50">
+            <div 
+              className="h-2 rounded-full transition-all duration-200"
+              style={{
+                background: `linear-gradient(90deg, hsl(var(--primary)) ${(pageTop / navHeight) * 100}%, hsl(var(--muted)) ${(pageTop / navHeight) * 100}%)`
+              }}
+            />
+            <p className="text-[10px] text-muted-foreground mt-1 text-center">
+              Scroll progress relative to nav height
+            </p>
+          </div>
+        </div>
+      )}
     </>
   );
 };
