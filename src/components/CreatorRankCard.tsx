@@ -1,8 +1,9 @@
 import { useState, useCallback } from "react";
-import { Share2, Download, Trophy, TrendingUp, Sparkles, X, Loader2 } from "lucide-react";
+import { Share2, Download, Sparkles, X, Loader2, Twitter, Instagram, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getPublishedOrigin } from "@/lib/clipboard";
+import { initKakao, isKakaoReady, shareToKakao } from "@/lib/kakao";
 
 interface CreatorRankCardProps {
   creatorId: string;
@@ -243,25 +244,76 @@ const CreatorRankCard = ({ creatorId, creatorName, rank, votesCount, avatarUrl, 
     toast.success("이미지가 다운로드되었습니다!");
   };
 
-  const handleShare = async () => {
-    if (!imageUrl) return;
-    const shareUrl = `${getPublishedOrigin()}/creator/${creatorId}`;
-    const shareText = `🏆 ${creatorName} 현재 ${rank}위! ${votesCount.toLocaleString()}표 달성!\n나도 투표하러 가기 → ${shareUrl}`;
+  const getShareText = () =>
+    `🏆 ${creatorName} 현재 ${rank}위! ${votesCount.toLocaleString()}표 달성!\n나도 투표하러 가기 →`;
+  const getShareUrl = () => `${getPublishedOrigin()}/creator/${creatorId}`;
 
-    if (navigator.share) {
+  const dataUrlToFile = async () => {
+    if (!imageUrl) return null;
+    const res = await fetch(imageUrl);
+    const blob = await res.blob();
+    return new File([blob], `rankit-${creatorName}-rank${rank}.png`, { type: "image/png" });
+  };
+
+  const downloadImage = () => {
+    if (!imageUrl) return;
+    const a = document.createElement("a");
+    a.href = imageUrl;
+    a.download = `rankit-${creatorName}-rank${rank}.png`;
+    a.click();
+  };
+
+  const handleShareX = async () => {
+    const text = `${getShareText()} ${getShareUrl()}`;
+    const file = await dataUrlToFile();
+    if (file && navigator.canShare?.({ files: [file] })) {
       try {
-        // Convert to blob for native share
-        const res = await fetch(imageUrl);
-        const blob = await res.blob();
-        const file = new File([blob], `rankit-${creatorName}.png`, { type: "image/png" });
-        await navigator.share({ title: `${creatorName} - Rankit`, text: shareText, files: [file] });
-      } catch {
-        // Fallback to text share
-        try { await navigator.share({ title: `${creatorName} - Rankit`, text: shareText }); } catch { /* cancelled */ }
-      }
+        await navigator.share({ title: `${creatorName} - Rankit`, text, files: [file] });
+        return;
+      } catch { /* fall through */ }
+    }
+    if (imageUrl) {
+      downloadImage();
+      toast.info("이미지가 저장되었어요. X에 첨부해 주세요!");
+    }
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+  };
+
+  const handleShareInstagram = async () => {
+    const file = await dataUrlToFile();
+    if (file && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ title: `${creatorName} - Rankit`, files: [file] });
+        return;
+      } catch { /* fall through */ }
+    }
+    downloadImage();
+    toast.success("이미지 저장 완료! 인스타그램 스토리에 업로드하세요 📸");
+  };
+
+  const handleShareKakao = async () => {
+    initKakao();
+    const text = getShareText();
+    const url = getShareUrl();
+    const file = await dataUrlToFile();
+    if (file && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ title: `${creatorName} - Rankit`, text: `${text} ${url}`, files: [file] });
+        return;
+      } catch { /* fall through */ }
+    }
+    if (isKakaoReady()) {
+      shareToKakao({
+        title: `${creatorName} - Rankit ${rank}위`,
+        description: `${votesCount.toLocaleString()}표 달성! 응원하러 가기 →`,
+        webUrl: url,
+        mobileWebUrl: url,
+        buttonTitle: "투표하러 가기",
+      });
     } else {
-      await navigator.clipboard?.writeText(shareText);
-      toast.success("공유 텍스트가 복사되었습니다!");
+      await navigator.clipboard?.writeText(`${text} ${url}`);
+      downloadImage();
+      toast.success("텍스트 복사 + 이미지 저장 완료! 카톡에 붙여넣어 공유하세요");
     }
   };
 
@@ -300,17 +352,44 @@ const CreatorRankCard = ({ creatorId, creatorName, rank, votesCount, avatarUrl, 
               <div className="rounded-2xl overflow-hidden border border-glass-border/30">
                 <img src={imageUrl} alt="Ranking Card" className="w-full" />
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Button onClick={handleDownload} variant="outline" className="h-11 rounded-xl glass-sm border-glass-border gap-2">
-                  <Download className="w-4 h-4" />
-                  저장
-                </Button>
-                <Button onClick={handleShare} className="h-11 rounded-xl gradient-primary text-primary-foreground gap-2">
-                  <Share2 className="w-4 h-4" />
-                  공유
-                </Button>
+              <Button onClick={handleDownload} variant="outline" className="h-11 w-full rounded-xl glass-sm border-glass-border gap-2">
+                <Download className="w-4 h-4" />
+                이미지 저장
+              </Button>
+
+              {/* Dedicated SNS share buttons */}
+              <div className="pt-1">
+                <p className="text-[10px] text-center text-muted-foreground mb-2">SNS에 바로 공유하기</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={handleShareX}
+                    aria-label="X에 공유"
+                    className="h-14 rounded-xl glass-sm border border-glass-border flex flex-col items-center justify-center gap-1 hover:border-foreground/40 transition-colors"
+                  >
+                    <Twitter className="w-4 h-4 text-foreground" />
+                    <span className="text-[9px] font-semibold text-foreground">X</span>
+                  </button>
+                  <button
+                    onClick={handleShareInstagram}
+                    aria-label="인스타그램에 공유"
+                    className="h-14 rounded-xl flex flex-col items-center justify-center gap-1 transition-opacity hover:opacity-90"
+                    style={{ background: "linear-gradient(135deg, hsl(330 80% 55%), hsl(20 90% 55%))" }}
+                  >
+                    <Instagram className="w-4 h-4 text-white" />
+                    <span className="text-[9px] font-semibold text-white">Instagram</span>
+                  </button>
+                  <button
+                    onClick={handleShareKakao}
+                    aria-label="카카오톡에 공유"
+                    className="h-14 rounded-xl flex flex-col items-center justify-center gap-1 transition-opacity hover:opacity-90"
+                    style={{ background: "hsl(54 100% 60%)" }}
+                  >
+                    <MessageCircle className="w-4 h-4" style={{ color: "hsl(20 10% 15%)" }} />
+                    <span className="text-[9px] font-semibold" style={{ color: "hsl(20 10% 15%)" }}>KakaoTalk</span>
+                  </button>
+                </div>
               </div>
-              <p className="text-[10px] text-center text-muted-foreground">인스타 스토리, 트위터, 카톡에 공유하세요!</p>
+              <p className="text-[10px] text-center text-muted-foreground">인스타는 이미지 저장 후 스토리에 업로드하세요!</p>
             </div>
           </div>
         </div>
