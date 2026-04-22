@@ -337,6 +337,18 @@
   border-color: hsl(var(--ring) / 0.55) !important;
 }
 
+/* Ranking card focus ring enhancement for high-contrast mode */
+.high-contrast [role="button"][tabindex="0"]:focus-visible,
+.high-contrast .ranking-card-focus:focus-visible {
+  outline: 3px solid hsl(var(--ring)) !important;
+  outline-offset: 4px !important;
+  box-shadow:
+    0 0 0 4px hsl(var(--background)),
+    0 0 0 8px hsl(var(--ring)),
+    0 0 16px hsl(var(--ring) / 0.7) !important;
+  border-radius: 12px;
+}
+
 /* Smooth theme transition on all elements */
 html, html *,
 html *::before, html *::after {
