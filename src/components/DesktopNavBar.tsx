@@ -43,12 +43,13 @@ const DesktopNavBar = () => {
 
   return (
     <>
-      <div className="hidden md:block fixed top-0 left-0 right-0 z-50" style={{
-        background: "rgba(255,255,255,0.72)",
-        backdropFilter: "blur(18px) saturate(180%)",
-        WebkitBackdropFilter: "blur(18px) saturate(180%)",
-        borderBottom: "1px solid rgba(168,130,255,0.18)",
-      }}>
+      <div
+        className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-background/95 supports-[backdrop-filter]:bg-background/85 border-b border-border shadow-sm"
+        style={{
+          backdropFilter: "blur(18px) saturate(180%)",
+          WebkitBackdropFilter: "blur(18px) saturate(180%)",
+        }}
+      >
         <div className="container max-w-2xl mx-auto px-4">
           <nav className="flex items-center justify-around py-2">
             {tabs.map(({ to, icon: Icon, label }) => {
