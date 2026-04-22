@@ -99,3 +99,6 @@ verify_jwt = false
 [functions.generate-daily-summary]
 verify_jwt = false
 
+[functions.seed-engagement]
+verify_jwt = false
+
