@@ -78,24 +78,24 @@ const DesktopNavBar = () => {
           WebkitBackdropFilter: "blur(18px) saturate(180%)",
         }}
       >
-        <div className="container max-w-2xl mx-auto px-4">
-          <nav className="flex items-center justify-around py-2">
+        <div className="container max-w-3xl mx-auto px-3">
+          <nav className="flex items-center justify-between gap-1 py-2">
             {tabs.map(({ to, icon: Icon, label }) => {
               const active = isActive(to);
               return (
                 <button
                   key={to}
                   onClick={() => handleClick(to)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 ${
+                  className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl transition-all duration-200 shrink-0 ${
                     active ? "text-primary" : "text-foreground/85 hover:text-primary"
                   }`}
                 >
-                  <div className={`p-1.5 rounded-xl transition-all duration-200 ${
+                  <div className={`p-1 rounded-lg transition-all duration-200 ${
                     active ? "bg-primary/10 shadow-[0_0_12px_hsl(var(--primary)/0.3)]" : ""
                   }`}>
-                    <Icon className={`w-5 h-5 transition-all ${active ? "stroke-[2.5]" : "stroke-[2.25]"}`} />
+                    <Icon className={`w-4 h-4 transition-all ${active ? "stroke-[2.5]" : "stroke-[2.25]"}`} />
                   </div>
-                  <span className={`text-sm leading-tight ${active ? "font-bold" : "font-semibold"}`}>
+                  <span className={`text-xs leading-tight whitespace-nowrap ${active ? "font-bold" : "font-semibold"}`}>
                     {label}
                   </span>
                 </button>
