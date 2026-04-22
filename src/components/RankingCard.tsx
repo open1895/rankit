@@ -179,7 +179,7 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
         onComplete={() => setShowOvertake(false)}
       />
 
-      <div className={`relative glass glass-hover p-3 sm:p-4 flex items-center gap-2 sm:gap-4 transition-all duration-300 group ${isTop3 ? "neon-glow-purple" : ""} ${rankAnim === "up" ? "animate-rank-up" : rankAnim === "down" ? "animate-rank-down" : ""} ${isShaking ? "animate-shake" : ""}`}>
+      <div className={`relative glass glass-hover p-3 sm:p-4 flex items-center gap-2 sm:gap-4 transition-all duration-300 group ${isTop3 ? "neon-glow-purple" : ""} ${rankAnim === "up" ? "animate-rank-up" : rankAnim === "down" ? "animate-rank-down" : ""} ${isShaking ? "animate-shake" : ""} ${highContrast ? "focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2" : ""}`} tabIndex={0} role="button" aria-label={`${creator.name}, ${creator.rank}위, ${creator.votes_count}표`}>
         {/* +1🔥 float animation */}
         {showPlusOne && (
           <div className="absolute right-14 top-1 text-2xl font-black text-orange-400 pointer-events-none select-none z-10"
