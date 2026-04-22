@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, Trophy, TrendingUp, Compass, User, Zap } from "lucide-react";
+import { Home, Trophy, TrendingUp, Compass, User, Zap, Eye, X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import RPChargeModal from "./RPChargeModal";
@@ -15,11 +15,37 @@ const tabs = [
   { to: "/my", icon: User, label: "내 정보" },
 ];
 
+const CONTRAST_BACKGROUNDS = [
+  {
+    key: "light-gradient",
+    label: "밝은 그라디언트",
+    style: "linear-gradient(135deg, #fef3c7 0%, #fce7f3 50%, #dbeafe 100%)",
+  },
+  {
+    key: "dark-photo",
+    label: "어두운 사진",
+    style: "linear-gradient(135deg, #1f2937 0%, #111827 100%)",
+  },
+  {
+    key: "noisy-mid",
+    label: "중간톤 노이즈",
+    style:
+      "repeating-linear-gradient(45deg, #6b7280 0px, #6b7280 2px, #9ca3af 2px, #9ca3af 4px)",
+  },
+  {
+    key: "vivid-purple",
+    label: "비비드 퍼플",
+    style: "linear-gradient(135deg, #7c3aed 0%, #ec4899 100%)",
+  },
+];
+
 const DesktopNavBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const [chargeOpen, setChargeOpen] = useState(false);
+  const [contrastOpen, setContrastOpen] = useState(false);
+  const [contrastBgIndex, setContrastBgIndex] = useState(0);
 
   const isActive = (to: string) => {
     if (to === "/") return location.pathname === "/";
@@ -40,6 +66,8 @@ const DesktopNavBar = () => {
       navigate(to);
     }
   };
+
+  const currentBg = CONTRAST_BACKGROUNDS[contrastBgIndex];
 
   return (
     <>
@@ -87,12 +115,73 @@ const DesktopNavBar = () => {
               <span>RP 충전</span>
             </button>
             <div className="w-px h-5 bg-border/40" />
+            <button
+              type="button"
+              onClick={() => setContrastOpen((v) => !v)}
+              aria-pressed={contrastOpen}
+              aria-label="대비 체크 데모 토글"
+              title="대비 체크 데모"
+              className={`w-8 h-8 flex items-center justify-center rounded-full border border-glass-border bg-glass hover:bg-primary/10 transition-colors ${
+                contrastOpen ? "ring-2 ring-primary text-primary" : "text-foreground/70"
+              }`}
+            >
+              <Eye className="w-4 h-4" />
+            </button>
             <HighContrastToggle size="sm" />
             <ThemeToggle size="sm" />
             <NotificationBell />
           </nav>
         </div>
       </div>
+
+      {contrastOpen && (
+        <div
+          className="hidden md:block fixed top-0 left-0 right-0 z-[49] pointer-events-none"
+          aria-hidden="true"
+        >
+          {/* Background swatch sitting BEHIND the nav to test text contrast */}
+          <div
+            className="h-16 w-full"
+            style={{ background: currentBg.style }}
+          />
+          {/* Floating control panel */}
+          <div className="pointer-events-auto absolute top-20 right-4 bg-card border border-border rounded-xl shadow-lg p-3 w-64">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-foreground">대비 체크 데모</span>
+              <button
+                type="button"
+                onClick={() => setContrastOpen(false)}
+                className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground"
+                aria-label="닫기"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <p className="text-[11px] text-muted-foreground mb-2 leading-relaxed">
+              네비 뒤에 배경을 깔아 글자 가독성을 확인합니다. 빌드용이 아닌 데모 토글입니다.
+            </p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {CONTRAST_BACKGROUNDS.map((bg, i) => (
+                <button
+                  key={bg.key}
+                  type="button"
+                  onClick={() => setContrastBgIndex(i)}
+                  className={`text-[10px] font-medium px-2 py-1.5 rounded-md border transition-all ${
+                    i === contrastBgIndex
+                      ? "border-primary ring-2 ring-primary/40 text-foreground"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                  style={{ background: bg.style }}
+                >
+                  <span className="px-1 py-0.5 rounded bg-background/70 backdrop-blur-sm">
+                    {bg.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <RPChargeModal open={chargeOpen} onOpenChange={setChargeOpen} />
     </>
