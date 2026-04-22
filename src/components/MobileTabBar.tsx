@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Home, Trophy, Zap, Compass, User } from "lucide-react";
+import { Home, Trophy, Zap, Compass, User, Contrast } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useHighContrast } from "@/hooks/useHighContrast";
 import RPChargeModal from "./RPChargeModal";
 
 const tabs = [
@@ -17,6 +18,7 @@ const MobileTabBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { highContrast, toggle: toggleHighContrast } = useHighContrast();
   const [chargeOpen, setChargeOpen] = useState(false);
 
   const isActive = (to: string) => {
@@ -117,6 +119,37 @@ const MobileTabBar = () => {
               </button>
             );
           })}
+          
+          {/* 고대비 모드 토글 */}
+          <button
+            onClick={toggleHighContrast}
+            aria-pressed={highContrast}
+            aria-label={highContrast ? "고대비 모드 끄기" : "고대비 모드 켜기"}
+            title={highContrast ? "고대비 모드 ON" : "고대비 모드 OFF"}
+            className={cn(
+              "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 min-w-[56px] min-h-[44px]",
+              highContrast
+                ? "text-primary ring-2 ring-primary ring-offset-1"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <div
+              className={cn(
+                "p-1.5 rounded-xl transition-all duration-200",
+                highContrast && "bg-primary/20"
+              )}
+            >
+              <Contrast className={cn("w-5 h-5", highContrast && "stroke-[2.5]")} />
+            </div>
+            <span
+              className={cn(
+                "text-[10px] leading-tight transition-all",
+                highContrast ? "font-bold" : "font-medium"
+              )}
+            >
+              고대비
+            </span>
+          </button>
         </div>
       </nav>
 
