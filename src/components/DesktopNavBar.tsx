@@ -46,6 +46,20 @@ const DesktopNavBar = () => {
   const [chargeOpen, setChargeOpen] = useState(false);
   const [contrastOpen, setContrastOpen] = useState(false);
   const [contrastBgIndex, setContrastBgIndex] = useState(0);
+  const [debugOpen, setDebugOpen] = useState(false);
+  const navRef = useRef<HTMLDivElement>(null);
+  const [navHeight, setNavHeight] = useState(0);
+  const [pageTop, setPageTop] = useState(0);
+
+  useEffect(() => {
+    if (navRef.current) {
+      setNavHeight(navRef.current.offsetHeight);
+    }
+    setPageTop(window.scrollY);
+    const handleScroll = () => setPageTop(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const isActive = (to: string) => {
     if (to === "/") return location.pathname === "/";
