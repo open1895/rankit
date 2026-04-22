@@ -512,6 +512,36 @@ export type Database = {
           },
         ]
       }
+      creator_auto_add_runs: {
+        Row: {
+          created_at: string
+          details: Json
+          id: string
+          mode: string
+          run_at: string
+          total_added: number
+          total_shortfall: number
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          id?: string
+          mode?: string
+          run_at?: string
+          total_added?: number
+          total_shortfall?: number
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          id?: string
+          mode?: string
+          run_at?: string
+          total_added?: number
+          total_shortfall?: number
+        }
+        Relationships: []
+      }
       creator_donations: {
         Row: {
           amount: number
