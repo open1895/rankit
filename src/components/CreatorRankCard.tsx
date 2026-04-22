@@ -1,8 +1,9 @@
 import { useState, useCallback } from "react";
-import { Share2, Download, Trophy, TrendingUp, Sparkles, X, Loader2 } from "lucide-react";
+import { Share2, Download, Sparkles, X, Loader2, Twitter, Instagram, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getPublishedOrigin } from "@/lib/clipboard";
+import { initKakao, isKakaoReady, shareToKakao } from "@/lib/kakao";
 
 interface CreatorRankCardProps {
   creatorId: string;
