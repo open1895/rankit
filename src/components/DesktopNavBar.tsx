@@ -109,9 +109,9 @@ const DesktopNavBar = () => {
                 }
                 setChargeOpen(true);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold text-sm hover:shadow-[0_2px_16px_hsl(var(--primary)/0.4)] hover:scale-105 transition-all duration-200"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold text-xs whitespace-nowrap shrink-0 hover:shadow-[0_2px_16px_hsl(var(--primary)/0.4)] hover:scale-105 transition-all duration-200"
             >
-              <Zap className="w-4 h-4" />
+              <Zap className="w-3.5 h-3.5" />
               <span>RP 충전</span>
             </button>
             <div className="w-px h-5 bg-border/40" />
