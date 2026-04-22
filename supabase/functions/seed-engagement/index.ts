@@ -73,15 +73,25 @@ function parseJSONArray(raw: string): any[] {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  // Auth: allow either CRON_SECRET (cron) or admin user (manual)
+  // Auth: allow CRON_SECRET, pg_cron internal call (anon + cron:true), or admin
   const auth = req.headers.get("authorization") || "";
-  const isCron = auth === `Bearer ${CRON_SECRET}`;
+  const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+  let bodyText = "";
+  try { bodyText = await req.text(); } catch { /* */ }
+  let parsedBody: any = {};
+  try { parsedBody = bodyText ? JSON.parse(bodyText) : {}; } catch { /* */ }
+
+  const isCron =
+    auth === `Bearer ${CRON_SECRET}` ||
+    (auth === `Bearer ${ANON_KEY}` && parsedBody?.cron === true);
+
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
   let isAdmin = false;
   if (!isCron) {
     const token = auth.replace(/^Bearer\s+/i, "");
-    if (token) {
+    if (token && token !== ANON_KEY) {
       const { data: userData } = await supabase.auth.getUser(token);
       if (userData?.user) {
         const { data: roleData } = await supabase
