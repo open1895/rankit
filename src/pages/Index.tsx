@@ -267,7 +267,7 @@ const Index = () => {
     else setLoadingMore(true);
 
     let query = supabase
-      .from("creators")
+      .from("creators_public")
       .select("*", { count: "exact" })
       .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);
 
@@ -348,7 +348,7 @@ const Index = () => {
     let cancelled = false;
     (async () => {
       const { data } = await supabase
-        .from("creators")
+        .from("creators_public")
         .select("id, name, category, avatar_url, votes_count, subscriber_count, rank, is_verified, rankit_score")
         .ilike("name", `%${firstChar}%`)
         .order("rank", { ascending: true })
