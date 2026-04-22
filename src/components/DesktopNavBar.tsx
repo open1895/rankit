@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Home, Trophy, TrendingUp, Compass, User, Zap, Eye, X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Home, Trophy, TrendingUp, Compass, User, Zap, Eye, X, Bug } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import RPChargeModal from "./RPChargeModal";
