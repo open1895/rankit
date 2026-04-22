@@ -139,12 +139,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Auth: CRON_SECRET header or admin role only.
-    // Note: the previous {"cron": true} body-based bypass has been removed because
-    // it allowed any unauthenticated caller to trigger the function and consume the
-    // YouTube API quota / inject creator rows.
+    // Auth: accept either
+    //  (a) CRON_SECRET via Authorization: Bearer <CRON_SECRET>
+    //  (b) x-cron-secret header matching CRON_SECRET (used by pg_cron)
+    //  (c) authenticated admin user
     const authHeader = req.headers.get("Authorization");
-    const isCronCall = !!cronSecret && authHeader === `Bearer ${cronSecret}`;
+    const xCronSecret = req.headers.get("x-cron-secret");
+    const isCronCall =
+      (!!cronSecret && authHeader === `Bearer ${cronSecret}`) ||
+      (!!cronSecret && xCronSecret === cronSecret);
 
     let bodyText = "";
     try {
