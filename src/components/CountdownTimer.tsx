@@ -27,9 +27,9 @@ const TimerBlock = ({
   const dotColor = accent === "cyan" ? "text-neon-cyan/40" : "text-neon-purple/40";
 
   return (
-    <div className="flex-1 min-w-0 py-5 sm:py-0 px-1 active:scale-[0.98] active:opacity-90 transition-all duration-150 ease-out cursor-pointer select-none tap-highlight-transparent">
-      <div className="flex items-center justify-center gap-2.5 mb-4">
-        <span className={`${accentText} transition-transform duration-200 active:scale-110`}>{icon}</span>
+    <div className="flex-1 min-w-0 py-5 sm:py-0 px-1 min-h-[48px] active:scale-[0.98] active:opacity-90 transition-all duration-150 ease-out cursor-pointer select-none tap-highlight-transparent">
+      <div className="flex items-center justify-center gap-2.5 mb-4 min-h-[44px]">
+        <span className={`${accentText} transition-transform duration-200 active:scale-110 inline-flex items-center justify-center min-w-[44px] min-h-[44px]`}>{icon}</span>
         <div className="flex flex-col items-start leading-tight">
           <span className="text-sm sm:text-xs font-semibold tracking-wide uppercase text-foreground">
             {label}
@@ -37,21 +37,21 @@ const TimerBlock = ({
           <span className="text-[11px] sm:text-[10px] text-muted-foreground">{sublabel}</span>
         </div>
       </div>
-      <div className="flex items-center justify-center gap-2.5 sm:gap-2">
+      <div className="flex items-center justify-center gap-2.5 sm:gap-2 min-h-[44px]">
         {units.map((u, i) => (
           <div key={u.label} className="flex items-center gap-2.5 sm:gap-2">
             <div className="flex flex-col items-center">
-              <div className="glass-sm px-3.5 py-2.5 sm:px-3 sm:py-2 rounded-xl min-w-[52px] sm:min-w-[48px] active:scale-95 transition-transform duration-100">
+              <div className="glass-sm px-3.5 py-2.5 sm:px-3 sm:py-2 rounded-xl min-w-[52px] sm:min-w-[48px] min-h-[44px] flex items-center justify-center active:scale-95 transition-transform duration-100">
                 <span className="text-3xl sm:text-2xl font-bold gradient-text tabular-nums leading-none">
                   {String(u.value).padStart(2, "0")}
                 </span>
               </div>
-              <span className="text-xs sm:text-[10px] text-muted-foreground mt-1.5 font-medium">
+              <span className="text-xs sm:text-[10px] text-muted-foreground mt-1.5 font-medium min-h-[20px] flex items-center">
                 {u.label}
               </span>
             </div>
             {i < units.length - 1 && (
-              <span className={`text-lg sm:text-base font-bold ${dotColor} -mt-5 sm:-mt-4 animate-pulse-neon`}>
+              <span className={`text-lg sm:text-base font-bold ${dotColor} -mt-5 sm:-mt-4 animate-pulse-neon min-w-[12px] text-center`}>
                 :
               </span>
             )}
