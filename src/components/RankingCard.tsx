@@ -6,6 +6,7 @@ import { Trophy, TrendingUp, TrendingDown, Minus, CheckCircle2, Heart, Crown, Fl
 import { useHallOfFameWins, getWinTitle } from "@/hooks/useHallOfFame";
 import { useTickets } from "@/hooks/useTickets";
 import { useAuth } from "@/hooks/useAuth";
+import { useHighContrast } from "@/hooks/useHighContrast";
 import { supabase } from "@/integrations/supabase/client";
 import CommentInput from "./CommentInput";
 import MiniInfluenceChart from "./MiniInfluenceChart";
