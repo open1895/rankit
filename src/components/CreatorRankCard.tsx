@@ -352,17 +352,44 @@ const CreatorRankCard = ({ creatorId, creatorName, rank, votesCount, avatarUrl, 
               <div className="rounded-2xl overflow-hidden border border-glass-border/30">
                 <img src={imageUrl} alt="Ranking Card" className="w-full" />
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Button onClick={handleDownload} variant="outline" className="h-11 rounded-xl glass-sm border-glass-border gap-2">
-                  <Download className="w-4 h-4" />
-                  저장
-                </Button>
-                <Button onClick={handleShare} className="h-11 rounded-xl gradient-primary text-primary-foreground gap-2">
-                  <Share2 className="w-4 h-4" />
-                  공유
-                </Button>
+              <Button onClick={handleDownload} variant="outline" className="h-11 w-full rounded-xl glass-sm border-glass-border gap-2">
+                <Download className="w-4 h-4" />
+                이미지 저장
+              </Button>
+
+              {/* Dedicated SNS share buttons */}
+              <div className="pt-1">
+                <p className="text-[10px] text-center text-muted-foreground mb-2">SNS에 바로 공유하기</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={handleShareX}
+                    aria-label="X에 공유"
+                    className="h-14 rounded-xl glass-sm border border-glass-border flex flex-col items-center justify-center gap-1 hover:border-foreground/40 transition-colors"
+                  >
+                    <Twitter className="w-4 h-4 text-foreground" />
+                    <span className="text-[9px] font-semibold text-foreground">X</span>
+                  </button>
+                  <button
+                    onClick={handleShareInstagram}
+                    aria-label="인스타그램에 공유"
+                    className="h-14 rounded-xl flex flex-col items-center justify-center gap-1 transition-opacity hover:opacity-90"
+                    style={{ background: "linear-gradient(135deg, hsl(330 80% 55%), hsl(20 90% 55%))" }}
+                  >
+                    <Instagram className="w-4 h-4 text-white" />
+                    <span className="text-[9px] font-semibold text-white">Instagram</span>
+                  </button>
+                  <button
+                    onClick={handleShareKakao}
+                    aria-label="카카오톡에 공유"
+                    className="h-14 rounded-xl flex flex-col items-center justify-center gap-1 transition-opacity hover:opacity-90"
+                    style={{ background: "hsl(54 100% 60%)" }}
+                  >
+                    <MessageCircle className="w-4 h-4" style={{ color: "hsl(20 10% 15%)" }} />
+                    <span className="text-[9px] font-semibold" style={{ color: "hsl(20 10% 15%)" }}>KakaoTalk</span>
+                  </button>
+                </div>
               </div>
-              <p className="text-[10px] text-center text-muted-foreground">인스타 스토리, 트위터, 카톡에 공유하세요!</p>
+              <p className="text-[10px] text-center text-muted-foreground">인스타는 이미지 저장 후 스토리에 업로드하세요!</p>
             </div>
           </div>
         </div>
