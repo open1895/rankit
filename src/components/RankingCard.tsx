@@ -306,7 +306,7 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
               onClick={handleFireVote}
               disabled={isFireVoting || tickets < 5}
               translate="no"
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center justify-center gap-0.5 notranslate ${
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center justify-center gap-0.5 notranslate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                 tickets < 5
                   ? "glass-sm text-muted-foreground/50 cursor-not-allowed"
                   : isFireVoting
