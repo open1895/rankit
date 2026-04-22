@@ -6,6 +6,7 @@ import { Trophy, TrendingUp, TrendingDown, Minus, CheckCircle2, Heart, Crown, Fl
 import { useHallOfFameWins, getWinTitle } from "@/hooks/useHallOfFame";
 import { useTickets } from "@/hooks/useTickets";
 import { useAuth } from "@/hooks/useAuth";
+import { useHighContrast } from "@/hooks/useHighContrast";
 import { supabase } from "@/integrations/supabase/client";
 import CommentInput from "./CommentInput";
 import MiniInfluenceChart from "./MiniInfluenceChart";
@@ -38,6 +39,7 @@ const fireParticles = Array.from({ length: 30 }, (_, i) => ({
 const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = false, highlightQuery = "" }: RankingCardProps) => {
   const hallOfFameWins = useHallOfFameWins();
   const { user } = useAuth();
+  const { highContrast } = useHighContrast();
   const { tickets, refreshTickets } = useTickets();
   const creatorWins = hallOfFameWins[creator.id] || 0;
   const winTitle = getWinTitle(creatorWins);
@@ -177,7 +179,7 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
         onComplete={() => setShowOvertake(false)}
       />
 
-      <div className={`relative glass glass-hover p-3 sm:p-4 flex items-center gap-2 sm:gap-4 transition-all duration-300 group ${isTop3 ? "neon-glow-purple" : ""} ${rankAnim === "up" ? "animate-rank-up" : rankAnim === "down" ? "animate-rank-down" : ""} ${isShaking ? "animate-shake" : ""}`}>
+      <div className={`relative glass glass-hover p-3 sm:p-4 flex items-center gap-2 sm:gap-4 transition-all duration-300 group ${isTop3 ? "neon-glow-purple" : ""} ${rankAnim === "up" ? "animate-rank-up" : rankAnim === "down" ? "animate-rank-down" : ""} ${isShaking ? "animate-shake" : ""} ${highContrast ? "focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2" : ""}`} tabIndex={0} role="button" aria-label={`${creator.name}, ${creator.rank}위, ${creator.votes_count}표`}>
         {/* +1🔥 float animation */}
         {showPlusOne && (
           <div className="absolute right-14 top-1 text-2xl font-black text-orange-400 pointer-events-none select-none z-10"
@@ -289,7 +291,7 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
           <button
             onClick={handleVote}
             disabled={isVoting || hasVoted}
-            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 ${
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
               hasVoted
                 ? "glass-sm border-muted/30 text-muted-foreground cursor-not-allowed opacity-60"
                 : isVoting
@@ -304,7 +306,7 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
               onClick={handleFireVote}
               disabled={isFireVoting || tickets < 5}
               translate="no"
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center justify-center gap-0.5 notranslate ${
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center justify-center gap-0.5 notranslate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                 tickets < 5
                   ? "glass-sm text-muted-foreground/50 cursor-not-allowed"
                   : isFireVoting

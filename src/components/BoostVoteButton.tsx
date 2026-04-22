@@ -117,7 +117,7 @@ const BoostVoteButton = ({
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={isBoosting || remainingBoosts === 0}
-        className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center gap-0.5 ${
+        className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all duration-300 flex items-center gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
           remainingBoosts === 0
             ? "glass-sm text-muted-foreground/50 cursor-not-allowed"
             : isUrgent
