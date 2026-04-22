@@ -75,7 +75,7 @@ const App = () => (
               <PredictionWinPopup />
               <div className="flex flex-col min-h-screen">
                 <DesktopNavBar />
-                <div className="md:pt-14">
+                <div className="md:pt-16">
                 <PageTransition>
                   <Suspense fallback={<PageFallback />}>
                   <Routes>

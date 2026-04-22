@@ -78,24 +78,24 @@ const DesktopNavBar = () => {
           WebkitBackdropFilter: "blur(18px) saturate(180%)",
         }}
       >
-        <div className="container max-w-2xl mx-auto px-4">
-          <nav className="flex items-center justify-around py-2">
+        <div className="container max-w-3xl mx-auto px-3">
+          <nav className="flex items-center justify-between gap-1 py-2">
             {tabs.map(({ to, icon: Icon, label }) => {
               const active = isActive(to);
               return (
                 <button
                   key={to}
                   onClick={() => handleClick(to)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 ${
+                  className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl transition-all duration-200 shrink-0 ${
                     active ? "text-primary" : "text-foreground/85 hover:text-primary"
                   }`}
                 >
-                  <div className={`p-1.5 rounded-xl transition-all duration-200 ${
+                  <div className={`p-1 rounded-lg transition-all duration-200 ${
                     active ? "bg-primary/10 shadow-[0_0_12px_hsl(var(--primary)/0.3)]" : ""
                   }`}>
-                    <Icon className={`w-5 h-5 transition-all ${active ? "stroke-[2.5]" : "stroke-[2.25]"}`} />
+                    <Icon className={`w-4 h-4 transition-all ${active ? "stroke-[2.5]" : "stroke-[2.25]"}`} />
                   </div>
-                  <span className={`text-sm leading-tight ${active ? "font-bold" : "font-semibold"}`}>
+                  <span className={`text-xs leading-tight whitespace-nowrap ${active ? "font-bold" : "font-semibold"}`}>
                     {label}
                   </span>
                 </button>
@@ -109,9 +109,9 @@ const DesktopNavBar = () => {
                 }
                 setChargeOpen(true);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold text-sm hover:shadow-[0_2px_16px_hsl(var(--primary)/0.4)] hover:scale-105 transition-all duration-200"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-gradient-to-r from-primary to-secondary text-primary-foreground font-bold text-xs whitespace-nowrap shrink-0 hover:shadow-[0_2px_16px_hsl(var(--primary)/0.4)] hover:scale-105 transition-all duration-200"
             >
-              <Zap className="w-4 h-4" />
+              <Zap className="w-3.5 h-3.5" />
               <span>RP 충전</span>
             </button>
             <div className="w-px h-5 bg-border/40" />
