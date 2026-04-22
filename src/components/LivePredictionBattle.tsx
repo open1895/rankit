@@ -351,8 +351,27 @@ const LivePredictionBattle = () => {
 
       {/* Betting UI */}
       {alreadyBet ? (
-        <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl" style={{ background: "hsl(var(--neon-purple) / 0.1)", border: "1px solid hsl(var(--neon-purple) / 0.2)" }}>
-          <span className="text-xs font-bold" style={{ color: "hsl(var(--neon-purple))" }}>✅ 이미 예측 완료!</span>
+        <div
+          className="flex flex-col items-center justify-center gap-1.5 p-4 rounded-xl text-center"
+          style={{
+            background: "hsl(var(--neon-purple) / 0.08)",
+            border: "1px solid hsl(var(--neon-purple) / 0.25)",
+          }}
+        >
+          <span className="text-2xl" aria-hidden="true">🎯</span>
+          <span className="text-sm font-bold" style={{ color: "hsl(var(--neon-purple))" }}>
+            이미 이 예측에 참여했어요
+          </span>
+          <span className="text-[11px] text-muted-foreground leading-relaxed">
+            한 예측당 1회만 베팅할 수 있어요. 결과 발표를 기다려 주세요!
+          </span>
+          <Button
+            disabled
+            variant="secondary"
+            className="mt-2 w-full font-bold text-xs opacity-70 cursor-not-allowed"
+          >
+            🔒 베팅 완료 — 결과 대기 중
+          </Button>
         </div>
       ) : isExpired ? (
         <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-muted/20">
