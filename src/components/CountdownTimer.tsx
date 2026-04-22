@@ -27,9 +27,9 @@ const TimerBlock = ({
   const dotColor = accent === "cyan" ? "text-neon-cyan/40" : "text-neon-purple/40";
 
   return (
-    <div className="flex-1 min-w-0 py-5 sm:py-0 px-1">
+    <div className="flex-1 min-w-0 py-5 sm:py-0 px-1 active:scale-[0.98] active:opacity-90 transition-all duration-150 ease-out cursor-pointer select-none tap-highlight-transparent">
       <div className="flex items-center justify-center gap-2.5 mb-4">
-        <span className={accentText}>{icon}</span>
+        <span className={`${accentText} transition-transform duration-200 active:scale-110`}>{icon}</span>
         <div className="flex flex-col items-start leading-tight">
           <span className="text-sm sm:text-xs font-semibold tracking-wide uppercase text-foreground">
             {label}
@@ -41,7 +41,7 @@ const TimerBlock = ({
         {units.map((u, i) => (
           <div key={u.label} className="flex items-center gap-2.5 sm:gap-2">
             <div className="flex flex-col items-center">
-              <div className="glass-sm px-3.5 py-2.5 sm:px-3 sm:py-2 rounded-xl min-w-[52px] sm:min-w-[48px]">
+              <div className="glass-sm px-3.5 py-2.5 sm:px-3 sm:py-2 rounded-xl min-w-[52px] sm:min-w-[48px] active:scale-95 transition-transform duration-100">
                 <span className="text-3xl sm:text-2xl font-bold gradient-text tabular-nums leading-none">
                   {String(u.value).padStart(2, "0")}
                 </span>
