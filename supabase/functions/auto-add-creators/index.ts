@@ -33,6 +33,17 @@ const SEARCH_VARIATIONS = [
   " shorts",
   " 채널",
 ];
+// Extra fallback queries used only when a category is still short after the
+// primary search variations. These widen the funnel to make sure we hit 10/day.
+const FALLBACK_VARIATIONS = [
+  " 신규",
+  " 떠오르는",
+  " 일상",
+  " 리뷰",
+  " 라이브",
+  " 크리에이터",
+  " 유튜버 추천",
+];
 
 interface YouTubeChannel {
   id: string;
