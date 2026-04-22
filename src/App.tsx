@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
+import { HighContrastProvider } from "@/hooks/useHighContrast";
 import { TicketProvider } from "@/hooks/useTickets";
 import PageTransition from "@/components/PageTransition";
 import MobileTabBar from "@/components/MobileTabBar";
@@ -63,6 +64,7 @@ const App = () => (
   <ErrorBoundary>
     <HelmetProvider>
       <ThemeProvider>
+      <HighContrastProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TicketProvider>
@@ -125,6 +127,7 @@ const App = () => (
           </TicketProvider>
         </AuthProvider>
       </QueryClientProvider>
+      </HighContrastProvider>
       </ThemeProvider>
     </HelmetProvider>
   </ErrorBoundary>
