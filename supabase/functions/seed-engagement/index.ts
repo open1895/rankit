@@ -90,19 +90,16 @@ Deno.serve(async (req) => {
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
   let isAdmin = false;
-  if (!isCron) {
-    const token = auth.replace(/^Bearer\s+/i, "");
-    if (token && token !== ANON_KEY) {
-      const { data: userData } = await supabase.auth.getUser(token);
-      if (userData?.user) {
-        const { data: roleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userData.user.id)
-          .eq("role", "admin")
-          .maybeSingle();
-        isAdmin = !!roleData;
-      }
+  if (!isCron && token && token !== ANON_KEY) {
+    const { data: userData } = await supabase.auth.getUser(token);
+    if (userData?.user) {
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userData.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      isAdmin = !!roleData;
     }
   }
   if (!isCron && !isAdmin) {
