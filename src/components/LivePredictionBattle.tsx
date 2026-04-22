@@ -117,7 +117,21 @@ const LivePredictionBattle = () => {
 
     setSubmitting(false);
     if (error || data?.error) {
-      toast.error(data?.error || "베팅에 실패했습니다.");
+      let msg = data?.error || "베팅에 실패했습니다.";
+      try {
+        const parsed = error && typeof error === "object" && (error as any).message
+          ? JSON.parse((error as any).message)
+          : null;
+        if (parsed?.error) msg = parsed.error;
+      } catch {
+        if (error && (error as any).message) msg = (error as any).message;
+      }
+      if (typeof msg === "string" && msg.includes("이미")) {
+        setAlreadyBet(true);
+        toast.info(msg);
+      } else {
+        toast.error(msg);
+      }
       return;
     }
 
