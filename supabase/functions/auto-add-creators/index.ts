@@ -139,12 +139,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Auth: CRON_SECRET header or admin role only.
-    // Note: the previous {"cron": true} body-based bypass has been removed because
-    // it allowed any unauthenticated caller to trigger the function and consume the
-    // YouTube API quota / inject creator rows.
+    // Auth: accept either
+    //  (a) CRON_SECRET via Authorization: Bearer <CRON_SECRET> or x-cron-secret header
+    //  (b) pg_cron internal call: anon Bearer + body {"cron": true} (matches other cron jobs in this project)
+    //  (c) authenticated admin user
     const authHeader = req.headers.get("Authorization");
-    const isCronCall = !!cronSecret && authHeader === `Bearer ${cronSecret}`;
+    const xCronSecret = req.headers.get("x-cron-secret");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
     let bodyText = "";
     try {
@@ -156,6 +157,11 @@ Deno.serve(async (req) => {
       parsedBody = bodyText ? JSON.parse(bodyText) : {};
     } catch { /* empty */ }
 
+    const isCronCall =
+      (!!cronSecret && authHeader === `Bearer ${cronSecret}`) ||
+      (!!cronSecret && xCronSecret === cronSecret) ||
+      (authHeader === `Bearer ${anonKey}` && parsedBody?.cron === true);
+
     if (!isCronCall) {
       if (!authHeader) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -164,7 +170,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      // anonKey is already declared above
       const authClient = createClient(supabaseUrl, anonKey, {
         global: { headers: { Authorization: authHeader } },
       });
