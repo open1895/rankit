@@ -291,7 +291,7 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
           <button
             onClick={handleVote}
             disabled={isVoting || hasVoted}
-            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 ${
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
               hasVoted
                 ? "glass-sm border-muted/30 text-muted-foreground cursor-not-allowed opacity-60"
                 : isVoting
