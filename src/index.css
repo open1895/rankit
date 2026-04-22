@@ -296,6 +296,47 @@
   }
 }
 
+/* ============================================================
+   High-Contrast Mode (WCAG 1.4.11 / 2.4.7 enhanced)
+   Triggered by .high-contrast on <html>. Boosts focus ring
+   contrast and thickness for keyboard + tap users on timer
+   blocks, buttons, links, and any focusable interactive element.
+   ============================================================ */
+.high-contrast {
+  /* Stronger ring color (pure yellow on dark, pure blue on light) */
+  --ring: 50 100% 55%;
+}
+.high-contrast.light {
+  --ring: 220 100% 35%;
+}
+
+/* Override focus-visible globally so every interactive element
+   inherits the upgraded ring — including timer blocks, buttons,
+   links, inputs and [role="button"] / [tabindex] nodes. */
+.high-contrast *:focus-visible {
+  outline: 3px solid hsl(var(--ring)) !important;
+  outline-offset: 3px !important;
+  box-shadow:
+    0 0 0 3px hsl(var(--background)),
+    0 0 0 6px hsl(var(--ring)),
+    0 0 12px hsl(var(--ring) / 0.6) !important;
+  border-radius: 6px;
+  transition: none !important;
+}
+
+/* Keep Tailwind ring utilities visible too */
+.high-contrast .focus-visible\:ring-2:focus-visible,
+.high-contrast .focus-visible\:ring-primary:focus-visible {
+  --tw-ring-color: hsl(var(--ring)) !important;
+  --tw-ring-offset-width: 3px !important;
+}
+
+/* Slight extra contrast for borders & glass surfaces */
+.high-contrast .glass,
+.high-contrast .glass-sm {
+  border-color: hsl(var(--ring) / 0.55) !important;
+}
+
 /* Smooth theme transition on all elements */
 html, html *,
 html *::before, html *::after {
