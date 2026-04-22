@@ -100,12 +100,13 @@ async function gatherEligibleChannels(
   baseQuery: string,
   apiKey: string,
   existingIds: Set<string>,
-  neededCount: number
+  neededCount: number,
+  variations: string[] = SEARCH_VARIATIONS
 ): Promise<YouTubeChannel[]> {
   const collected: YouTubeChannel[] = [];
   const collectedIds = new Set<string>();
 
-  for (const suffix of SEARCH_VARIATIONS) {
+  for (const suffix of variations) {
     const channels = await searchAndFetchChannels(`${baseQuery}${suffix}`, apiKey, SEARCH_BATCH_SIZE);
 
     for (const channel of uniqueChannels(channels)) {
