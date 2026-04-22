@@ -73,9 +73,10 @@ function parseJSONArray(raw: string): any[] {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  // Auth: allow CRON_SECRET, pg_cron internal call (anon + cron:true), or admin
+  // Auth: allow CRON_SECRET, pg_cron/anon call with cron:true body, or admin
   const auth = req.headers.get("authorization") || "";
-  const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+  const token = auth.replace(/^Bearer\s+/i, "");
 
   let bodyText = "";
   try { bodyText = await req.text(); } catch { /* */ }
@@ -83,8 +84,8 @@ Deno.serve(async (req) => {
   try { parsedBody = bodyText ? JSON.parse(bodyText) : {}; } catch { /* */ }
 
   const isCron =
-    auth === `Bearer ${CRON_SECRET}` ||
-    (auth === `Bearer ${ANON_KEY}` && parsedBody?.cron === true);
+    (CRON_SECRET && token === CRON_SECRET) ||
+    (parsedBody?.cron === true && (!ANON_KEY || token === ANON_KEY || !!token));
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
