@@ -244,25 +244,76 @@ const CreatorRankCard = ({ creatorId, creatorName, rank, votesCount, avatarUrl, 
     toast.success("이미지가 다운로드되었습니다!");
   };
 
-  const handleShare = async () => {
-    if (!imageUrl) return;
-    const shareUrl = `${getPublishedOrigin()}/creator/${creatorId}`;
-    const shareText = `🏆 ${creatorName} 현재 ${rank}위! ${votesCount.toLocaleString()}표 달성!\n나도 투표하러 가기 → ${shareUrl}`;
+  const getShareText = () =>
+    `🏆 ${creatorName} 현재 ${rank}위! ${votesCount.toLocaleString()}표 달성!\n나도 투표하러 가기 →`;
+  const getShareUrl = () => `${getPublishedOrigin()}/creator/${creatorId}`;
 
-    if (navigator.share) {
+  const dataUrlToFile = async () => {
+    if (!imageUrl) return null;
+    const res = await fetch(imageUrl);
+    const blob = await res.blob();
+    return new File([blob], `rankit-${creatorName}-rank${rank}.png`, { type: "image/png" });
+  };
+
+  const downloadImage = () => {
+    if (!imageUrl) return;
+    const a = document.createElement("a");
+    a.href = imageUrl;
+    a.download = `rankit-${creatorName}-rank${rank}.png`;
+    a.click();
+  };
+
+  const handleShareX = async () => {
+    const text = `${getShareText()} ${getShareUrl()}`;
+    const file = await dataUrlToFile();
+    if (file && navigator.canShare?.({ files: [file] })) {
       try {
-        // Convert to blob for native share
-        const res = await fetch(imageUrl);
-        const blob = await res.blob();
-        const file = new File([blob], `rankit-${creatorName}.png`, { type: "image/png" });
-        await navigator.share({ title: `${creatorName} - Rankit`, text: shareText, files: [file] });
-      } catch {
-        // Fallback to text share
-        try { await navigator.share({ title: `${creatorName} - Rankit`, text: shareText }); } catch { /* cancelled */ }
-      }
+        await navigator.share({ title: `${creatorName} - Rankit`, text, files: [file] });
+        return;
+      } catch { /* fall through */ }
+    }
+    if (imageUrl) {
+      downloadImage();
+      toast.info("이미지가 저장되었어요. X에 첨부해 주세요!");
+    }
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+  };
+
+  const handleShareInstagram = async () => {
+    const file = await dataUrlToFile();
+    if (file && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ title: `${creatorName} - Rankit`, files: [file] });
+        return;
+      } catch { /* fall through */ }
+    }
+    downloadImage();
+    toast.success("이미지 저장 완료! 인스타그램 스토리에 업로드하세요 📸");
+  };
+
+  const handleShareKakao = async () => {
+    initKakao();
+    const text = getShareText();
+    const url = getShareUrl();
+    const file = await dataUrlToFile();
+    if (file && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ title: `${creatorName} - Rankit`, text: `${text} ${url}`, files: [file] });
+        return;
+      } catch { /* fall through */ }
+    }
+    if (isKakaoReady()) {
+      shareToKakao({
+        title: `${creatorName} - Rankit ${rank}위`,
+        description: `${votesCount.toLocaleString()}표 달성! 응원하러 가기 →`,
+        webUrl: url,
+        mobileWebUrl: url,
+        buttonTitle: "투표하러 가기",
+      });
     } else {
-      await navigator.clipboard?.writeText(shareText);
-      toast.success("공유 텍스트가 복사되었습니다!");
+      await navigator.clipboard?.writeText(`${text} ${url}`);
+      downloadImage();
+      toast.success("텍스트 복사 + 이미지 저장 완료! 카톡에 붙여넣어 공유하세요");
     }
   };
 
