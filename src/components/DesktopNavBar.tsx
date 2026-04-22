@@ -144,6 +144,18 @@ const DesktopNavBar = () => {
             <HighContrastToggle size="sm" />
             <ThemeToggle size="sm" />
             <NotificationBell />
+            <button
+              type="button"
+              onClick={() => setDebugOpen((v) => !v)}
+              aria-pressed={debugOpen}
+              aria-label="디버그 오버레이 토글"
+              title="디버그 오버레이"
+              className={`w-8 h-8 flex items-center justify-center rounded-full border border-glass-border bg-glass hover:bg-primary/10 transition-colors ${
+                debugOpen ? "ring-2 ring-primary text-primary" : "text-foreground/70"
+              }`}
+            >
+              <Bug className="w-4 h-4" />
+            </button>
           </nav>
         </div>
       </div>
