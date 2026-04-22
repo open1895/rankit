@@ -39,6 +39,7 @@ const fireParticles = Array.from({ length: 30 }, (_, i) => ({
 const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = false, highlightQuery = "" }: RankingCardProps) => {
   const hallOfFameWins = useHallOfFameWins();
   const { user } = useAuth();
+  const { highContrast } = useHighContrast();
   const { tickets, refreshTickets } = useTickets();
   const creatorWins = hallOfFameWins[creator.id] || 0;
   const winTitle = getWinTitle(creatorWins);
