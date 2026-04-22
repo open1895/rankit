@@ -27,9 +27,25 @@ const TimerBlock = ({
   const dotColor = accent === "cyan" ? "text-neon-cyan/40" : "text-neon-purple/40";
 
   return (
-    <div className="flex-1 min-w-0 py-5 sm:py-0 px-1 min-h-[48px] active:scale-[0.98] active:opacity-90 transition-all duration-150 ease-out cursor-pointer select-none tap-highlight-transparent">
+    <div 
+      className="flex-1 min-w-0 py-5 sm:py-0 px-1 min-h-[48px] 
+        active:scale-[0.98] active:opacity-90 
+        focus-visible:scale-[0.98] focus-visible:opacity-90
+        transition-all duration-150 ease-out 
+        cursor-pointer select-none tap-highlight-transparent
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background
+        rounded-xl"
+      tabIndex={0}
+      role="button"
+      aria-label={`${label} 타이머: ${time.days}일 ${time.hours}시간 ${time.minutes}분 ${time.seconds}초 남음`}
+    >
       <div className="flex items-center justify-center gap-2.5 mb-4 min-h-[44px]">
-        <span className={`${accentText} transition-transform duration-200 active:scale-110 inline-flex items-center justify-center min-w-[44px] min-h-[44px]`}>{icon}</span>
+        <span 
+          className={`${accentText} transition-transform duration-200 active:scale-110 focus-visible:scale-110 inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`}
+          aria-hidden="true"
+        >
+          {icon}
+        </span>
         <div className="flex flex-col items-start leading-tight">
           <span className="text-sm sm:text-xs font-semibold tracking-wide uppercase text-foreground">
             {label}
@@ -41,7 +57,10 @@ const TimerBlock = ({
         {units.map((u, i) => (
           <div key={u.label} className="flex items-center gap-2.5 sm:gap-2">
             <div className="flex flex-col items-center">
-              <div className="glass-sm px-3.5 py-2.5 sm:px-3 sm:py-2 rounded-xl min-w-[52px] sm:min-w-[48px] min-h-[44px] flex items-center justify-center active:scale-95 transition-transform duration-100">
+              <div 
+                className="glass-sm px-3.5 py-2.5 sm:px-3 sm:py-2 rounded-xl min-w-[52px] sm:min-w-[48px] min-h-[44px] flex items-center justify-center active:scale-95 transition-transform duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                aria-label={`${u.value}${u.label}`}
+              >
                 <span className="text-3xl sm:text-2xl font-bold gradient-text tabular-nums leading-none">
                   {String(u.value).padStart(2, "0")}
                 </span>
