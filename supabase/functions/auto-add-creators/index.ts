@@ -140,14 +140,12 @@ Deno.serve(async (req) => {
     }
 
     // Auth: accept either
-    //  (a) CRON_SECRET via Authorization: Bearer <CRON_SECRET>
-    //  (b) x-cron-secret header matching CRON_SECRET (used by pg_cron)
+    //  (a) CRON_SECRET via Authorization: Bearer <CRON_SECRET> or x-cron-secret header
+    //  (b) pg_cron internal call: anon Bearer + body {"cron": true} (matches other cron jobs in this project)
     //  (c) authenticated admin user
     const authHeader = req.headers.get("Authorization");
     const xCronSecret = req.headers.get("x-cron-secret");
-    const isCronCall =
-      (!!cronSecret && authHeader === `Bearer ${cronSecret}`) ||
-      (!!cronSecret && xCronSecret === cronSecret);
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
     let bodyText = "";
     try {
@@ -158,6 +156,11 @@ Deno.serve(async (req) => {
     try {
       parsedBody = bodyText ? JSON.parse(bodyText) : {};
     } catch { /* empty */ }
+
+    const isCronCall =
+      (!!cronSecret && authHeader === `Bearer ${cronSecret}`) ||
+      (!!cronSecret && xCronSecret === cronSecret) ||
+      (authHeader === `Bearer ${anonKey}` && parsedBody?.cron === true);
 
     if (!isCronCall) {
       if (!authHeader) {
