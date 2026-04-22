@@ -1,5 +1,7 @@
+import { useRef } from "react";
 import { useHybridCountdown } from "@/hooks/use-countdown";
 import { Clock, Swords, Trophy } from "lucide-react";
+import { useTouchTargetGuard } from "@/hooks/use-touch-target-guard";
 
 type TimeParts = { days: number; hours: number; minutes: number; seconds: number };
 
@@ -83,9 +85,13 @@ const TimerBlock = ({
 
 const CountdownTimer = () => {
   const { monthly, weekly } = useHybridCountdown();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-enforce 44×44px hit area + 8px min spacing on resize / style changes
+  useTouchTargetGuard(containerRef);
 
   return (
-    <div className="glass p-5 animate-glow-pulse">
+    <div ref={containerRef} className="glass p-5 animate-glow-pulse">
       <div className="flex items-center justify-center gap-2 mb-5">
         <Clock className="w-4 h-4 text-neon-cyan" />
         <span className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
