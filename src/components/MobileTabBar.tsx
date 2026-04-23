@@ -129,7 +129,7 @@ const MobileTabBar = () => {
             aria-label={highContrast ? "고대비 모드 끄기" : "고대비 모드 켜기"}
             title={highContrast ? "고대비 모드 ON" : "고대비 모드 OFF"}
             className={cn(
-              "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 min-w-[56px] min-h-[44px]",
+              "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 min-w-[56px] min-h-[56px]",
               highContrast
                 ? "text-primary ring-2 ring-primary ring-offset-1"
                 : "text-muted-foreground hover:text-foreground"
