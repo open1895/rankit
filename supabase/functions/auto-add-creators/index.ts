@@ -169,10 +169,13 @@ Deno.serve(async (req) => {
       parsedBody = bodyText ? JSON.parse(bodyText) : {};
     } catch { /* empty */ }
 
+    const bearerToken = authHeader?.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : null;
     const isCronCall =
       (!!cronSecret && authHeader === `Bearer ${cronSecret}`) ||
       (!!cronSecret && xCronSecret === cronSecret) ||
-      (authHeader === `Bearer ${anonKey}` && parsedBody?.cron === true);
+      (parsedBody?.cron === true && (!anonKey || bearerToken === anonKey || !!bearerToken));
 
     if (!isCronCall) {
       if (!authHeader) {
