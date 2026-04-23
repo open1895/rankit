@@ -767,7 +767,6 @@ export type Database = {
           id: string
           milestone_type: string
           rank_at_notification: number
-          recipient_email: string
           sent_at: string
           votes_at_notification: number
         }
@@ -777,7 +776,6 @@ export type Database = {
           id?: string
           milestone_type: string
           rank_at_notification: number
-          recipient_email: string
           sent_at?: string
           votes_at_notification?: number
         }
@@ -787,7 +785,6 @@ export type Database = {
           id?: string
           milestone_type?: string
           rank_at_notification?: number
-          recipient_email?: string
           sent_at?: string
           votes_at_notification?: number
         }
