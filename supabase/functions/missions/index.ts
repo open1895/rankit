@@ -242,8 +242,9 @@ Deno.serve(async (req) => {
           .eq("user_id", user.id).gte("created_at", todayStart).lt("created_at", todayEnd);
         eligible = (count || 0) > 0;
       } else if (mission_key === "daily_share") {
-        // Share is client-tracked, trust the claim if within reasonable bounds
-        eligible = true;
+        // Require a server-issued, short-lived HMAC share token to prove
+        // the user actually initiated a share via the app.
+        eligible = !!share_token && (await verifyShareToken(user.id, share_token));
       } else if (mission_key === "first_comment") {
         const { count } = await admin.from("comments").select("id", { count: "exact", head: true }).eq("nickname", displayName);
         eligible = (count || 0) > 0;
