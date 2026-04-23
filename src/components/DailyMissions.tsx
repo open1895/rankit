@@ -78,8 +78,17 @@ const DailyMissions = () => {
   const handleClaim = async (key: string) => {
     if (!user) return;
     setClaiming(key);
+
+    // For daily_share, attach the server-issued share token so the backend
+    // can verify a real share was initiated through the app.
+    let share_token: string | undefined;
+    if (key === "daily_share") {
+      const todayKey = new Date().toISOString().slice(0, 10);
+      share_token = sessionStorage.getItem(`daily_share_token_${todayKey}`) || undefined;
+    }
+
     const { data, error } = await supabase.functions.invoke("missions", {
-      body: { action: "claim", mission_key: key },
+      body: { action: "claim", mission_key: key, share_token },
     });
     setClaiming(null);
 
