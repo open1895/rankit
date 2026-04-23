@@ -62,7 +62,7 @@ const MobileTabBar = () => {
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
         }}
       >
-        <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-1">
+        <div className="flex items-center justify-around h-[68px] max-w-lg mx-auto px-1 gap-1">
           {tabs.map(({ to, icon: Icon, label, isCharge }) => {
             const active = isActive(to);
 
@@ -71,10 +71,11 @@ const MobileTabBar = () => {
                 <button
                   key={to}
                   onClick={() => handleClick(to, true)}
-                  className="flex flex-col items-center justify-center gap-0.5 px-2 py-1 min-w-[56px] -mt-3"
+                  aria-label={label}
+                  className="flex flex-col items-center justify-center gap-0.5 px-2 py-1 min-w-[56px] min-h-[56px] -mt-3"
                 >
-                  <div className="p-2.5 rounded-full bg-gradient-to-br from-primary to-secondary shadow-[0_2px_16px_rgba(168,85,247,0.4)] text-primary-foreground">
-                    <Icon className="w-5 h-5 stroke-[2.5]" />
+                  <div className="p-3 rounded-full bg-gradient-to-br from-primary to-secondary shadow-[0_2px_16px_rgba(168,85,247,0.4)] text-primary-foreground">
+                    <Icon className="w-6 h-6 stroke-[2.5]" />
                   </div>
                   <span className="text-[10px] leading-tight font-bold text-primary">
                     {label}
@@ -87,8 +88,9 @@ const MobileTabBar = () => {
               <button
                 key={to}
                 onClick={() => handleClick(to)}
+                aria-label={label}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 min-w-[56px]",
+                  "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 min-w-[56px] min-h-[56px]",
                   active
                     ? "text-purple-700"
                     : "text-gray-700 hover:text-purple-600"
@@ -127,7 +129,7 @@ const MobileTabBar = () => {
             aria-label={highContrast ? "고대비 모드 끄기" : "고대비 모드 켜기"}
             title={highContrast ? "고대비 모드 ON" : "고대비 모드 OFF"}
             className={cn(
-              "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 min-w-[56px] min-h-[44px]",
+              "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 min-w-[56px] min-h-[56px]",
               highContrast
                 ? "text-primary ring-2 ring-primary ring-offset-1"
                 : "text-muted-foreground hover:text-foreground"
