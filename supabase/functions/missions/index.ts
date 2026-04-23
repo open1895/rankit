@@ -53,9 +53,50 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { action, mission_key } = await req.json();
+    const { action, mission_key, share_token } = await req.json();
     const admin = createClient(supabaseUrl, serviceKey);
     const { start: todayStart, end: todayEnd } = getTodayRange();
+
+    // ---- Share token (HMAC) helpers ----
+    // Server-issued, short-lived token to verify a share actually started.
+    const SHARE_TOKEN_TTL_MS = 10 * 60 * 1000; // 10 minutes
+    const hmacSecret = Deno.env.get("CRON_SECRET") || serviceKey;
+
+    async function signShareToken(uid: string, issuedAt: number): Promise<string> {
+      const enc = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        "raw",
+        enc.encode(hmacSecret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"],
+      );
+      const payload = `${uid}.${issuedAt}`;
+      const sig = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
+      const b64 = btoa(String.fromCharCode(...new Uint8Array(sig)));
+      return `${issuedAt}.${b64}`;
+    }
+
+    async function verifyShareToken(uid: string, token: string): Promise<boolean> {
+      try {
+        const [issuedAtStr, sig] = token.split(".");
+        const issuedAt = Number(issuedAtStr);
+        if (!issuedAt || !sig) return false;
+        if (Date.now() - issuedAt > SHARE_TOKEN_TTL_MS) return false;
+        if (issuedAt > Date.now() + 60_000) return false;
+        const expected = await signShareToken(uid, issuedAt);
+        return expected === token;
+      } catch {
+        return false;
+      }
+    }
+
+    if (action === "issue_share_token") {
+      const token = await signShareToken(user.id, Date.now());
+      return new Response(JSON.stringify({ token, ttl_ms: SHARE_TOKEN_TTL_MS }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     if (action === "get_daily_missions") {
       const { data: profile } = await admin
@@ -201,8 +242,9 @@ Deno.serve(async (req) => {
           .eq("user_id", user.id).gte("created_at", todayStart).lt("created_at", todayEnd);
         eligible = (count || 0) > 0;
       } else if (mission_key === "daily_share") {
-        // Share is client-tracked, trust the claim if within reasonable bounds
-        eligible = true;
+        // Require a server-issued, short-lived HMAC share token to prove
+        // the user actually initiated a share via the app.
+        eligible = !!share_token && (await verifyShareToken(user.id, share_token));
       } else if (mission_key === "first_comment") {
         const { count } = await admin.from("comments").select("id", { count: "exact", head: true }).eq("nickname", displayName);
         eligible = (count || 0) > 0;
