@@ -90,8 +90,8 @@ const MobileTabBar = () => {
                 className={cn(
                   "flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 min-w-[56px]",
                   active
-                    ? "text-purple-600"
-                    : "text-muted-foreground hover:text-purple-500"
+                    ? "text-purple-700"
+                    : "text-gray-700 hover:text-purple-600"
                 )}
               >
                 <div
