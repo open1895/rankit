@@ -134,7 +134,6 @@ Deno.serve(async (req) => {
           milestone_type: eligible.type,
           rank_at_notification: creator.rank,
           votes_at_notification: creator.votes_count,
-          recipient_email: creator.contact_email,
         })
 
       if (insertError) {
