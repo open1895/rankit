@@ -53,12 +53,12 @@ const MobileTabBar = () => {
   return (
     <>
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t"
+        className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t shadow-[0_-4px_20px_rgba(0,0,0,0.08)]"
         style={{
-          background: "rgba(255,255,255,0.72)",
-          backdropFilter: "blur(18px) saturate(180%)",
-          WebkitBackdropFilter: "blur(18px) saturate(180%)",
-          borderColor: "rgba(168,130,255,0.18)",
+          background: "rgba(255,255,255,0.98)",
+          backdropFilter: "blur(20px) saturate(180%)",
+          WebkitBackdropFilter: "blur(20px) saturate(180%)",
+          borderColor: "rgba(168,130,255,0.3)",
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
         }}
       >
