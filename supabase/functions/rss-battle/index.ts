@@ -46,6 +46,7 @@ Deno.serve(async (req) => {
         title: "Rankit 배틀 결과",
         link: `${SITE_URL}/battle`,
         description: "크리에이터 1v1 배틀 최신 결과",
+        feedUrl: `${SITE_URL}/rss-battle`,
       },
       items
     );
