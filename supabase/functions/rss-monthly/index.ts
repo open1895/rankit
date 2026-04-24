@@ -10,29 +10,32 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Use top 3 by votes_count as monthly TOP 3
     const { data: creators, error } = await supabase
       .from("creators")
-      .select("id, name, category, votes_count, rank, subscriber_count, last_stats_updated, created_at")
-      .order("rank", { ascending: true })
-      .limit(10);
+      .select("id, name, category, votes_count, rank, last_stats_updated, created_at")
+      .order("votes_count", { ascending: false })
+      .limit(3);
     if (error) throw error;
 
     const items = (creators || [])
-      .map((c: any) =>
-        buildItem({
-          title: `${c.rank}위 ${c.name} - ${c.votes_count}표`,
-          link: `${SITE_URL}/creator/${c.id}`,
-          description: `${c.name}이(가) 현재 ${c.rank}위. 구독자 ${c.subscriber_count?.toLocaleString() || 0}명. 카테고리: ${c.category || "기타"}`,
+      .map((c: any, idx: number) => {
+        const rank = idx + 1;
+        return buildItem({
+          title: `🏆 이번 달 ${rank}위 - ${c.name}`,
+          link: `${SITE_URL}/monthly-top3`,
+          description: `${c.name}이(가) 이번 달 ${rank}위를 기록했습니다. 투표수: ${c.votes_count}표. 카테고리: ${c.category || "기타"}`,
           pubDate: c.last_stats_updated || c.created_at,
-        })
-      )
+          guid: `${SITE_URL}/monthly-top3#${c.id}`,
+        });
+      })
       .join("\n");
 
     const xml = buildRss(
       {
-        title: "Rankit 크리에이터 영향력 랭킹 TOP 10",
-        link: SITE_URL,
-        description: "팬 투표로 결정되는 실시간 크리에이터 영향력 순위",
+        title: "Rankit 월간 TOP 3",
+        link: `${SITE_URL}/monthly-top3`,
+        description: "이번 달 가장 많은 사랑을 받은 크리에이터",
       },
       items
     );

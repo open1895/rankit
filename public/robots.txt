@@ -32,7 +32,13 @@ Disallow: /recharge
 Disallow: /shop
 Disallow: /ticket-store
 Allow: /rss.xml
+Allow: /feed.xml
 
 Sitemap: https://rankit.today/sitemap.xml
 Sitemap: https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss
+Sitemap: https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-rising
 Sitemap: https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-hall-of-fame
+Sitemap: https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-monthly
+Sitemap: https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-battle
+Sitemap: https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-community
+Sitemap: https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-notice

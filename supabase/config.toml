@@ -3,7 +3,28 @@ project_id = "jcaajxwdeqngihupjaaa"
 [functions.rss]
 verify_jwt = false
 
+[functions.rss-rising]
+verify_jwt = false
+
 [functions.rss-hall-of-fame]
+verify_jwt = false
+
+[functions.rss-category]
+verify_jwt = false
+
+[functions.rss-battle]
+verify_jwt = false
+
+[functions.rss-monthly]
+verify_jwt = false
+
+[functions.rss-creator]
+verify_jwt = false
+
+[functions.rss-community]
+verify_jwt = false
+
+[functions.rss-notice]
 verify_jwt = false
 
 [functions.vote]
