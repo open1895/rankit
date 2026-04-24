@@ -5,6 +5,10 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const url = new URL(req.url);
+    const cat = url.searchParams.get("cat");
+    if (!cat) return errorResponse("Query parameter 'cat' is required", 400);
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -13,6 +17,7 @@ Deno.serve(async (req) => {
     const { data: creators, error } = await supabase
       .from("creators")
       .select("id, name, category, votes_count, rank, subscriber_count, last_stats_updated, created_at")
+      .ilike("category", `%${cat}%`)
       .order("rank", { ascending: true })
       .limit(10);
     if (error) throw error;
@@ -20,9 +25,9 @@ Deno.serve(async (req) => {
     const items = (creators || [])
       .map((c: any) =>
         buildItem({
-          title: `${c.rank}위 ${c.name} - ${c.votes_count}표`,
+          title: `${c.rank}위 ${c.name} - ${c.category || cat} 크리에이터`,
           link: `${SITE_URL}/creator/${c.id}`,
-          description: `${c.name}이(가) 현재 ${c.rank}위. 구독자 ${c.subscriber_count?.toLocaleString() || 0}명. 카테고리: ${c.category || "기타"}`,
+          description: `${c.name}. 구독자 ${c.subscriber_count?.toLocaleString() || 0}명. 투표수 ${c.votes_count}표`,
           pubDate: c.last_stats_updated || c.created_at,
         })
       )
@@ -30,9 +35,9 @@ Deno.serve(async (req) => {
 
     const xml = buildRss(
       {
-        title: "Rankit 크리에이터 영향력 랭킹 TOP 10",
-        link: SITE_URL,
-        description: "팬 투표로 결정되는 실시간 크리에이터 영향력 순위",
+        title: `Rankit ${cat} 크리에이터 랭킹`,
+        link: `${SITE_URL}/category/${encodeURIComponent(cat)}`,
+        description: `${cat} 분야 크리에이터 영향력 순위`,
       },
       items
     );
