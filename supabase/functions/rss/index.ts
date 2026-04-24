@@ -33,6 +33,7 @@ Deno.serve(async (req) => {
         title: "Rankit 크리에이터 영향력 랭킹 TOP 10",
         link: SITE_URL,
         description: "팬 투표로 결정되는 실시간 크리에이터 영향력 순위",
+        feedUrl: `${SITE_URL}/rss`,
       },
       items
     );
