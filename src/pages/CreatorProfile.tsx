@@ -520,6 +520,16 @@ const CreatorProfile = () => {
            <button onClick={() => setShowFanCert(true)} className="h-11 px-3 rounded-xl glass-sm border border-primary/20 hover:border-primary/40 transition-colors flex items-center">
               📸
             </button>
+            <a
+              href={`https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-creator?id=${creator.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="RSS 구독"
+              aria-label="RSS 구독"
+              className="h-11 px-3 rounded-xl glass-sm border border-amber-500/30 hover:border-amber-500/60 text-amber-500 hover:text-amber-400 transition-colors flex items-center text-xs font-bold gap-1"
+            >
+              📡 RSS
+            </a>
           </div>
 
           {/* Fanclub Join + Direct Message Buttons */}
