@@ -37,6 +37,7 @@ Deno.serve(async (req) => {
         title: "Rankit 공지사항",
         link: `${SITE_URL}/community`,
         description: "Rankit 서비스 공지 및 이벤트 안내",
+        feedUrl: `${SITE_URL}/rss-notice`,
       },
       items
     );

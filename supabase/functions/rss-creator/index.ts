@@ -58,6 +58,7 @@ Deno.serve(async (req) => {
         title: `${creator.name} - Rankit 크리에이터 페이지`,
         link,
         description: `${creator.name}의 현재 순위와 팬 활동 현황`,
+        feedUrl: `${SITE_URL}/rss-creator?id=${creator.id}`,
       },
       items
     );
