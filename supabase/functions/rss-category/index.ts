@@ -38,6 +38,7 @@ Deno.serve(async (req) => {
         title: `Rankit ${cat} 크리에이터 랭킹`,
         link: `${SITE_URL}/category/${encodeURIComponent(cat)}`,
         description: `${cat} 분야 크리에이터 영향력 순위`,
+        feedUrl: `${SITE_URL}/rss-category?cat=${encodeURIComponent(cat)}`,
       },
       items
     );

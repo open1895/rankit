@@ -37,6 +37,7 @@ Deno.serve(async (req) => {
         title: "Rankit 커뮤니티 인기 게시글",
         link: `${SITE_URL}/community`,
         description: "랭킷 팬들의 인기 게시글 모음",
+        feedUrl: `${SITE_URL}/rss-community`,
       },
       items
     );

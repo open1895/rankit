@@ -33,6 +33,7 @@ Deno.serve(async (req) => {
         title: "Rankit 급상승 크리에이터",
         link: `${SITE_URL}/rising`,
         description: "이번 주 가장 빠르게 성장하는 크리에이터",
+        feedUrl: `${SITE_URL}/rss-rising`,
       },
       items
     );

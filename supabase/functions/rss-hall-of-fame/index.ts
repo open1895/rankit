@@ -38,6 +38,7 @@ Deno.serve(async (req) => {
         title: "Rankit 명예의 전당",
         link: `${SITE_URL}/hall-of-fame`,
         description: "역대 시즌 우승 크리에이터 기록",
+        feedUrl: `${SITE_URL}/rss-hall-of-fame`,
       },
       items
     );
