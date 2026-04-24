@@ -1,5 +1,11 @@
 project_id = "jcaajxwdeqngihupjaaa"
 
+[functions.rss]
+verify_jwt = false
+
+[functions.rss-hall-of-fame]
+verify_jwt = false
+
 [functions.vote]
 verify_jwt = false
 
