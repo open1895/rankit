@@ -36,6 +36,7 @@ Deno.serve(async (req) => {
         title: "Rankit 월간 TOP 3",
         link: `${SITE_URL}/monthly-top3`,
         description: "이번 달 가장 많은 사랑을 받은 크리에이터",
+        feedUrl: `${SITE_URL}/rss-monthly`,
       },
       items
     );
