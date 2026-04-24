@@ -31,5 +31,8 @@ Disallow: /my
 Disallow: /recharge
 Disallow: /shop
 Disallow: /ticket-store
+Allow: /rss.xml
 
 Sitemap: https://rankit.today/sitemap.xml
+Sitemap: https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss
+Sitemap: https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-hall-of-fame
