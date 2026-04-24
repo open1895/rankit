@@ -30,6 +30,14 @@ const CATEGORIES = ["게임", "먹방", "뷰티", "음악", "운동", "여행", 
 const escapeXml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 
+// W3C Datetime (YYYY-MM-DD) — sitemap protocol standard for <lastmod>
+const today = () => new Date().toISOString().split("T")[0];
+const toDate = (v: string | null | undefined) => {
+  if (!v) return today();
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? today() : d.toISOString().split("T")[0];
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -47,13 +55,15 @@ Deno.serve(async (req) => {
       .order("rank", { ascending: true })
       .limit(2000);
 
+    const todayStr = today();
     const lines: string[] = [];
     lines.push('<?xml version="1.0" encoding="UTF-8"?>');
-    lines.push('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+    lines.push('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">');
 
     for (const u of STATIC_URLS) {
       lines.push("  <url>");
       lines.push(`    <loc>${BASE_URL}${u.loc}</loc>`);
+      lines.push(`    <lastmod>${todayStr}</lastmod>`);
       lines.push(`    <changefreq>${u.changefreq}</changefreq>`);
       lines.push(`    <priority>${u.priority}</priority>`);
       lines.push("  </url>");
@@ -62,13 +72,14 @@ Deno.serve(async (req) => {
     for (const cat of CATEGORIES) {
       lines.push("  <url>");
       lines.push(`    <loc>${BASE_URL}/category/${encodeURIComponent(cat)}</loc>`);
+      lines.push(`    <lastmod>${todayStr}</lastmod>`);
       lines.push("    <changefreq>daily</changefreq>");
       lines.push("    <priority>0.8</priority>");
       lines.push("  </url>");
     }
 
     for (const c of creators || []) {
-      const lastmod = (c.last_stats_updated || c.created_at || new Date().toISOString()).split("T")[0];
+      const lastmod = toDate(c.last_stats_updated || c.created_at);
       lines.push("  <url>");
       lines.push(`    <loc>${BASE_URL}/creator/${escapeXml(c.id)}</loc>`);
       lines.push(`    <lastmod>${lastmod}</lastmod>`);
@@ -82,14 +93,14 @@ Deno.serve(async (req) => {
     return new Response(lines.join("\n"), {
       headers: {
         ...corsHeaders,
-        "Content-Type": "application/xml; charset=utf-8",
+        "Content-Type": "application/xml; charset=UTF-8",
         "Cache-Control": "public, max-age=3600, s-maxage=3600",
       },
     });
   } catch (err) {
     return new Response(`Error: ${(err as Error).message}`, {
       status: 500,
-      headers: corsHeaders,
+      headers: { ...corsHeaders, "Content-Type": "text/plain; charset=UTF-8" },
     });
   }
 });
