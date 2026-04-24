@@ -263,20 +263,27 @@ const LivePredictionBattle = () => {
       {/* Title */}
       <p className="text-sm font-bold text-center">{event.title}</p>
 
-      {/* VS Layout */}
-      <div className="flex items-center justify-center gap-3 sm:gap-5">
+      {/* VS Layout — perfectly symmetric 3-column grid (1fr / auto / 1fr) */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-5">
         {/* Creator A */}
         <button
           onClick={() => !alreadyBet && !isExpired && setSelectedCreator(event.creator_a_id)}
-          className={`flex flex-col items-center gap-2 transition-all ${
-            selectedCreator === event.creator_a_id ? "scale-110" : ""
+          className={`w-full min-w-0 flex flex-col items-center gap-2 transition-all ${
+            selectedCreator === event.creator_a_id ? "scale-105" : ""
           } ${alreadyBet || isExpired ? "pointer-events-none" : "cursor-pointer"}`}
         >
-          <Avatar url={event.creator_a?.avatar_url || ""} name={event.creator_a?.name || "A"} side="left" />
-          <span className={`text-xs font-bold ${selectedCreator === event.creator_a_id ? "text-foreground" : "text-muted-foreground"}`} style={selectedCreator === event.creator_a_id ? { color: "hsl(var(--neon-purple))" } : {}}>
+          <div className="w-20 h-20 flex-shrink-0">
+            <Avatar url={event.creator_a?.avatar_url || ""} name={event.creator_a?.name || "A"} side="left" />
+          </div>
+          <span
+            className={`text-sm font-bold text-center line-clamp-2 w-full px-1 break-all ${
+              selectedCreator === event.creator_a_id ? "text-foreground" : "text-muted-foreground"
+            }`}
+            style={selectedCreator === event.creator_a_id ? { color: "hsl(var(--neon-purple))" } : {}}
+          >
             {event.creator_a?.name}
           </span>
-          <span className="text-lg font-black" style={{ color: "hsl(var(--neon-purple))" }}>{aPercent}%</span>
+          <span className="text-2xl font-black leading-none" style={{ color: "hsl(var(--neon-purple))" }}>{aPercent}%</span>
           <span
             className="text-[10px] font-bold px-2 py-0.5 rounded-full"
             style={{
@@ -290,7 +297,7 @@ const LivePredictionBattle = () => {
         </button>
 
         {/* VS */}
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center justify-center">
           <span
             className="text-2xl sm:text-3xl font-black"
             style={{
@@ -307,15 +314,22 @@ const LivePredictionBattle = () => {
         {/* Creator B */}
         <button
           onClick={() => !alreadyBet && !isExpired && setSelectedCreator(event.creator_b_id)}
-          className={`flex flex-col items-center gap-2 transition-all ${
-            selectedCreator === event.creator_b_id ? "scale-110" : ""
+          className={`w-full min-w-0 flex flex-col items-center gap-2 transition-all ${
+            selectedCreator === event.creator_b_id ? "scale-105" : ""
           } ${alreadyBet || isExpired ? "pointer-events-none" : "cursor-pointer"}`}
         >
-          <Avatar url={event.creator_b?.avatar_url || ""} name={event.creator_b?.name || "B"} side="right" />
-          <span className={`text-xs font-bold ${selectedCreator === event.creator_b_id ? "text-foreground" : "text-muted-foreground"}`} style={selectedCreator === event.creator_b_id ? { color: "hsl(var(--neon-cyan))" } : {}}>
+          <div className="w-20 h-20 flex-shrink-0">
+            <Avatar url={event.creator_b?.avatar_url || ""} name={event.creator_b?.name || "B"} side="right" />
+          </div>
+          <span
+            className={`text-sm font-bold text-center line-clamp-2 w-full px-1 break-all ${
+              selectedCreator === event.creator_b_id ? "text-foreground" : "text-muted-foreground"
+            }`}
+            style={selectedCreator === event.creator_b_id ? { color: "hsl(var(--neon-cyan))" } : {}}
+          >
             {event.creator_b?.name}
           </span>
-          <span className="text-lg font-black" style={{ color: "hsl(var(--neon-cyan))" }}>{bPercent}%</span>
+          <span className="text-2xl font-black leading-none" style={{ color: "hsl(var(--neon-cyan))" }}>{bPercent}%</span>
           <span
             className="text-[10px] font-bold px-2 py-0.5 rounded-full"
             style={{
