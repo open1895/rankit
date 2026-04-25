@@ -27,7 +27,7 @@ const ENDPOINTS = [
   { path: "/rss-battle", type: "rss" },
   { path: "/rss-community", type: "rss" },
   { path: "/rss-notice", type: "rss" },
-  { path: "/rss-category?category=게임", type: "rss" },
+  { path: `/rss-category?category=${encodeURIComponent("게임")}`, type: "rss" },
 ];
 
 // ─── ANSI 컬러 ───
