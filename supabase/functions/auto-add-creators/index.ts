@@ -9,17 +9,21 @@ const corsHeaders = {
 const CATEGORIES = [
   { name: "게임", query: "한국 게임 유튜버" },
   { name: "먹방", query: "한국 먹방 유튜버" },
-  { name: "뷰티", query: "한국 뷰티 유튜버" },
+  { name: "메이크업", query: "한국 메이크업 유튜버" },
   { name: "음악", query: "한국 음악 커버 유튜버" },
   { name: "운동", query: "한국 운동 피트니스 유튜버" },
   { name: "여행", query: "한국 여행 브이로그 유튜버" },
   { name: "테크", query: "한국 IT 테크 리뷰 유튜버" },
   { name: "교육", query: "한국 교육 공부 유튜버" },
   { name: "댄스", query: "한국 댄스 커버 유튜버" },
-  { name: "아트", query: "한국 그림 일러스트 유튜버" },
+  { name: "룩북", query: "한국 룩북 패션 유튜버" },
   { name: "요리", query: "한국 요리 레시피 유튜버" },
   { name: "반려동물", query: "한국 강아지 고양이 유튜버" },
-  { name: "유머", query: "한국 유머 코미디 유튜버" },
+  { name: "코미디", query: "한국 코미디 개그 유튜버" },
+  { name: "주식", query: "한국 주식 투자 유튜버" },
+  { name: "V-Tuber", query: "한국 버추얼 유튜버 V-Tuber" },
+  { name: "자동차", query: "한국 자동차 리뷰 유튜버" },
+  { name: "과학기술", query: "한국 과학 기술 유튜버" },
 ];
 
 const MAX_SUBSCRIBERS = 200000;

@@ -92,19 +92,26 @@ const CATEGORY_TABS = [
   { label: "전체", value: "all" },
   { label: "🎮 게임", value: "게임" },
   { label: "🍽️ 먹방", value: "먹방" },
-  { label: "💄 뷰티", value: "뷰티" },
+  { label: "💄 메이크업", value: "메이크업" },
   { label: "🎵 음악", value: "음악" },
   { label: "💪 운동", value: "운동" },
   { label: "✈️ 여행", value: "여행" },
   { label: "💻 테크", value: "테크" },
-  { label: "🎨 아트", value: "아트" },
+  { label: "👗 룩북", value: "룩북" },
   { label: "📚 교육", value: "교육" },
   { label: "💃 댄스", value: "댄스" },
+  { label: "🍳 요리", value: "요리" },
+  { label: "🐾 반려동물", value: "반려동물" },
+  { label: "📈 주식", value: "주식" },
+  { label: "🎤 V-Tuber", value: "V-Tuber" },
+  { label: "🚗 자동차", value: "자동차" },
+  { label: "😂 코미디", value: "코미디" },
+  { label: "🔬 과학기술", value: "과학기술" },
 ];
 
 const PAGE_SIZE = 20;
 
-const NOMINATION_CATEGORIES = ["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크", "아트", "교육", "댄스"];
+const NOMINATION_CATEGORIES = ["게임", "먹방", "메이크업", "음악", "운동", "여행", "테크", "룩북", "교육", "댄스", "요리", "반려동물", "주식", "V-Tuber", "자동차", "코미디", "과학기술"];
 
 const NominationSection = ({ externalOpen, onOpenChange }: { externalOpen?: boolean; onOpenChange?: (v: boolean) => void }) => {
   const [internalOpen, setInternalOpen] = useState(false);

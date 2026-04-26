@@ -81,14 +81,21 @@ interface CreatorRecord {
 const CATEGORIES = [
   { value: "게임", emoji: "🎮" },
   { value: "먹방", emoji: "🍽️" },
-  { value: "뷰티", emoji: "💄" },
+  { value: "메이크업", emoji: "💄" },
   { value: "음악", emoji: "🎵" },
   { value: "운동", emoji: "💪" },
   { value: "여행", emoji: "✈️" },
   { value: "테크", emoji: "💻" },
   { value: "교육", emoji: "📚" },
   { value: "댄스", emoji: "💃" },
-  { value: "아트", emoji: "🎨" },
+  { value: "룩북", emoji: "👗" },
+  { value: "요리", emoji: "🍳" },
+  { value: "반려동물", emoji: "🐾" },
+  { value: "주식", emoji: "📈" },
+  { value: "V-Tuber", emoji: "🎤" },
+  { value: "자동차", emoji: "🚗" },
+  { value: "코미디", emoji: "😂" },
+  { value: "과학기술", emoji: "🔬" },
 ];
 
 const MyPage = () => {
