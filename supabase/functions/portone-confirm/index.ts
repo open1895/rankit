@@ -135,7 +135,8 @@ Deno.serve(async (req) => {
 
 /** 실패 내역을 payment_history에 기록 */
 async function recordFailed(
-  supabase: ReturnType<typeof createClient>,
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
   userId: string,
   orderId: string,
   paymentId: string,
