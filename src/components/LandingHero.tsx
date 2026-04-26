@@ -94,14 +94,15 @@ const LandingHero = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [creatorsRes, profilesRes] = await Promise.all([
-        supabase.from("creators").select("id, name, avatar_url, rank, votes_count, category").order("rank", { ascending: true }).limit(5),
+      const [topRes, countRes, profilesRes] = await Promise.all([
+        supabase.from("creators_public").select("id, name, avatar_url, rank, votes_count, category").order("rank", { ascending: true }).limit(5),
+        supabase.from("creators_public").select("id", { count: "exact", head: true }),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
       ]);
-      const creators = creatorsRes.data || [];
+      const creators = topRes.data || [];
       setTopCreators(creators as TopCreator[]);
       setStats({
-        creators: creators.length > 0 ? 90 : 0,
+        creators: countRes.count || 0,
         votes: creators.reduce((s, c) => s + (c.votes_count || 0), 0),
         users: profilesRes.count || 0,
       });
