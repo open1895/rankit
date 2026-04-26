@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rankit 배틀 결과</title>
+    <link>https://rankit.today/battle</link>
+    <description>크리에이터 1v1 배틀 최신 결과</description>
+    <language>ko</language>
+    <lastBuildDate>Sun, 26 Apr 2026 20:32:30 +0900</lastBuildDate>
+    <atom:link href="https://rankit.today/rss-battle" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>⚔️ 개발그림 vs 윤덕규 - 무승부 승리!</title>
+      <link>https://rankit.today/battle</link>
+      <description>개발그림 0표 vs 윤덕규 0표. 최종 승자: 무승부 (득표율 50%)</description>
+      <pubDate>Thu, 16 Apr 2026 15:43:25 +0900</pubDate>
+      <guid>https://rankit.today/battle#f69defd5-9e7c-4ef5-8b66-5466731c8dea</guid>
+    </item>
+    <item>
+      <title>⚔️ 햄스터월드 vs 꼬부기네 - 무승부 승리!</title>
+      <link>https://rankit.today/battle</link>
+      <description>햄스터월드 0표 vs 꼬부기네 0표. 최종 승자: 무승부 (득표율 50%)</description>
+      <pubDate>Thu, 16 Apr 2026 15:43:25 +0900</pubDate>
+      <guid>https://rankit.today/battle#37b801c7-de4a-4945-8b73-fe3c802ac336</guid>
+    </item>
+    <item>
+      <title>⚔️ 딩가딩가 스튜디오 vs CowEye - 무승부 승리!</title>
+      <link>https://rankit.today/battle</link>
+      <description>딩가딩가 스튜디오 0표 vs CowEye 0표. 최종 승자: 무승부 (득표율 50%)</description>
+      <pubDate>Thu, 16 Apr 2026 15:43:25 +0900</pubDate>
+      <guid>https://rankit.today/battle#1ae29523-c8e4-412d-b8b4-7b69d7a12394</guid>
+    </item>
+    <item>
+      <title>⚔️ 딩가딩가 스튜디오 vs CowEye - CowEye 승리!</title>
+      <link>https://rankit.today/battle</link>
+      <description>딩가딩가 스튜디오 0표 vs CowEye 1표. 최종 승자: CowEye (득표율 100%)</description>
+      <pubDate>Sun, 05 Apr 2026 13:21:24 +0900</pubDate>
+      <guid>https://rankit.today/battle#094f7500-c05a-48ee-9874-6e715b87d05d</guid>
+    </item>
+    <item>
+      <title>⚔️ 실비아킴 vs 내맘으로[커버송맛집]NaeMam - 내맘으로[커버송맛집]NaeMam 승리!</title>
+      <link>https://rankit.today/battle</link>
+      <description>실비아킴 0표 vs 내맘으로[커버송맛집]NaeMam 1표. 최종 승자: 내맘으로[커버송맛집]NaeMam (득표율 100%)</description>
+      <pubDate>Sun, 05 Apr 2026 13:21:24 +0900</pubDate>
+      <guid>https://rankit.today/battle#1a1fdced-9f0d-4cca-a1c5-085e83939f9a</guid>
+    </item>
+    <item>
+      <title>⚔️ 빡다혜 dahye vs ランキング1位 - ランキング1位 승리!</title>
+      <link>https://rankit.today/battle</link>
+      <description>빡다혜 dahye 0표 vs ランキング1位 1표. 최종 승자: ランキング1位 (득표율 100%)</description>
+      <pubDate>Sun, 05 Apr 2026 13:21:24 +0900</pubDate>
+      <guid>https://rankit.today/battle#ab32f116-1062-4dd6-aed3-c34023b4ae40</guid>
+    </item>
+  </channel>
+</rss>

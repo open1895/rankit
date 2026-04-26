@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rankit 월간 TOP 3</title>
+    <link>https://rankit.today/monthly-top3</link>
+    <description>이번 달 가장 많은 표를 받은 크리에이터 TOP 3</description>
+    <language>ko</language>
+    <lastBuildDate>Sun, 26 Apr 2026 20:32:29 +0900</lastBuildDate>
+    <atom:link href="https://rankit.today/rss-monthly" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>🏆 1위 CowEye - 3표</title>
+      <link>https://rankit.today/creator/261e4204-6778-491e-b7cc-3cf8704a4ba0</link>
+      <description>2026년 4월 월간 1위! CowEye이(가) 3표를 받았습니다. 카테고리: 댄스. 구독자: 0명</description>
+      <pubDate>Mon, 30 Mar 2026 03:00:07 +0900</pubDate>
+      <guid>https://rankit.today/creator/261e4204-6778-491e-b7cc-3cf8704a4ba0#monthly-1</guid>
+    </item>
+    <item>
+      <title>🏆 2위 studio 103 - 2표</title>
+      <link>https://rankit.today/creator/6927ca83-3bf1-4294-a591-3ddb65ad12a7</link>
+      <description>2026년 4월 월간 2위! studio 103이(가) 2표를 받았습니다. 카테고리: 아트. 구독자: 0명</description>
+      <pubDate>Tue, 31 Mar 2026 03:00:06 +0900</pubDate>
+      <guid>https://rankit.today/creator/6927ca83-3bf1-4294-a591-3ddb65ad12a7#monthly-2</guid>
+    </item>
+    <item>
+      <title>🏆 3위 썸블리 - 2표</title>
+      <link>https://rankit.today/creator/53a1bbd2-6aeb-4aa2-a6d9-66029d3b00ec</link>
+      <description>2026년 4월 월간 3위! 썸블리이(가) 2표를 받았습니다. 카테고리: 뷰티. 구독자: 0명</description>
+      <pubDate>Tue, 07 Apr 2026 04:00:06 +0900</pubDate>
+      <guid>https://rankit.today/creator/53a1bbd2-6aeb-4aa2-a6d9-66029d3b00ec#monthly-3</guid>
+    </item>
+  </channel>
+</rss>
