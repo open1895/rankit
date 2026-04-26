@@ -19,7 +19,7 @@ interface HistoryBattle {
   creator_b?: { id: string; name: string; avatar_url: string };
 }
 
-const CATEGORIES = ["전체", "게임", "먹방", "뷰티", "음악", "스포츠", "교육", "엔터테인먼트"];
+const CATEGORIES = ["전체", "게임", "먹방", "메이크업", "음악", "운동", "교육", "댄스", "룩북", "요리", "반려동물", "주식", "V-Tuber", "자동차", "코미디", "과학기술", "여행", "테크"];
 const PAGE_SIZE = 10;
 
 const BattleHistory = () => {

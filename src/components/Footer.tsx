@@ -67,7 +67,7 @@ const Footer = () => {
         <nav className="w-full pt-2" aria-label="카테고리별 유튜버 순위">
           <p className="text-[11px] text-muted-foreground/70 text-center mb-2">카테고리별 유튜버 순위</p>
           <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 text-xs">
-            {["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크"].map((cat, idx) => (
+            {["게임", "먹방", "메이크업", "음악", "운동", "여행", "테크", "룩북", "요리", "반려동물", "주식", "V-Tuber", "자동차", "코미디", "과학기술", "교육", "댄스"].map((cat, idx) => (
               <span key={cat} className="flex items-center gap-2">
                 {idx > 0 && <span className="text-muted-foreground/40">|</span>}
                 <Link

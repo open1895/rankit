@@ -25,7 +25,7 @@ const STATIC_URLS: Array<{ loc: string; changefreq: string; priority: string }> 
   { loc: "/support", changefreq: "monthly", priority: "0.4" },
 ];
 
-const CATEGORIES = ["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크", "아트", "교육", "댄스"];
+const CATEGORIES = ["게임", "먹방", "메이크업", "음악", "운동", "여행", "테크", "룩북", "교육", "댄스", "요리", "반려동물", "주식", "V-Tuber", "자동차", "코미디", "과학기술"];
 
 const escapeXml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
