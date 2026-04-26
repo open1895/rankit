@@ -1,4 +1,7 @@
-// Shared RSS utilities for all RSS feed edge functions (Naver Search Advisor compliant)
+// Shared RSS utilities — Naver Search Advisor compliant
+// Strict format: no CDATA, escapeXml only, RFC822 KST dates
+export const SITE_URL = "https://rankit.today";
+
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -6,9 +9,9 @@ export const corsHeaders = {
 };
 
 export const rssHeaders = {
-  ...corsHeaders,
   "Content-Type": "application/rss+xml; charset=UTF-8",
-  "Cache-Control": "public, max-age=300",
+  "Access-Control-Allow-Origin": "*",
+  "Cache-Control": "public, max-age=600",
 };
 
 export function escapeXml(str: unknown): string {
@@ -20,53 +23,38 @@ export function escapeXml(str: unknown): string {
     .replace(/'/g, "&apos;");
 }
 
-// Wrap content in CDATA, escaping any nested CDATA terminators
-export function cdata(str: unknown): string {
-  const safe = String(str ?? "").replace(/\]\]>/g, "]]]]><![CDATA[>");
-  return `<![CDATA[${safe}]]>`;
-}
-
-// RFC822 date with KST (+0900) timezone — Naver Search Advisor preferred format
-export function toRfc822(date: Date | string | null | undefined): string {
+// RFC822 date with KST (+0900)
+export function toRFC822(date: Date | string | number | null | undefined): string {
   const d = date ? new Date(date) : new Date();
   const valid = isNaN(d.getTime()) ? new Date() : d;
-  // Convert to KST
-  const kst = new Date(valid.getTime() + 9 * 60 * 60 * 1000);
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const kst = new Date(valid.getTime() + 9 * 60 * 60 * 1000);
   const pad = (n: number) => String(n).padStart(2, "0");
-  const dayName = days[kst.getUTCDay()];
-  const day = pad(kst.getUTCDate());
-  const month = months[kst.getUTCMonth()];
-  const year = kst.getUTCFullYear();
-  const hh = pad(kst.getUTCHours());
-  const mm = pad(kst.getUTCMinutes());
-  const ss = pad(kst.getUTCSeconds());
-  return `${dayName}, ${day} ${month} ${year} ${hh}:${mm}:${ss} +0900`;
+  return `${days[kst.getUTCDay()]}, ${pad(kst.getUTCDate())} ${months[kst.getUTCMonth()]} ${kst.getUTCFullYear()} ${pad(kst.getUTCHours())}:${pad(kst.getUTCMinutes())}:${pad(kst.getUTCSeconds())} +0900`;
 }
+
+// Backwards-compatible alias
+export const toRfc822 = toRFC822;
 
 export interface RssChannelOptions {
   title: string;
   link: string;
   description: string;
-  language?: string;
   /** Self-referential feed URL for atom:link */
   feedUrl: string;
-  copyright?: string;
 }
 
 export function buildRss(channel: RssChannelOptions, itemsXml: string): string {
-  const copyright = channel.copyright || "Copyright 2026 크리에이트 펄스";
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>${cdata(channel.title)}</title>
+    <title>${escapeXml(channel.title)}</title>
     <link>${escapeXml(channel.link)}</link>
-    <description>${cdata(channel.description)}</description>
-    <language>${channel.language || "ko"}</language>
-    <copyright>${escapeXml(copyright)}</copyright>
-    <lastBuildDate>${toRfc822(new Date())}</lastBuildDate>
-    <atom:link href="${escapeXml(channel.feedUrl)}" rel="self" type="application/rss+xml" />
+    <description>${escapeXml(channel.description)}</description>
+    <language>ko</language>
+    <lastBuildDate>${toRFC822(new Date())}</lastBuildDate>
+    <atom:link href="${escapeXml(channel.feedUrl)}" rel="self" type="application/rss+xml"/>
 ${itemsXml}
   </channel>
 </rss>`;
@@ -76,28 +64,29 @@ export function buildItem(opts: {
   title: string;
   link: string;
   description: string;
-  pubDate?: Date | string | null;
+  pubDate?: Date | string | number | null;
   guid?: string;
-  creator?: string;
 }): string {
   const guid = opts.guid || opts.link;
-  const creator = opts.creator || "Rankit";
   return `    <item>
-      <title>${cdata(opts.title)}</title>
+      <title>${escapeXml(opts.title)}</title>
       <link>${escapeXml(opts.link)}</link>
-      <description>${cdata(opts.description)}</description>
-      <pubDate>${toRfc822(opts.pubDate || null)}</pubDate>
-      <guid isPermaLink="true">${escapeXml(guid)}</guid>
-      <dc:creator>${cdata(creator)}</dc:creator>
+      <description>${escapeXml(opts.description)}</description>
+      <pubDate>${toRFC822(opts.pubDate ?? null)}</pubDate>
+      <guid>${escapeXml(guid)}</guid>
     </item>`;
 }
 
 export function errorResponse(message: string, status = 500): Response {
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<error>${escapeXml(message)}</error>`;
-  return new Response(xml, {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/xml; charset=UTF-8" },
-  });
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rankit RSS Error</title>
+    <link>${SITE_URL}</link>
+    <description>${escapeXml(message)}</description>
+    <language>ko</language>
+    <lastBuildDate>${toRFC822(new Date())}</lastBuildDate>
+  </channel>
+</rss>`;
+  return new Response(xml, { headers: rssHeaders, status });
 }
-
-export const SITE_URL = "https://rankit.today";
