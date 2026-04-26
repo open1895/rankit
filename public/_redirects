@@ -2,5 +2,14 @@
 /pricing /pricing/index.html 200
 /pricing/ /pricing/index.html 200
 /sitemap.xml https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/sitemap 200
+/rss https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss 200
+/rss-rising https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-rising 200
+/rss-hall-of-fame https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-hall-of-fame 200
+/rss-monthly https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-monthly 200
+/rss-battle https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-battle 200
+/rss-community https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-community 200
+/rss-category https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-category 200
+/rss-creator https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-creator 200
+/rss-notice https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-notice 200
 http://www.rankit.today/* https://rankit.today/:splat 301!
 https://www.rankit.today/* https://rankit.today/:splat 301!
