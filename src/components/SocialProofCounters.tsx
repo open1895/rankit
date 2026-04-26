@@ -43,7 +43,7 @@ const SocialProofCounters = () => {
 
   const fetchStats = useCallback(async () => {
     const [creatorsCountRes, profilesRes] = await Promise.all([
-      supabase.from("creators").select("id", { count: "exact", head: true }),
+      supabase.from("creators_public").select("id", { count: "exact", head: true }),
       supabase.from("profiles").select("id", { count: "exact", head: true }),
     ]);
 
@@ -54,7 +54,7 @@ const SocialProofCounters = () => {
     let hasMore = true;
     while (hasMore) {
       const { data: chunk } = await supabase
-        .from("creators")
+        .from("creators_public")
         .select("votes_count")
         .range(page * pageSize, (page + 1) * pageSize - 1);
       if (chunk && chunk.length > 0) {
