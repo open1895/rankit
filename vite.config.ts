@@ -29,17 +29,33 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      injectRegister: null,
+      injectRegister: "auto",
       manifest: false, // using public/manifest.json
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp}"],
+        // HTML은 캐시하지 않고 매번 네트워크 우선으로 가져와 즉시 업데이트 반영
+        globPatterns: ["**/*.{js,css,ico,png,svg,jpg,jpeg,webp}"],
+        navigateFallback: null,
         navigateFallbackDenylist: [/^\/~oauth/],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
         runtimeCaching: [
+          {
+            // HTML 문서는 항상 네트워크 우선 (1주 캐시 폴백)
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "html-pages",
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 },
+            },
+          },
           {
             urlPattern: /^https:\/\/jcaajxwdeqngihupjaaa\.supabase\.co\/.*/i,
             handler: "NetworkFirst",
             options: {
               cacheName: "supabase-api",
+              networkTimeoutSeconds: 5,
               expiration: { maxEntries: 50, maxAgeSeconds: 300 },
             },
           },
