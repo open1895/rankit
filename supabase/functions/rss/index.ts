@@ -20,10 +20,11 @@ Deno.serve(async (req) => {
     const items = (creators || [])
       .map((c: any) =>
         buildItem({
-          title: `${c.rank}위 ${c.name} - ${c.votes_count}표`,
+          title: `${c.rank}위 ${c.name} - ${(c.votes_count || 0).toLocaleString()}표`,
           link: `${SITE_URL}/creator/${c.id}`,
-          description: `${c.name}이(가) 현재 ${c.rank}위. 구독자 ${c.subscriber_count?.toLocaleString() || 0}명. 카테고리: ${c.category || "기타"}`,
+          description: `${c.name}이 현재 ${c.rank}위입니다. 누적 투표수: ${(c.votes_count || 0).toLocaleString()}표. 카테고리: ${c.category || "기타"}. 구독자: ${(c.subscriber_count || 0).toLocaleString()}명`,
           pubDate: c.last_stats_updated || c.created_at,
+          guid: `${SITE_URL}/creator/${c.id}`,
         })
       )
       .join("\n");
@@ -32,7 +33,7 @@ Deno.serve(async (req) => {
       {
         title: "Rankit 크리에이터 영향력 랭킹 TOP 10",
         link: SITE_URL,
-        description: "팬 투표로 결정되는 실시간 크리에이터 영향력 순위",
+        description: "팬 투표로 결정되는 실시간 크리에이터 영향력 순위 TOP 10",
         feedUrl: `${SITE_URL}/rss`,
       },
       items
