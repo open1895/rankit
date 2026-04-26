@@ -21,11 +21,12 @@ Deno.serve(async (req) => {
 
     const items = (posts || [])
       .map((p: any) => {
-        const snippet = (p.content || "").replace(/\s+/g, " ").slice(0, 100);
+        const snippet = (p.content || "").replace(/\s+/g, " ").slice(0, 150);
+        const more = (p.content || "").length > 150 ? "..." : "";
         return buildItem({
           title: `${p.title} - ${p.author}`,
           link: `${SITE_URL}/community`,
-          description: `${snippet}${(p.content || "").length > 100 ? "..." : ""}`,
+          description: `[${p.category || "자유"}] ${snippet}${more} (좋아요 ${p.likes || 0}개)`,
           pubDate: p.created_at,
           guid: `${SITE_URL}/community#${p.id}`,
         });

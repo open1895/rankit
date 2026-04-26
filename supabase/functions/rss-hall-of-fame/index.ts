@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
         return buildItem({
           title: `👑 ${r.period_label} ${r.final_rank}위 - ${name}`,
           link: `${SITE_URL}/hall-of-fame`,
-          description: `${name}이(가) ${r.period_label} ${r.final_rank}위를 달성했습니다! 최종 투표: ${r.final_votes}표`,
+          description: `${name}이(가) ${r.period_label} ${r.final_rank}위를 달성했습니다! 최종 투표수: ${(r.final_votes || 0).toLocaleString()}표. 카테고리: ${r.creators?.category || "기타"}`,
           pubDate: r.created_at || r.period_end,
           guid: `${SITE_URL}/hall-of-fame#${r.id}`,
         });
