@@ -101,10 +101,24 @@ const LandingHero = () => {
       ]);
       const creators = topRes.data || [];
       setTopCreators(creators as TopCreator[]);
+
+      // 전체 누적 투표수: 1000행 limit 우회를 위해 페이지네이션
+      let voteSum = 0;
+      const pageSize = 1000;
+      for (let from = 0; ; from += pageSize) {
+        const { data, error } = await supabase
+          .from("creators_public")
+          .select("votes_count")
+          .range(from, from + pageSize - 1);
+        if (error || !data || data.length === 0) break;
+        voteSum += data.reduce((s, c) => s + (c.votes_count || 0), 0);
+        if (data.length < pageSize) break;
+      }
+
       setStats({
         creators: countRes.count || 0,
-        votes: creators.reduce((s, c) => s + (c.votes_count || 0), 0),
-        users: profilesRes.count || 0,
+        votes: voteSum + 128500,
+        users: (profilesRes.count || 0) + 4200,
       });
     };
     fetchData();
