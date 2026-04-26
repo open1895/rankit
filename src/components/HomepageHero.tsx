@@ -65,12 +65,24 @@ const HomepageHero = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
-      const [creatorsRes, votesRes] = await Promise.all([
-        supabase.from("creators").select("id", { count: "exact", head: true }),
-        supabase.from("creators").select("votes_count"),
-      ]);
-      setCreatorCount(creatorsRes.count || 0);
-      const sum = (votesRes.data || []).reduce((s, c) => s + (c.votes_count || 0), 0);
+      // creators_public 뷰 사용 (RLS 제약 없이 전체 카운트 가능)
+      const { count } = await supabase
+        .from("creators_public")
+        .select("id", { count: "exact", head: true });
+      setCreatorCount(count || 0);
+
+      // 1000행 limit 우회를 위해 페이지네이션으로 합계 산출
+      let sum = 0;
+      const pageSize = 1000;
+      for (let from = 0; ; from += pageSize) {
+        const { data, error } = await supabase
+          .from("creators_public")
+          .select("votes_count")
+          .range(from, from + pageSize - 1);
+        if (error || !data || data.length === 0) break;
+        sum += data.reduce((s, c) => s + (c.votes_count || 0), 0);
+        if (data.length < pageSize) break;
+      }
       setTotalVotes(sum + 128500);
     };
     fetchStats();
