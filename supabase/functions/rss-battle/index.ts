@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
         return buildItem({
           title: `⚔️ ${aName} vs ${bName} - ${winnerName} 승리!`,
           link: `${SITE_URL}/battle`,
-          description: `${aName} ${b.votes_a}표 vs ${bName} ${b.votes_b}표. 승자: ${winnerName} (득표율 ${winRate}%)`,
+          description: `${aName} ${(b.votes_a || 0).toLocaleString()}표 vs ${bName} ${(b.votes_b || 0).toLocaleString()}표. 최종 승자: ${winnerName} (득표율 ${winRate}%)`,
           pubDate: b.ends_at || b.created_at,
           guid: `${SITE_URL}/battle#${b.id}`,
         });
