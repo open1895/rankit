@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rankit 명예의 전당</title>
+    <link>https://rankit.today/hall-of-fame</link>
+    <description>역대 시즌 우승 크리에이터 기록</description>
+    <language>ko</language>
+    <lastBuildDate>Sun, 26 Apr 2026 20:32:28 +0900</lastBuildDate>
+    <atom:link href="https://rankit.today/rss-hall-of-fame" rel="self" type="application/rss+xml"/>
+
+  </channel>
+</rss>
