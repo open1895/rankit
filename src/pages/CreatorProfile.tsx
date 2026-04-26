@@ -108,6 +108,11 @@ const CreatorProfile = () => {
     };
   }, []);
 
+  // 크리에이터 변경 시 페이지 최상단으로 스크롤
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [id]);
+
   // ─── Data Fetching ──────────────────────────────────────
   useEffect(() => {
     if (!id) return;
