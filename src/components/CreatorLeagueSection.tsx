@@ -16,7 +16,7 @@ interface LeagueCreator {
 
 const LEAGUES = [
   { category: "게임", emoji: "🎮", label: "Gaming League", gradient: "from-violet-500 to-indigo-600" },
-  { category: "뷰티", emoji: "💄", label: "Beauty League", gradient: "from-pink-500 to-rose-600" },
+  { category: "메이크업", emoji: "💄", label: "Makeup League", gradient: "from-pink-500 to-rose-600" },
   { category: "먹방", emoji: "🍜", label: "Mukbang League", gradient: "from-orange-500 to-amber-600" },
   { category: "음악", emoji: "🎵", label: "Music League", gradient: "from-cyan-500 to-teal-600" },
   { category: "운동", emoji: "💪", label: "Fitness League", gradient: "from-emerald-500 to-green-600" },
@@ -24,10 +24,14 @@ const LEAGUES = [
   { category: "테크", emoji: "💻", label: "Tech League", gradient: "from-slate-500 to-zinc-600" },
   { category: "교육", emoji: "📚", label: "Education League", gradient: "from-yellow-500 to-orange-600" },
   { category: "댄스", emoji: "💃", label: "Dance League", gradient: "from-fuchsia-500 to-purple-600" },
-  { category: "아트", emoji: "🎨", label: "Art League", gradient: "from-red-500 to-pink-600" },
+  { category: "룩북", emoji: "👗", label: "Lookbook League", gradient: "from-red-500 to-pink-600" },
   { category: "요리", emoji: "🍳", label: "Cooking League", gradient: "from-amber-500 to-yellow-600" },
   { category: "반려동물", emoji: "🐾", label: "Pet League", gradient: "from-lime-500 to-green-600" },
-  { category: "유머", emoji: "😂", label: "Humor League", gradient: "from-yellow-400 to-amber-500" },
+  { category: "코미디", emoji: "😂", label: "Comedy League", gradient: "from-yellow-400 to-amber-500" },
+  { category: "주식", emoji: "📈", label: "Stocks League", gradient: "from-green-500 to-emerald-600" },
+  { category: "V-Tuber", emoji: "🎤", label: "V-Tuber League", gradient: "from-purple-500 to-pink-500" },
+  { category: "자동차", emoji: "🚗", label: "Car League", gradient: "from-red-600 to-orange-500" },
+  { category: "과학기술", emoji: "🔬", label: "Science League", gradient: "from-blue-500 to-cyan-500" },
 ];
 
 const MEDAL_COLORS = [
