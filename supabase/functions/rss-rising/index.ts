@@ -20,10 +20,11 @@ Deno.serve(async (req) => {
     const items = (creators || [])
       .map((c: any) =>
         buildItem({
-          title: `🔥 급상승 ${c.name} - 랭킷스코어 ${Number(c.rankit_score).toFixed(1)}`,
+          title: `🔥 급상승 ${c.name} - 스코어 ${Number(c.rankit_score || 0).toFixed(1)}`,
           link: `${SITE_URL}/creator/${c.id}`,
-          description: `${c.name} 급상승 중! 현재 ${c.rank}위. 카테고리: ${c.category || "기타"}`,
+          description: `${c.name} 급상승 중! 현재 ${c.rank}위. 카테고리: ${c.category || "기타"}. 랭킷 스코어: ${Number(c.rankit_score || 0).toFixed(1)}`,
           pubDate: c.last_stats_updated || c.created_at,
+          guid: `${SITE_URL}/creator/${c.id}#rising`,
         })
       )
       .join("\n");
@@ -32,7 +33,7 @@ Deno.serve(async (req) => {
       {
         title: "Rankit 급상승 크리에이터",
         link: `${SITE_URL}/rising`,
-        description: "이번 주 가장 빠르게 성장하는 크리에이터",
+        description: "이번 주 가장 빠르게 성장하는 크리에이터 TOP 10",
         feedUrl: `${SITE_URL}/rss-rising`,
       },
       items
