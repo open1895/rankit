@@ -17,7 +17,7 @@ interface SEOHeadProps {
 
 const SEOHead = ({
   title,
-  description = "크리에이터 영향력을 팬이 증명하는 플랫폼. 투표, 배틀, 예측으로 공정한 영향력 순위를 만들어갑니다.",
+  description = "대한민국 인기 유튜버 순위와 팬덤 데이터를 실시간으로 확인하세요. 먹방, 게임, 음악 등 카테고리별 크리에이터 영향력 지표를 제공합니다.",
   path = "/",
   ogImage = DEFAULT_OG_IMAGE,
   ogType = "website",
@@ -25,7 +25,7 @@ const SEOHead = ({
   keywords,
   structuredData,
 }: SEOHeadProps) => {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} - The Creator Competition Platform`;
+  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} | 실시간 유튜버 순위 및 크리에이터 영향력 랭킹 TOP 100`;
   const url = `${BASE_URL}${path}`;
 
   const structuredDataArray = Array.isArray(structuredData)
