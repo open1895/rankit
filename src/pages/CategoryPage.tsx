@@ -7,11 +7,13 @@ import { Creator } from "@/lib/data";
 import { ArrowLeft, Trophy, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const CATEGORIES = ["게임", "먹방", "뷰티", "음악", "운동", "여행", "테크", "아트", "교육", "댄스"];
+const CATEGORIES = ["게임", "먹방", "메이크업", "음악", "운동", "여행", "테크", "룩북", "교육", "댄스", "요리", "반려동물", "주식", "V-Tuber", "자동차", "코미디", "과학기술"];
 
 const CATEGORY_EMOJI: Record<string, string> = {
-  "게임": "🎮", "먹방": "🍜", "뷰티": "💄", "음악": "🎵", "운동": "💪",
-  "여행": "✈️", "테크": "💻", "아트": "🎨", "교육": "📚", "댄스": "💃",
+  "게임": "🎮", "먹방": "🍜", "메이크업": "💄", "음악": "🎵", "운동": "💪",
+  "여행": "✈️", "테크": "💻", "룩북": "👗", "교육": "📚", "댄스": "💃",
+  "요리": "🍳", "반려동물": "🐾", "주식": "📈", "V-Tuber": "🎤",
+  "자동차": "🚗", "코미디": "😂", "과학기술": "🔬",
 };
 
 const CategoryPage = () => {
