@@ -523,16 +523,7 @@ const Index = () => {
       {/* Push Notification Prompt */}
       <PushNotificationPrompt />
 
-      {/* Landing page for non-logged-in users */}
-      {!user && !loading && (
-        <Suspense fallback={null}>
-          <LandingHero />
-          <Footer />
-        </Suspense>
-      )}
-
-      {/* Show full app only for logged-in users or during loading */}
-      {(user || loading) && (
+      {/* 공개 정책: 모든 사용자에게 메인 화면 노출 (로그인은 투표/결제 등 개인 액션에서만 요구) */}
       <>
 
       {/* Mobile Header */}
@@ -1046,7 +1037,6 @@ const Index = () => {
       <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
       </Suspense>
       </>
-      )}
     </div>
   );
 };

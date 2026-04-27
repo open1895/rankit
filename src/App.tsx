@@ -93,20 +93,20 @@ const App = () => (
                     <Route path="/compare" element={<CompareCreators />} />
                     <Route path="/fans" element={<FanLeaderboard />} />
                     <Route path="/tournament" element={<Tournament />} />
-                    <Route path="/shop" element={<ProtectedRoute><PointShop /></ProtectedRoute>} />
+                    <Route path="/shop" element={<PointShop />} />
                     <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>} />
                     <Route path="/admin-panel" element={<ProtectedRoute requireAdmin><AdminPanelPage /></ProtectedRoute>} />
                     <Route path="/hall-of-fame" element={<HallOfFame />} />
                     <Route path="/predictions" element={<PredictionGame />} />
                     <Route path="/prediction" element={<PredictionGame />} />
                     <Route path="/community" element={<CommunityPage />} />
-                    <Route path="/recharge" element={<ProtectedRoute><RechargePage /></ProtectedRoute>} />
+                    <Route path="/recharge" element={<RechargePage />} />
                     <Route path="/prediction-leaderboard" element={<PredictionLeaderboard />} />
                     <Route path="/rising" element={<RisingCreatorsPage />} />
                     <Route path="/battle" element={<BattlePage />} />
                     <Route path="/explore" element={<ExplorePage />} />
                     <Route path="/monthly-top3" element={<MonthlyTop3 />} />
-                    <Route path="/ticket-store" element={<ProtectedRoute><TicketStore /></ProtectedRoute>} />
+                    <Route path="/ticket-store" element={<TicketStore />} />
                     <Route path="/widget/creator/:id" element={<WidgetPage />} />
                     <Route path="/widget/fanclub/:id" element={<FanclubWidgetPage />} />
                     <Route path="/invite" element={<InviteLanding />} />
