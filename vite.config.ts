@@ -14,12 +14,24 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    cssCodeSplit: true,
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          recharts: ["recharts"],
-          "framer-motion": ["framer-motion"],
-          "react-vendor": ["react", "react-dom", "react-router-dom"],
+        manualChunks: (id) => {
+          if (id.includes("node_modules")) {
+            if (id.includes("recharts") || id.includes("d3-")) return "recharts";
+            if (id.includes("framer-motion")) return "framer-motion";
+            if (id.includes("react-router")) return "react-router";
+            if (id.includes("react-dom") || id.includes("/react/") || id.includes("scheduler"))
+              return "react-vendor";
+            if (id.includes("@radix-ui")) return "radix-ui";
+            if (id.includes("@supabase") || id.includes("@tanstack")) return "supabase-query";
+            if (id.includes("lucide-react")) return "icons";
+            if (id.includes("date-fns")) return "date-fns";
+            if (id.includes("html2canvas") || id.includes("jspdf")) return "canvas-pdf";
+            return "vendor";
+          }
         },
       },
     },
