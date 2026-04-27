@@ -71,7 +71,7 @@ const SocialProofCounters = () => {
           </span>
         )}
         <button
-          onClick={handleManualRefresh}
+          onClick={() => refresh(true)}
           disabled={isRefreshing}
           className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
           aria-label="통계 새로고침"
