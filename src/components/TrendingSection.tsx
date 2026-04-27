@@ -263,7 +263,7 @@ const TrendingSection = () => {
                   : "bg-gradient-to-br from-orange-500 to-red-500"
               }`}>
                 {c.avatar_url && (c.avatar_url.startsWith("http") || c.avatar_url.startsWith("/"))
-                  ? <img src={c.avatar_url} alt={c.name} className="w-6 h-6 rounded-full object-cover" />
+                  ? <img src={c.avatar_url} alt={c.name} className="w-6 h-6 rounded-full object-cover"  loading="lazy" decoding="async" />
                   : c.avatar_url || c.name.slice(0, 1)
                 }
               </div>
@@ -299,7 +299,7 @@ const TrendingSection = () => {
                   c.avatar_url && (c.avatar_url.startsWith("http") || c.avatar_url.startsWith("/")) ? "" : "bg-gradient-to-br from-green-500 to-teal-500"
                 }`}>
                   {c.avatar_url && (c.avatar_url.startsWith("http") || c.avatar_url.startsWith("/"))
-                    ? <img src={c.avatar_url} alt={c.name} className="w-6 h-6 rounded-full object-cover" />
+                    ? <img src={c.avatar_url} alt={c.name} className="w-6 h-6 rounded-full object-cover"  loading="lazy" decoding="async" />
                     : c.avatar_url || c.name.slice(0, 1)
                   }
                 </div>
@@ -342,7 +342,7 @@ const TrendingSection = () => {
                     isImageUrl ? "" : "bg-gradient-to-br from-neon-purple/60 to-pink-500/60"
                   }`}>
                     {isImageUrl
-                      ? <img src={c.avatar_url} alt={c.name} className="w-6 h-6 rounded-full object-cover" />
+                      ? <img src={c.avatar_url} alt={c.name} className="w-6 h-6 rounded-full object-cover"  loading="lazy" decoding="async" />
                       : c.name.slice(0, 1)
                     }
                   </div>
@@ -393,7 +393,7 @@ const TrendingSection = () => {
                   c.avatar_url && (c.avatar_url.startsWith("http") || c.avatar_url.startsWith("/")) ? "" : "bg-gradient-to-br from-neon-cyan/40 to-neon-purple/40"
                 }`}>
                   {c.avatar_url && (c.avatar_url.startsWith("http") || c.avatar_url.startsWith("/"))
-                    ? <img src={c.avatar_url} alt={c.creator_name} className="w-6 h-6 rounded-full object-cover" />
+                    ? <img src={c.avatar_url} alt={c.creator_name} className="w-6 h-6 rounded-full object-cover"  loading="lazy" decoding="async" />
                     : <MessageCircle className="w-3 h-3 text-neon-cyan" />
                   }
                 </div>

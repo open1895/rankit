@@ -350,7 +350,7 @@ const CreatorRankCard = ({ creatorId, creatorName, rank, votesCount, avatarUrl, 
             <div className="p-4 space-y-3">
               <h3 className="text-lg font-bold text-center">🎉 랭킹 카드 완성!</h3>
               <div className="rounded-2xl overflow-hidden border border-glass-border/30">
-                <img src={imageUrl} alt="Ranking Card" className="w-full" />
+                <img src={imageUrl} alt="Ranking Card" className="w-full"  loading="lazy" decoding="async" />
               </div>
               <Button onClick={handleDownload} variant="outline" className="h-11 w-full rounded-xl glass-sm border-glass-border gap-2">
                 <Download className="w-4 h-4" />
