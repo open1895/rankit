@@ -3243,6 +3243,14 @@ export type Database = {
           wins: number
         }[]
       }
+      get_public_home_stats: {
+        Args: never
+        Returns: {
+          creator_count: number
+          fan_count: number
+          total_votes: number
+        }[]
+      }
       gift_rp: {
         Args: {
           p_amount: number
