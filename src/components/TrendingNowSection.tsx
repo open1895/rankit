@@ -95,7 +95,7 @@ const TrendingNowSection = () => {
                 <div className="relative">
                   <div className={`w-14 h-14 rounded-full overflow-hidden ring-2 ring-orange-400/40 ${!isImage ? 'bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center' : ''}`}>
                     {isImage ? (
-                      <img src={creator.avatar_url} alt={creator.name} className="w-full h-full object-cover" />
+                      <img src={creator.avatar_url} alt={creator.name} className="w-full h-full object-cover"  loading="lazy" decoding="async" />
                     ) : (
                       <span className="text-lg font-bold text-white">{creator.name.slice(0, 1)}</span>
                     )}

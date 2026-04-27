@@ -78,7 +78,7 @@ const TopInfluentialCreators = () => {
                 {i < 3 ? medals[i] : <span className="text-xs font-bold text-muted-foreground">{i + 1}</span>}
               </span>
               {creator.avatar_url ? (
-                <img src={creator.avatar_url} alt={creator.name} className="w-9 h-9 rounded-full object-cover ring-2 ring-primary/20 shrink-0" />
+                <img src={creator.avatar_url} alt={creator.name} className="w-9 h-9 rounded-full object-cover ring-2 ring-primary/20 shrink-0"  loading="lazy" decoding="async" />
               ) : (
                 <div className="w-9 h-9 rounded-full gradient-primary flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
                   {creator.name.slice(0, 2)}
