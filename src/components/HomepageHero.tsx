@@ -167,7 +167,7 @@ const HomepageHero = () => {
           {[
             { label: "등록 크리에이터", value: `${data.creators.toLocaleString()}+` },
             { label: "누적 투표수", value: `${data.votes >= 10000 ? `${(data.votes / 10000).toFixed(1)}만` : data.votes.toLocaleString()}+` },
-            { label: "팬 참여 기반", value: "100%" },
+            { label: "참여 팬", value: `${data.users.toLocaleString()}+` },
           ].map((stat) => (
             <div key={stat.label} className="space-y-0.5">
               <div className="text-lg sm:text-2xl font-black gradient-text">{stat.value}</div>
