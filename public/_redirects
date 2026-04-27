@@ -13,3 +13,11 @@
 /rss-notice https://jcaajxwdeqngihupjaaa.supabase.co/functions/v1/rss-notice 200
 http://www.rankit.today/* https://rankit.today/:splat 301!
 https://www.rankit.today/* https://rankit.today/:splat 301!
+/* /index.html 200
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+/workbox-*.js
+  Cache-Control: no-cache, no-store, must-revalidate
