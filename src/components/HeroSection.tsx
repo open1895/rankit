@@ -111,7 +111,7 @@ const HeroSection = ({ creators }: HeroSectionProps) => {
           <Link to={`/creator/${rank2.id}`} className="flex flex-col items-center gap-1.5 flex-1 cursor-pointer active:scale-95 transition-transform">
             <span className="text-[10px] text-slate-300 font-bold">🥈 2위</span>
             {(rank2.avatar_url?.startsWith("http") || rank2.avatar_url?.startsWith("/")) ? (
-              <img src={rank2.avatar_url} alt={rank2.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-slate-400/60" />
+              <img src={rank2.avatar_url} alt={rank2.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-slate-400/60" loading="eager" decoding="async" fetchPriority="high" width={48} height={48} />
             ) : (
               <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground ring-2 ring-slate-400/60">
                 {rank2.name.slice(0, 2)}
