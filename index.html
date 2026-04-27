@@ -12,23 +12,10 @@
       document.documentElement.classList.add('light');
       localStorage.setItem('theme', 'light');
 
-      // Clear stale PWA caches once so old static fallback pages do not mask the app.
-      (function(){
-        var resetKey = 'rankit-cache-reset-20260427';
-        if (!('serviceWorker' in navigator) || sessionStorage.getItem(resetKey)) return;
-        sessionStorage.setItem(resetKey, '1');
-        var clearCaches = 'caches' in window
-          ? caches.keys().then(function(names){ return Promise.all(names.map(function(name){ return caches.delete(name); })); })
-          : Promise.resolve();
-        var unregisterWorkers = navigator.serviceWorker.getRegistrations
-          ? navigator.serviceWorker.getRegistrations().then(function(registrations){ return Promise.all(registrations.map(function(reg){ return reg.unregister(); })); })
-          : Promise.resolve();
-        Promise.all([clearCaches, unregisterWorkers]).then(function(){
-          if (navigator.serviceWorker.controller) window.location.reload();
-        }).catch(function(){
-          // Non-blocking: React boot should continue even if cache cleanup fails.
-        });
-      })();
+      // Service worker cleanup happens once inside src/main.tsx after React mounts.
+      // We intentionally do NOT reload here — the previous reload-on-controller
+      // logic caused an infinite refresh loop that left users stuck on the
+      // loading fallback screen.
     </script>
     <!-- Naver Site Verification -->
     <meta name="naver-site-verification" content="6035bb1e9a174bfbcccdcd1d78585e361c702784" />

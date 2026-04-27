@@ -40,8 +40,12 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
+      // SW is intentionally disabled to avoid stale Workbox caches serving the
+      // loading fallback HTML. We keep the plugin registered for the manifest
+      // metadata but skip auto-registration.
       registerType: "autoUpdate",
-      injectRegister: "auto",
+      injectRegister: false,
+      selfDestroying: true,
       manifest: false, // using public/manifest.json
       workbox: {
         // HTML은 캐시하지 않고 매번 네트워크 우선으로 가져와 즉시 업데이트 반영
