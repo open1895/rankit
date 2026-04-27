@@ -91,23 +91,23 @@ const CountdownTimer = () => {
   useTouchTargetGuard(containerRef);
 
   return (
-    <div ref={containerRef} className="glass p-5 animate-glow-pulse">
-      <div className="flex items-center justify-center gap-2 mb-5">
+    <div ref={containerRef} className="glass p-3 sm:p-5 animate-glow-pulse">
+      <div className="flex items-center justify-center gap-2 mb-3 sm:mb-5">
         <Clock className="w-4 h-4 text-neon-cyan" />
         <span className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
           하이브리드 시즌 카운트다운
         </span>
       </div>
-      <div className="flex flex-col md:flex-row gap-2 md:gap-4 divide-y-2 md:divide-y-0 md:divide-x divide-border/60">
+      <div className="flex flex-col md:flex-row gap-1 md:gap-4 divide-y md:divide-y-0 md:divide-x divide-border/60">
         <TimerBlock
-          icon={<Swords className="w-5 h-5 sm:w-4 sm:h-4" />}
+          icon={<Swords className="w-4 h-4 sm:w-4 sm:h-4" />}
           label="주간 배틀"
           sublabel="매주 월요일 00:00 KST 마감"
           time={weekly}
           accent="cyan"
         />
         <TimerBlock
-          icon={<Trophy className="w-5 h-5 sm:w-4 sm:h-4" />}
+          icon={<Trophy className="w-4 h-4 sm:w-4 sm:h-4" />}
           label="월간 시즌"
           sublabel="매월 1일 00:00 KST 보상 정산"
           time={monthly}
