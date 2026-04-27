@@ -476,6 +476,16 @@ const Index = () => {
 
     toast.success(data?.referral_bonus ? "투표 완료! 🎉 초대 보너스 투표권이 지급되었어요!" : "투표 완료! 🎉");
 
+    // PC 화면에서 투표 완료 후 랭킹 카드가 보이도록 상단으로 스크롤
+    if (typeof window !== "undefined" && window.innerWidth >= 768) {
+      const rankingSection = document.getElementById("ranking-section");
+      if (rankingSection) {
+        rankingSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+
     const weeklyCount = parseInt(localStorage.getItem("weekly_vote_count") || "0");
     localStorage.setItem("weekly_vote_count", String(weeklyCount + 1));
 
