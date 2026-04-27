@@ -3093,6 +3093,45 @@ export type Database = {
         }
         Relationships: []
       }
+      my_settlement_requests: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          creator_id: string | null
+          id: string | null
+          status: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          creator_id?: string | null
+          id?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          creator_id?: string | null
+          id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "settlement_requests_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "settlement_requests_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       add_tickets: {
