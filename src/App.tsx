@@ -100,7 +100,7 @@ const App = () => (
                     <Route path="/predictions" element={<PredictionGame />} />
                     <Route path="/prediction" element={<PredictionGame />} />
                     <Route path="/community" element={<CommunityPage />} />
-                    <Route path="/recharge" element={<ProtectedRoute><RechargePage /></ProtectedRoute>} />
+                    <Route path="/recharge" element={<RechargePage />} />
                     <Route path="/prediction-leaderboard" element={<PredictionLeaderboard />} />
                     <Route path="/rising" element={<RisingCreatorsPage />} />
                     <Route path="/battle" element={<BattlePage />} />
