@@ -20,23 +20,17 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: (id) => {
           if (!id.includes("node_modules")) return;
-          // Keep React core + every initial React consumer in the SAME chunk
-          // to avoid vendor chunks executing createContext before React is
-          // initialized.
-          if (
-            /[\\/]node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom|react-helmet-async|@tanstack[\\/]react-query|@radix-ui|next-themes|react-hook-form|@hookform[\\/]resolvers|react-day-picker|react-resizable-panels|embla-carousel-react|input-otp|cmdk|sonner|vaul)[\\/]/.test(
-              id,
-            )
-          ) {
-            return "react-vendor";
-          }
+          // Heavy, leaf-only libraries that don't import React at module init
+          // can safely live in their own chunk.
+          if (id.includes("html2canvas") || id.includes("jspdf")) return "canvas-pdf";
           if (id.includes("recharts") || id.includes("d3-")) return "recharts";
-          if (id.includes("framer-motion")) return "framer-motion";
           if (id.includes("@supabase")) return "supabase";
           if (id.includes("lucide-react")) return "icons";
           if (id.includes("date-fns")) return "date-fns";
-          if (id.includes("html2canvas") || id.includes("jspdf")) return "canvas-pdf";
-          return "vendor";
+          // Everything else (React + every library that touches React at
+          // module init) goes into a single vendor chunk to guarantee
+          // initialization order.
+          return "react-vendor";
         },
       },
     },
