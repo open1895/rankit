@@ -20,11 +20,11 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: (id) => {
           if (!id.includes("node_modules")) return;
-          // Keep React core + everything that imports React at module init in
-          // the SAME chunk to avoid "Cannot read properties of undefined
-          // (reading 'createContext')" caused by chunk load-order issues.
+          // Keep React core + every initial React consumer in the SAME chunk
+          // to avoid vendor chunks executing createContext before React is
+          // initialized.
           if (
-            /[\\/]node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom|react-helmet-async|@tanstack[\\/]react-query|@radix-ui)[\\/]/.test(
+            /[\\/]node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom|react-helmet-async|@tanstack[\\/]react-query|@radix-ui|next-themes|react-hook-form|@hookform[\\/]resolvers|react-day-picker|react-resizable-panels|embla-carousel-react|input-otp|cmdk|sonner|vaul)[\\/]/.test(
               id,
             )
           ) {
