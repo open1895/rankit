@@ -19,19 +19,24 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          if (id.includes("node_modules")) {
-            if (id.includes("recharts") || id.includes("d3-")) return "recharts";
-            if (id.includes("framer-motion")) return "framer-motion";
-            if (id.includes("react-router")) return "react-router";
-            if (id.includes("react-dom") || id.includes("/react/") || id.includes("scheduler"))
-              return "react-vendor";
-            if (id.includes("@radix-ui")) return "radix-ui";
-            if (id.includes("@supabase") || id.includes("@tanstack")) return "supabase-query";
-            if (id.includes("lucide-react")) return "icons";
-            if (id.includes("date-fns")) return "date-fns";
-            if (id.includes("html2canvas") || id.includes("jspdf")) return "canvas-pdf";
-            return "vendor";
+          if (!id.includes("node_modules")) return;
+          // Keep React core + everything that imports React at module init in
+          // the SAME chunk to avoid "Cannot read properties of undefined
+          // (reading 'createContext')" caused by chunk load-order issues.
+          if (
+            /[\\/]node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom|react-helmet-async|@tanstack[\\/]react-query|@radix-ui)[\\/]/.test(
+              id,
+            )
+          ) {
+            return "react-vendor";
           }
+          if (id.includes("recharts") || id.includes("d3-")) return "recharts";
+          if (id.includes("framer-motion")) return "framer-motion";
+          if (id.includes("@supabase")) return "supabase";
+          if (id.includes("lucide-react")) return "icons";
+          if (id.includes("date-fns")) return "date-fns";
+          if (id.includes("html2canvas") || id.includes("jspdf")) return "canvas-pdf";
+          return "vendor";
         },
       },
     },
