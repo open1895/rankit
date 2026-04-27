@@ -1037,7 +1037,6 @@ const Index = () => {
       <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
       </Suspense>
       </>
-      )}
     </div>
   );
 };
