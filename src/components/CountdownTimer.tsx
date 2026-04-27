@@ -30,7 +30,7 @@ const TimerBlock = ({
 
   return (
     <div 
-      className="flex-1 min-w-0 py-5 sm:py-0 px-1 min-h-[48px] 
+      className="flex-1 min-w-0 py-3 sm:py-0 px-1 min-h-[48px] 
         active:scale-[0.98] active:opacity-90 
         focus-visible:scale-[0.98] focus-visible:opacity-90
         transition-all duration-150 ease-out 
@@ -41,18 +41,18 @@ const TimerBlock = ({
       role="button"
       aria-label={`${label} 타이머: ${time.days}일 ${time.hours}시간 ${time.minutes}분 ${time.seconds}초 남음`}
     >
-      <div className="flex items-center justify-center gap-2.5 mb-4 min-h-[44px]">
+      <div className="flex items-center justify-center gap-2 mb-2.5 sm:mb-4 min-h-[36px] sm:min-h-[44px]">
         <span 
-          className={`${accentText} transition-transform duration-200 active:scale-110 focus-visible:scale-110 inline-flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`}
+          className={`${accentText} transition-transform duration-200 active:scale-110 focus-visible:scale-110 inline-flex items-center justify-center min-w-[32px] min-h-[32px] sm:min-w-[44px] sm:min-h-[44px] rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`}
           aria-hidden="true"
         >
           {icon}
         </span>
         <div className="flex flex-col items-start leading-tight">
-          <span className="text-sm sm:text-xs font-semibold tracking-wide uppercase text-foreground">
+          <span className="text-xs sm:text-xs font-semibold tracking-wide uppercase text-foreground">
             {label}
           </span>
-          <span className="text-[11px] sm:text-[10px] text-muted-foreground">{sublabel}</span>
+          <span className="text-[10px] sm:text-[10px] text-muted-foreground">{sublabel}</span>
         </div>
       </div>
       <div className="flex items-center justify-center gap-1 sm:gap-2 min-h-[44px]">
