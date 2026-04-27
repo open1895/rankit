@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 import { TrendingUp, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, useReducedMotion } from "framer-motion";
-import { useMemo, useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useMemo } from "react";
+import { usePublicHomeStats } from "@/hooks/usePublicHomeStats";
 
 const FloatingParticles = () => {
   const particles = useMemo(() =>
@@ -60,33 +60,7 @@ const fadeUp = {
 
 const HomepageHero = () => {
   const prefersReduced = useReducedMotion();
-  const [creatorCount, setCreatorCount] = useState(0);
-  const [totalVotes, setTotalVotes] = useState(0);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      // creators_public 뷰 사용 (RLS 제약 없이 전체 카운트 가능)
-      const { count } = await supabase
-        .from("creators_public")
-        .select("id", { count: "exact", head: true });
-      setCreatorCount(count || 0);
-
-      // 1000행 limit 우회를 위해 페이지네이션으로 합계 산출
-      let sum = 0;
-      const pageSize = 1000;
-      for (let from = 0; ; from += pageSize) {
-        const { data, error } = await supabase
-          .from("creators_public")
-          .select("votes_count")
-          .range(from, from + pageSize - 1);
-        if (error || !data || data.length === 0) break;
-        sum += data.reduce((s, c) => s + (c.votes_count || 0), 0);
-        if (data.length < pageSize) break;
-      }
-      setTotalVotes(sum + 128500);
-    };
-    fetchStats();
-  }, []);
+  const { data } = usePublicHomeStats();
   return (
     <section className="relative overflow-hidden">
       {/* Background gradient */}
@@ -191,8 +165,8 @@ const HomepageHero = () => {
         {/* Stats row */}
         <motion.div variants={fadeUp} className="flex items-center justify-center gap-6 sm:gap-10 pt-4 text-center">
           {[
-            { label: "등록 크리에이터", value: `${creatorCount.toLocaleString()}+` },
-            { label: "누적 투표수", value: `${totalVotes >= 10000 ? `${(totalVotes / 10000).toFixed(1)}만` : totalVotes.toLocaleString()}+` },
+            { label: "등록 크리에이터", value: `${data.creators.toLocaleString()}+` },
+            { label: "누적 투표수", value: `${data.votes >= 10000 ? `${(data.votes / 10000).toFixed(1)}만` : data.votes.toLocaleString()}+` },
             { label: "팬 참여 기반", value: "100%" },
           ].map((stat) => (
             <div key={stat.label} className="space-y-0.5">
