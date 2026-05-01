@@ -474,3 +474,9 @@ html *::before, html *::after {
 .recharge-card-pulse {
   animation: recharge-pulse 1.2s ease-in-out;
 }
+
+/* GPU layer promotion for long scrollable lists — reduces repaint cost on fast scroll */
+.ranking-list {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
