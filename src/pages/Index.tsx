@@ -983,7 +983,7 @@ const Index = () => {
               </button>
             </div>
           ) : (
-            <div className="ranking-list contents">
+            <div className="ranking-list space-y-2">
               {visibleCreators.map((creator) => (
                 <RankingCard
                   key={creator.id}
@@ -1004,7 +1004,7 @@ const Index = () => {
                   더 보기 ({totalCount - creators.length}명 남음)
                 </button>
               )}
-            </>
+            </div>
           )}
         </div>
 
