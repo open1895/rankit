@@ -380,6 +380,31 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
       />
     </div>
   );
+}, (prev, next) => {
+  // 깜빡임 방지: 본인 카드 데이터/투표 상태/하이라이트가 바뀐 경우에만 리렌더.
+  // 다른 크리에이터의 실시간 업데이트로 부모의 `creators` 배열 참조가 바뀌어도
+  // 본인 카드는 리렌더하지 않도록 한다 (모달/팝업 상태가 깜빡이는 문제 해결).
+  const a = prev.creator;
+  const b = next.creator;
+  if (
+    a.id !== b.id ||
+    a.rank !== b.rank ||
+    a.previousRank !== b.previousRank ||
+    a.votes_count !== b.votes_count ||
+    a.rankit_score !== b.rankit_score ||
+    a.is_verified !== b.is_verified ||
+    a.avatar_url !== b.avatar_url ||
+    a.name !== b.name
+  ) {
+    return false;
+  }
+  if (prev.hasVoted !== next.hasVoted) return false;
+  if (prev.highlightQuery !== next.highlightQuery) return false;
+  if (prev.onVote !== next.onVote) return false;
+  if (prev.onBonusVote !== next.onBonusVote) return false;
+  // `creators` 배열이 바뀌어도 본인 카드 위/아래 계산은 useMemo 내부에서 처리되며
+  // 위 카드(aboveCreator)의 변경이 본인 카드 표시에 직접 영향을 주진 않으므로 무시.
+  return true;
 });
 
 RankingCard.displayName = "RankingCard";
