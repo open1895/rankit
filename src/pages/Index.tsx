@@ -476,10 +476,8 @@ const Index = () => {
 
     toast.success(data?.referral_bonus ? "투표 완료! 🎉 초대 보너스 투표권이 지급되었어요!" : "투표 완료! 🎉");
 
-    // 투표 완료 후 결과 팝업이 보이도록 화면 최상단으로 자동 스크롤 (모바일 포함)
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    // 투표 결과 팝업은 fixed 오버레이라서 별도의 스크롤 이동이 필요 없음.
+    // 전체 페이지를 위로 이동시키면 랭킹 섹션이 깜빡이고 사용자의 위치를 잃게 되므로 제거함.
 
     const weeklyCount = parseInt(localStorage.getItem("weekly_vote_count") || "0");
     localStorage.setItem("weekly_vote_count", String(weeklyCount + 1));
