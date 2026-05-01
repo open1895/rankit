@@ -433,7 +433,7 @@ const Index = () => {
   const visibleCreators = creators;
   const filteredCreators = creators;
 
-  const handleVote = async (id: string): Promise<boolean> => {
+  const handleVote = useCallback(async (id: string): Promise<boolean> => {
     if (!user) {
       toast.error("투표하려면 로그인이 필요합니다.");
       navigate("/auth");
@@ -488,7 +488,9 @@ const Index = () => {
       setTodayVoted((prev) => new Set(prev).add(id));
     }
     return true;
-  };
+  }, [user, navigate, todayVoted, extraVotes]);
+
+  const handleBonusVote = useCallback(() => setExtraVotes((v) => v + 1), []);
 
   const handleChargeVotes = () => {
     setIsCharging(true);
