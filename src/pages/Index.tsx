@@ -990,7 +990,7 @@ const Index = () => {
                   creator={creator}
                   creators={creators}
                   onVote={handleVote}
-                  onBonusVote={() => setExtraVotes((v) => v + 1)}
+                  onBonusVote={handleBonusVote}
                   hasVoted={todayVoted.has(creator.id)}
                   highlightQuery={searchQuery}
                 />
