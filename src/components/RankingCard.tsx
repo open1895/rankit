@@ -216,6 +216,8 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
             <img
               src={creator.avatar_url}
               alt={creator.name}
+              loading="lazy"
+              decoding="async"
               className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover transition-transform duration-300 group-hover:scale-105 ${
                 isTop3 ? "ring-2 ring-primary shadow-lg shadow-primary/30" : ""
               }`}

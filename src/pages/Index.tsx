@@ -983,7 +983,7 @@ const Index = () => {
               </button>
             </div>
           ) : (
-            <>
+            <div className="ranking-list contents">
               {visibleCreators.map((creator) => (
                 <RankingCard
                   key={creator.id}
