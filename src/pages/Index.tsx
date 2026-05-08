@@ -1001,17 +1001,7 @@ const Index = () => {
             </div>
           ) : (
             <div className="ranking-list space-y-3">
-              {visibleCreators.map((creator) => (
-                <RankingCard
-                  key={creator.id}
-                  creator={creator}
-                  creators={creators}
-                  onVote={handleVote}
-                  onBonusVote={handleBonusVote}
-                  hasVoted={todayVoted.has(creator.id)}
-                  highlightQuery={searchQuery}
-                />
-              ))}
+              {rankingListItems}
               {hasMore && (
                 <button
                   onClick={handleLoadMore}
