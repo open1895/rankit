@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
 import { useCountdown } from "@/hooks/use-countdown";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Creator } from "@/lib/data";
@@ -430,8 +430,8 @@ const Index = () => {
   };
 
   const hasMore = creators.length < totalCount;
-  const visibleCreators = creators;
-  const filteredCreators = creators;
+  const visibleCreators = useMemo(() => creators, [creators]);
+  const filteredCreators = useMemo(() => creators, [creators]);
 
   const handleVote = useCallback(async (id: string): Promise<boolean> => {
     if (!user) {
