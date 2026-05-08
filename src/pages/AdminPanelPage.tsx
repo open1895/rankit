@@ -350,9 +350,14 @@ const CreatorsTab = () => {
     onError: (e: any) => toast.error(`삭제 실패: ${e.message}`),
   });
 
-  const filtered = (creators || []).filter((c: any) =>
-    !search.trim() || c.name.toLowerCase().includes(search.trim().toLowerCase())
-  );
+  const filtered = (creators || [])
+    .filter((c: any) => !search.trim() || c.name.toLowerCase().includes(search.trim().toLowerCase()))
+    .slice()
+    .sort((a: any, b: any) => {
+      const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return tb - ta;
+    });
 
   if (isLoading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>;
 
