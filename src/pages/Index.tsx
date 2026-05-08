@@ -492,6 +492,23 @@ const Index = () => {
 
   const handleBonusVote = useCallback(() => setExtraVotes((v) => v + 1), []);
 
+  // 메인 랭킹 리스트 JSX 메모이제이션: 검색 입력/스크롤 등 불필요한 리렌더 시 카드 배열 재생성 방지
+  const rankingListItems = useMemo(
+    () =>
+      visibleCreators.map((creator) => (
+        <RankingCard
+          key={creator.id}
+          creator={creator}
+          creators={creators}
+          onVote={handleVote}
+          onBonusVote={handleBonusVote}
+          hasVoted={todayVoted.has(creator.id)}
+          highlightQuery={searchQuery}
+        />
+      )),
+    [visibleCreators, creators, handleVote, handleBonusVote, todayVoted, searchQuery]
+  );
+
   const handleChargeVotes = () => {
     setIsCharging(true);
     setTimeout(() => {
