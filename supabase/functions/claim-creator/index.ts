@@ -256,36 +256,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    // === LINK CREATOR (simple linking without verification) ===
+    // === LINK CREATOR === (DISABLED for security)
+    // Direct account linking without verification has been removed to prevent
+    // creator account takeover. All claims must go through the admin-reviewed
+    // submit_claim_request or submit_code_claim flows.
     if (action === "link_creator") {
-      if (targetCreator.user_id && targetCreator.user_id !== userId) {
-        return new Response(
-          JSON.stringify({ error: "이미 다른 계정에 연동된 크리에이터입니다." }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (targetCreator.user_id === userId) {
-        return new Response(
-          JSON.stringify({ error: "이미 본인 계정에 연동된 크리에이터입니다." }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      const { error: updateError } = await adminClient
-        .from("creators")
-        .update({ user_id: userId })
-        .eq("id", creator_id);
-
-      if (updateError) {
-        return new Response(
-          JSON.stringify({ error: "연동에 실패했습니다." }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
       return new Response(
-        JSON.stringify({ success: true, message: "크리에이터가 연동되었습니다! 🎉" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "이 기능은 비활성화되었습니다. 인증 요청을 통해 연동해 주세요." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
