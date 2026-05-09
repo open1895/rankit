@@ -300,6 +300,25 @@ Deno.serve(async (req) => {
 
     // === ADD TICKETS (share reward etc.) ===
     if (action === "add" && amount && amount > 0 && amount <= 5) {
+      // Server-side daily cap: max 3 share_reward grants and max 5 tickets per user per 24h
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data: recent } = await supabase
+        .from("ticket_transactions")
+        .select("amount")
+        .eq("user_id", userId)
+        .eq("type", "share_reward")
+        .gte("created_at", since);
+
+      const grantsToday = (recent || []).length;
+      const ticketsToday = (recent || []).reduce((s: number, r: any) => s + (r.amount || 0), 0);
+
+      if (grantsToday >= 3 || ticketsToday + amount > 5) {
+        return new Response(
+          JSON.stringify({ error: "오늘 받을 수 있는 공유 보상을 모두 받았어요." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       await supabase.rpc("add_tickets", {
         p_user_id: userId,
         p_amount: amount,
