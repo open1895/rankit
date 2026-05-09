@@ -16,8 +16,14 @@ Deno.serve((req) => {
   }
 
   const url = new URL(req.url);
-  // Where to send the user back to in the SPA after we exchange the code
-  const returnTo = url.searchParams.get("return_to") || "/";
+  // Where to send the user back to in the SPA after we exchange the code.
+  // SECURITY: only accept relative paths to prevent open-redirect/token leakage.
+  const rawReturnTo = url.searchParams.get("return_to") || "/";
+  const returnTo = (typeof rawReturnTo === "string"
+    && rawReturnTo.startsWith("/")
+    && !rawReturnTo.startsWith("//"))
+    ? rawReturnTo
+    : "/";
 
   // CSRF state — also encodes the SPA return URL
   const state = btoa(JSON.stringify({ r: returnTo, n: crypto.randomUUID() }));
