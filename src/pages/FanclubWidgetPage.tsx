@@ -60,10 +60,9 @@ const FanclubWidgetPage = () => {
         .single();
       if (!creator) return;
 
-      const { count: members } = await supabase
-        .from("fanclub_members")
-        .select("id", { count: "exact", head: true })
-        .eq("creator_id", id);
+      const { data: memberCount } = await (supabase as any)
+        .rpc("get_creator_fanclub_count", { p_creator_id: id });
+      const members = Number(memberCount) || 0;
 
       // weekly score = votes*3 + posts*5 + comments*1 (last 7 days)
       const since = new Date(Date.now() - 7 * 86400000).toISOString();

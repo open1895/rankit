@@ -141,7 +141,23 @@ serve(async (req) => {
     if (action === "update_creator") {
       const { creator_id, ...updates } = body;
       if (!creator_id) return new Response(JSON.stringify({ error: "creator_id required" }), { status: 400, headers: corsHeaders });
-      const { error } = await adminClient.from("creators").update(updates).eq("id", creator_id);
+      // Whitelist of fields admins may edit through this generic endpoint.
+      // Sensitive fields (user_id, claimed, is_verified, verification_status,
+      // votes_count, rank, rankit_score) require dedicated admin actions.
+      const ALLOWED_UPDATE_FIELDS = new Set([
+        "name", "category", "avatar_url", "channel_link", "subscriber_count",
+        "youtube_channel_id", "chzzk_channel_id", "instagram_handle",
+        "youtube_subscribers", "chzzk_followers", "instagram_followers", "tiktok_followers",
+        "is_promoted", "promotion_type", "promotion_status", "promotion_start", "promotion_end",
+        "featured_until", "performance_tier", "contact_email",
+      ]);
+      const safeUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([k]) => ALLOWED_UPDATE_FIELDS.has(k))
+      );
+      if (Object.keys(safeUpdates).length === 0) {
+        return new Response(JSON.stringify({ error: "No allowed fields to update" }), { status: 400, headers: corsHeaders });
+      }
+      const { error } = await adminClient.from("creators").update(safeUpdates).eq("id", creator_id);
       if (error) throw error;
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
     }

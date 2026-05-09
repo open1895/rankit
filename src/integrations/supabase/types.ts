@@ -3202,6 +3202,10 @@ export type Database = {
           fan_points: number
         }[]
       }
+      get_creator_fanclub_count: {
+        Args: { p_creator_id: string }
+        Returns: number
+      }
       get_creator_hourly_votes: {
         Args: { p_creator_id: string }
         Returns: {
@@ -3216,6 +3220,13 @@ export type Database = {
         Returns: {
           fan_level: number
           rp_multiplier: number
+        }[]
+      }
+      get_fanclub_member_counts: {
+        Args: never
+        Returns: {
+          creator_id: string
+          member_count: number
         }[]
       }
       get_my_creator_contact_email: {

@@ -26,14 +26,13 @@ const FanclubLeaderboard = () => {
       setLoading(true);
       const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
 
-      // 1. Fanclub creators with member counts
+      // 1. Fanclub creators with member counts (aggregate RPC, no PII)
       const { data: members } = await (supabase as any)
-        .from("fanclub_members")
-        .select("creator_id");
+        .rpc("get_fanclub_member_counts");
 
       const memberCounts = new Map<string, number>();
       (members || []).forEach((m: any) => {
-        memberCounts.set(m.creator_id, (memberCounts.get(m.creator_id) || 0) + 1);
+        memberCounts.set(m.creator_id, Number(m.member_count) || 0);
       });
 
       const creatorIds = Array.from(memberCounts.keys());

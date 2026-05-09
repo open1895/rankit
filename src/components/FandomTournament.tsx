@@ -26,11 +26,10 @@ const useTopFandoms = (limit = 8) => {
       const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
 
       const { data: members } = await (supabase as any)
-        .from("fanclub_members")
-        .select("creator_id");
+        .rpc("get_fanclub_member_counts");
       const memberCounts = new Map<string, number>();
       (members || []).forEach((m: any) => {
-        memberCounts.set(m.creator_id, (memberCounts.get(m.creator_id) || 0) + 1);
+        memberCounts.set(m.creator_id, Number(m.member_count) || 0);
       });
       const ids = Array.from(memberCounts.keys());
       if (ids.length === 0) {

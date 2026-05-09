@@ -36,12 +36,22 @@ Deno.serve(async (req) => {
   if (state) {
     try {
       const parsed = JSON.parse(atob(state));
-      if (typeof parsed?.r === "string") returnTo = parsed.r;
+      if (typeof parsed?.r === "string") {
+        // SECURITY: only honor relative paths; reject absolute/protocol-relative
+        // URLs to prevent the OAuth tokens (delivered via #fragment) from being
+        // redirected to attacker-controlled origins.
+        const candidate = parsed.r;
+        if (candidate.startsWith("/") && !candidate.startsWith("//")) {
+          returnTo = candidate;
+        }
+      }
     } catch { /* ignore */ }
   }
 
   const buildRedirect = (hash: string) => {
-    const target = new URL(returnTo, spaOrigin);
+    // Force returnTo to be a relative path resolved against the trusted SPA origin.
+    const safePath = returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/";
+    const target = new URL(safePath, spaOrigin);
     target.hash = hash;
     return Response.redirect(target.toString(), 302);
   };
