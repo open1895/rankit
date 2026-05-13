@@ -72,12 +72,17 @@ Deno.serve(async (req) => {
 
     // Check if this is a cron call (accept CRON_SECRET or SERVICE_ROLE_KEY as bearer)
     const authHeader = req.headers.get("Authorization");
+    const xCronSecret = req.headers.get("x-cron-secret");
     const cronSecret = Deno.env.get("CRON_SECRET");
-    const isCronCall = !!authHeader && (
+    const isCronCall = (
       (cronSecret && authHeader === `Bearer ${cronSecret}`) ||
-      authHeader === `Bearer ${serviceRoleKey}`
+      (cronSecret && xCronSecret === cronSecret) ||
+      (authHeader === `Bearer ${serviceRoleKey}`) ||
+      (xCronSecret === serviceRoleKey)
     );
-    console.log("DEBUG auth", { authLen: authHeader?.length, srkLen: serviceRoleKey?.length, cronLen: cronSecret?.length, match: isCronCall });
+    const headerNames: string[] = [];
+    req.headers.forEach((_v, k) => headerNames.push(k));
+    console.log("DEBUG headers", headerNames.join(","), "xcronLen:", xCronSecret?.length);
 
     let bodyText = "";
     try { bodyText = await req.text(); } catch { /* empty */ }
