@@ -75,12 +75,11 @@ Deno.serve(async (req) => {
     const cronSecret = Deno.env.get("CRON_SECRET");
     const isCronCall = cronSecret && authHeader === `Bearer ${cronSecret}`;
 
-    // Allow internal pg_net cron calls (no auth, body has cron flag)
     let bodyText = "";
     try { bodyText = await req.text(); } catch { /* empty */ }
     let parsedBody: any = {};
     try { parsedBody = bodyText ? JSON.parse(bodyText) : {}; } catch { /* empty */ }
-    const isInternalCron = parsedBody.cron === true && !authHeader;
+    const isInternalCron = false;
 
     if (!isCronCall && !isInternalCron) {
       // Manual call: require admin role
