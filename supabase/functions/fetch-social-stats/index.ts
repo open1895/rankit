@@ -70,16 +70,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Auth: cron via Authorization Bearer with RANKIT_CRON_TOKEN / CRON_SECRET / SERVICE_ROLE_KEY
+    // Auth: cron via Authorization Bearer with token from cron_auth_tokens table
     const authHeader = req.headers.get("Authorization");
-    const rankitToken = Deno.env.get("RANKIT_CRON_TOKEN");
-    const cronSecret = Deno.env.get("CRON_SECRET");
-    const isCronCall = !!authHeader && (
-      (rankitToken && authHeader === `Bearer ${rankitToken}`) ||
-      (cronSecret && authHeader === `Bearer ${cronSecret}`) ||
-      (authHeader === `Bearer ${serviceRoleKey}`)
-    );
-    console.log("DEBUG auth", { authLen: authHeader?.length, rankitLen: rankitToken?.length, cronLen: cronSecret?.length, srkLen: serviceRoleKey?.length, match: isCronCall });
+    const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    let isCronCall = false;
+    if (bearer) {
+      const adminClient = createClient(supabaseUrl, serviceRoleKey);
+      const { data: tokenRow } = await adminClient
+        .from("cron_auth_tokens").select("token").eq("name", "default").maybeSingle();
+      if (tokenRow?.token && bearer === tokenRow.token) isCronCall = true;
+      else if (bearer === serviceRoleKey) isCronCall = true;
+    }
 
     let bodyText = "";
     try { bodyText = await req.text(); } catch { /* empty */ }
