@@ -88,7 +88,7 @@ const SocialProofCounters = () => {
             >
               <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
             </div>
-            <div className="text-xl sm:text-2xl font-black" style={{ color: stat.color }}>
+            <div className="text-base sm:text-2xl font-black text-center truncate tabular-nums" style={{ color: stat.color }}>
               <AnimatedNumber value={stat.value} suffix={stat.suffix} />
             </div>
             <div className="text-[10px] sm:text-xs text-muted-foreground font-medium">
