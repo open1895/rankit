@@ -1006,6 +1006,30 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_auth_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       daily_matchup_votes: {
         Row: {
           created_at: string

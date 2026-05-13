@@ -83,9 +83,15 @@ Deno.serve(async (req) => {
   let parsedBody: any = {};
   try { parsedBody = bodyText ? JSON.parse(bodyText) : {}; } catch { /* */ }
 
-  const isCron = (!!CRON_SECRET && token === CRON_SECRET) || (!!SERVICE_ROLE_KEY && token === SERVICE_ROLE_KEY);
+  let isCron = (!!CRON_SECRET && token === CRON_SECRET) || (!!SERVICE_ROLE_KEY && token === SERVICE_ROLE_KEY);
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+  if (!isCron && token) {
+    const { data: tokenRow } = await supabase
+      .from("cron_auth_tokens").select("token").eq("name", "default").maybeSingle();
+    if (tokenRow?.token && token === tokenRow.token) isCron = true;
+  }
 
   let isAdmin = false;
   if (!isCron && token && token !== ANON_KEY) {

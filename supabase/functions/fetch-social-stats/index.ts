@@ -70,19 +70,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check if this is a cron call (accept CRON_SECRET or SERVICE_ROLE_KEY as bearer)
+    // Auth: cron via Authorization Bearer with token from cron_auth_tokens table
     const authHeader = req.headers.get("Authorization");
-    const xCronSecret = req.headers.get("x-cron-secret");
-    const cronSecret = Deno.env.get("CRON_SECRET");
-    const isCronCall = (
-      (cronSecret && authHeader === `Bearer ${cronSecret}`) ||
-      (cronSecret && xCronSecret === cronSecret) ||
-      (authHeader === `Bearer ${serviceRoleKey}`) ||
-      (xCronSecret === serviceRoleKey)
-    );
-    const headerNames: string[] = [];
-    req.headers.forEach((_v, k) => headerNames.push(k));
-    console.log("DEBUG headers", headerNames.join(","), "xcronLen:", xCronSecret?.length);
+    const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    let isCronCall = false;
+    if (bearer) {
+      const adminClient = createClient(supabaseUrl, serviceRoleKey);
+      const { data: tokenRow } = await adminClient
+        .from("cron_auth_tokens").select("token").eq("name", "default").maybeSingle();
+      if (tokenRow?.token && bearer === tokenRow.token) isCronCall = true;
+      else if (bearer === serviceRoleKey) isCronCall = true;
+    }
 
     let bodyText = "";
     try { bodyText = await req.text(); } catch { /* empty */ }
