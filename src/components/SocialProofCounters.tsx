@@ -23,11 +23,7 @@ const AnimatedNumber = ({ value, suffix = "" }: { value: number; suffix?: string
     return () => clearInterval(timer);
   }, [value]);
 
-  const formatted = displayed >= 10000
-    ? `${(displayed / 10000).toFixed(1)}만`
-    : displayed >= 1000
-    ? `${(displayed / 1000).toFixed(1)}천`
-    : displayed.toLocaleString();
+  const formatted = displayed.toLocaleString();
 
   return <span>{formatted}{suffix}</span>;
 };
