@@ -21,7 +21,13 @@ Deno.serve(async (req) => {
 
     const authHeader = req.headers.get("Authorization");
     const token = authHeader?.replace("Bearer ", "") || "";
-    const isCronCall = !!cronSecret && token === cronSecret;
+    let isCronCall = !!cronSecret && token === cronSecret;
+    if (!isCronCall && token) {
+      const adminCheck = createClient(supabaseUrl, serviceKey);
+      const { data: tokenRow } = await adminCheck
+        .from("cron_auth_tokens").select("token").eq("name", "default").maybeSingle();
+      if (tokenRow?.token && token === tokenRow.token) isCronCall = true;
+    }
     const isTrustedCall = token === serviceKey || isCronCall;
 
     if (!isTrustedCall) {
