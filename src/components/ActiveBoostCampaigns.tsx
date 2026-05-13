@@ -24,7 +24,7 @@ const ActiveBoostCampaigns = () => {
     const fetch = async () => {
       const { data } = await supabase
         .from("boost_campaigns" as any)
-        .select("*")
+        .select("id, creator_id, ends_at, started_at, status, current_points, goal, created_at, completed_at")
         .eq("status", "active")
         .order("current_points", { ascending: false })
         .limit(5);

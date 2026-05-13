@@ -58,7 +58,7 @@ serve(async (req) => {
   } catch (err: any) {
     console.error("Delete account error:", err);
     return new Response(
-      JSON.stringify({ error: err.message || "Database error deleting user" }),
+      JSON.stringify({ error: "계정 삭제 중 오류가 발생했습니다." }),
       { status: 500, headers: corsHeaders }
     );
   }

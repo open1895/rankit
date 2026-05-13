@@ -113,7 +113,7 @@ const PowerBoostSection = ({ creatorId, creatorName, creatorAvatar }: { creatorI
   const fetchCampaign = async () => {
     const { data } = await supabase
       .from("boost_campaigns" as any)
-      .select("*")
+      .select("id, creator_id, ends_at, started_at, status, current_points, goal, created_at, completed_at")
       .eq("creator_id", creatorId)
       .eq("status", "active")
       .order("created_at", { ascending: false })
