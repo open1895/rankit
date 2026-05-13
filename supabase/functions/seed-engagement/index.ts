@@ -272,7 +272,7 @@ JSON 배열로만 응답하세요. 예: [{"category":"자유","title":"...","con
   } catch (e) {
     console.error("seed-engagement error:", e);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : String(e) }),
+      JSON.stringify({ error: "요청을 처리할 수 없습니다." }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

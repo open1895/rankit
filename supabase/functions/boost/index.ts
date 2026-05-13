@@ -52,6 +52,7 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({ error: "invalid action" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    console.error("boost error:", e);
+    return new Response(JSON.stringify({ error: "요청을 처리할 수 없습니다." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
