@@ -25,8 +25,7 @@ Deno.serve(async (req) => {
 
     const isAuthed =
       authHeader === `Bearer ${serviceKey}` ||
-      (cronSecret && authHeader === `Bearer ${cronSecret}`) ||
-      body?.cron === true;
+      (cronSecret && authHeader === `Bearer ${cronSecret}`);
 
     const dryRun = !isAuthed;
     // Optional: only generate for specific category
