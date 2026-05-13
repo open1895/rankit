@@ -77,6 +77,7 @@ Deno.serve(async (req) => {
       (cronSecret && authHeader === `Bearer ${cronSecret}`) ||
       authHeader === `Bearer ${serviceRoleKey}`
     );
+    console.log("DEBUG auth", { authLen: authHeader?.length, srkLen: serviceRoleKey?.length, cronLen: cronSecret?.length, match: isCronCall });
 
     let bodyText = "";
     try { bodyText = await req.text(); } catch { /* empty */ }
