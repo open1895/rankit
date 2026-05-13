@@ -23,9 +23,16 @@ Deno.serve(async (req) => {
     let body: any = {};
     try { body = await req.json(); } catch { /* empty body ok */ }
 
-    const isAuthed =
+    let isAuthed =
       authHeader === `Bearer ${serviceKey}` ||
       (cronSecret && authHeader === `Bearer ${cronSecret}`);
+    if (!isAuthed && authHeader?.startsWith("Bearer ")) {
+      const tokenIn = authHeader.slice(7);
+      const adminCheck = createClient(supabaseUrl, serviceKey);
+      const { data: tokenRow } = await adminCheck
+        .from("cron_auth_tokens").select("token").eq("name", "default").maybeSingle();
+      if (tokenRow?.token && tokenIn === tokenRow.token) isAuthed = true;
+    }
 
     const dryRun = !isAuthed;
     // Optional: only generate for specific category
