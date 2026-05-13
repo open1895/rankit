@@ -245,18 +245,31 @@ Deno.serve(async (req) => {
 
     console.log(`auto-add-creators: processing category "${targetCategories.map(c => c.name).join(", ")}"`);
 
-    // Get existing youtube_channel_ids to avoid duplicates
-    const { data: existingCreators } = await supabase
-      .from("creators")
-      .select("category, youtube_channel_id")
-      .neq("youtube_channel_id", "");
+    // Get existing youtube_channel_ids to avoid duplicates (paginate past 1k default limit)
+    const allExisting: any[] = [];
+    const pageSize = 1000;
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await supabase
+        .from("creators")
+        .select("category, youtube_channel_id")
+        .neq("youtube_channel_id", "")
+        .range(from, from + pageSize - 1);
+      if (error) {
+        console.error("Error fetching existing creators:", error);
+        break;
+      }
+      if (!data || data.length === 0) break;
+      allExisting.push(...data);
+      if (data.length < pageSize) break;
+    }
+    const existingCreators = allExisting;
 
     const existingIds = new Set(
-      (existingCreators || []).map((c: any) => c.youtube_channel_id).filter(Boolean)
+      existingCreators.map((c: any) => c.youtube_channel_id).filter(Boolean)
     );
     const existingCounts = new Map<string, number>();
-    for (const creator of existingCreators || []) {
-      const category = (creator as any).category;
+    for (const creator of existingCreators) {
+      const category = creator.category;
       if (!category) continue;
       existingCounts.set(category, (existingCounts.get(category) || 0) + 1);
     }
