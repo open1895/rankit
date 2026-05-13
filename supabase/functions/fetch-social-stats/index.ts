@@ -70,19 +70,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check if this is a cron call (accept CRON_SECRET or SERVICE_ROLE_KEY as bearer)
+    // Auth: cron via Authorization Bearer with RANKIT_CRON_TOKEN / CRON_SECRET / SERVICE_ROLE_KEY
     const authHeader = req.headers.get("Authorization");
-    const xCronSecret = req.headers.get("x-cron-secret");
+    const rankitToken = Deno.env.get("RANKIT_CRON_TOKEN");
     const cronSecret = Deno.env.get("CRON_SECRET");
-    const isCronCall = (
+    const isCronCall = !!authHeader && (
+      (rankitToken && authHeader === `Bearer ${rankitToken}`) ||
       (cronSecret && authHeader === `Bearer ${cronSecret}`) ||
-      (cronSecret && xCronSecret === cronSecret) ||
-      (authHeader === `Bearer ${serviceRoleKey}`) ||
-      (xCronSecret === serviceRoleKey)
+      (authHeader === `Bearer ${serviceRoleKey}`)
     );
-    const headerNames: string[] = [];
-    req.headers.forEach((_v, k) => headerNames.push(k));
-    console.log("DEBUG headers", headerNames.join(","), "xcronLen:", xCronSecret?.length);
+    console.log("DEBUG auth", { authLen: authHeader?.length, rankitLen: rankitToken?.length, cronLen: cronSecret?.length, srkLen: serviceRoleKey?.length, match: isCronCall });
 
     let bodyText = "";
     try { bodyText = await req.text(); } catch { /* empty */ }
