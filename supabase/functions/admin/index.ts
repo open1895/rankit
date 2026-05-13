@@ -178,12 +178,20 @@ serve(async (req) => {
 
     // ─── LIST CREATORS ────────────────────────────────────
     if (action === "list_creators") {
-      const { data, error } = await adminClient
-        .from("creators")
-        .select("*")
-        .order("rank", { ascending: true });
-      if (error) throw error;
-      return new Response(JSON.stringify({ creators: data }), { headers: corsHeaders });
+      const all: any[] = [];
+      const pageSize = 1000;
+      for (let from = 0; ; from += pageSize) {
+        const { data, error } = await adminClient
+          .from("creators")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .range(from, from + pageSize - 1);
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        all.push(...data);
+        if (data.length < pageSize) break;
+      }
+      return new Response(JSON.stringify({ creators: all }), { headers: corsHeaders });
     }
 
     // ─── LIST NOMINATIONS ─────────────────────────────────
