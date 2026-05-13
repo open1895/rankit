@@ -178,8 +178,7 @@ Deno.serve(async (req) => {
       : null;
     const isCronCall =
       (!!cronSecret && authHeader === `Bearer ${cronSecret}`) ||
-      (!!cronSecret && xCronSecret === cronSecret) ||
-      (parsedBody?.cron === true && (!anonKey || bearerToken === anonKey || !!bearerToken));
+      (!!cronSecret && xCronSecret === cronSecret);
 
     if (!isCronCall) {
       if (!authHeader) {

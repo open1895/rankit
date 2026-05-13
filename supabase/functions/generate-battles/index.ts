@@ -15,13 +15,14 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
+    const cronSecret = Deno.env.get("CRON_SECRET");
     let body: any = {};
     try { body = await req.clone().json(); } catch { /* empty */ }
-    const isCronCall = body?.cron === true;
 
     const authHeader = req.headers.get("Authorization");
     const token = authHeader?.replace("Bearer ", "") || "";
-    const isTrustedCall = token === serviceKey || token === anonKey || isCronCall;
+    const isCronCall = !!cronSecret && token === cronSecret;
+    const isTrustedCall = token === serviceKey || isCronCall;
 
     if (!isTrustedCall) {
       if (!authHeader) {
