@@ -176,10 +176,16 @@ Deno.serve(async (req) => {
     const bearerToken = authHeader?.startsWith("Bearer ")
       ? authHeader.slice(7)
       : null;
-    const isCronCall =
+    let isCronCall =
       (!!cronSecret && authHeader === `Bearer ${cronSecret}`) ||
       (!!cronSecret && xCronSecret === cronSecret) ||
       (authHeader === `Bearer ${serviceRoleKey}`);
+    if (!isCronCall && bearerToken) {
+      const adminCheck = createClient(supabaseUrl, serviceRoleKey);
+      const { data: tokenRow } = await adminCheck
+        .from("cron_auth_tokens").select("token").eq("name", "default").maybeSingle();
+      if (tokenRow?.token && bearerToken === tokenRow.token) isCronCall = true;
+    }
 
     if (!isCronCall) {
       if (!authHeader) {
