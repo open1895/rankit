@@ -83,9 +83,7 @@ Deno.serve(async (req) => {
   let parsedBody: any = {};
   try { parsedBody = bodyText ? JSON.parse(bodyText) : {}; } catch { /* */ }
 
-  const isCron =
-    (CRON_SECRET && token === CRON_SECRET) ||
-    (parsedBody?.cron === true && (!ANON_KEY || token === ANON_KEY || !!token));
+  const isCron = !!(CRON_SECRET && token === CRON_SECRET);
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
