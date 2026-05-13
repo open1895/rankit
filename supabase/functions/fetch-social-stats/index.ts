@@ -74,6 +74,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     const cronSecret = Deno.env.get("CRON_SECRET");
     const isCronCall = cronSecret && authHeader === `Bearer ${cronSecret}`;
+    console.log("DEBUG cronSecret length:", cronSecret?.length, "authHeader length:", authHeader?.length, "match:", isCronCall);
 
     let bodyText = "";
     try { bodyText = await req.text(); } catch { /* empty */ }
