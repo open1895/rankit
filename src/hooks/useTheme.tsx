@@ -16,8 +16,7 @@ function getInitialTheme(): Theme {
   if (typeof window === "undefined") return "dark";
   const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
   if (saved === "light" || saved === "dark") return saved;
-  // System preference
-  if (window.matchMedia?.("(prefers-color-scheme: light)").matches) return "light";
+  // Default to dark to match production design; ignore system preference
   return "dark";
 }
 
