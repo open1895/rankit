@@ -174,9 +174,15 @@ const AdminPanelPage = () => {
           >
             <Mail className="w-4 h-4 inline mr-1" />초대
           </button>
+          <button
+            onClick={() => setTab("youtubeHealth")}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "youtubeHealth" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
+          >
+            <Youtube className="w-4 h-4 inline mr-1" />채널 검증
+          </button>
         </div>
 
-        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : tab === "predictions" ? <PredictionsTab /> : tab === "tournaments" ? <TournamentsTab /> : tab === "seasonRewards" ? <SeasonRewardsTab /> : tab === "banners" ? <BannersTab /> : tab === "claims" ? <ClaimsTab /> : tab === "promotions" ? <PromotionsTab /> : tab === "outreach" ? <OutreachTab /> : <AdminRetentionDashboard />}
+        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : tab === "predictions" ? <PredictionsTab /> : tab === "tournaments" ? <TournamentsTab /> : tab === "seasonRewards" ? <SeasonRewardsTab /> : tab === "banners" ? <BannersTab /> : tab === "claims" ? <ClaimsTab /> : tab === "promotions" ? <PromotionsTab /> : tab === "outreach" ? <OutreachTab /> : tab === "youtubeHealth" ? <YoutubeHealthTab /> : <AdminRetentionDashboard />}
       </div>
       <Footer />
     </div>
