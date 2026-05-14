@@ -95,7 +95,7 @@ const PointShop = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
-      <SEOHead title="보상 센터" description="포인트로 프리미엄 투표권, 뱃지 등을 교환하세요." path="/shop" />
+      <SEOHead title="보상 센터" description="모은 리워드 포인트로 프리미엄 투표권, 부스트 아이템, 한정판 시즌 뱃지 등 다양한 팬 활동 보상을 교환할 수 있는 Rankit 리워드 센터입니다." path="/shop" />
 
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
