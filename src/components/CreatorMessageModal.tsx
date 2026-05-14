@@ -64,7 +64,7 @@ const CreatorMessageModal = ({ open, onClose, creatorId, creatorName }: CreatorM
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 backdrop-blur-sm p-4 pt-6 sm:pt-12">
       <div className="w-full max-w-md glass rounded-2xl border border-glass-border p-5 space-y-4 animate-in slide-in-from-bottom-4">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-bold flex items-center gap-2">
