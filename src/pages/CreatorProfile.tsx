@@ -352,27 +352,59 @@ const CreatorProfile = () => {
   const seoTitle = `${creator.name} 유튜버 순위`;
   const seoDescription = `${creator.name}의 현재 랭킹 ${creator.rank}위. 구독자 ${followerManwon}. 누적 투표 ${creator.votes_count.toLocaleString()}표. 팬들이 뽑은 ${creator.category} 크리에이터 영향력 순위를 확인하세요.`;
   const seoKeywords = `${creator.name}, ${creator.name} 유튜버, ${creator.name} 구독자, ${creator.name} 순위, ${creator.name} 랭킹, ${creator.category} 유튜버 순위, ${creator.category} 크리에이터, 랭킷, Rankit`;
-  const seoStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    name: creator.name,
-    url: `https://rankit.today/creator/${creator.id}`,
-    image: creator.avatar_url,
-    description: seoDescription,
-    interactionStatistic: [
-      {
-        "@type": "InteractionCounter",
-        interactionType: "https://schema.org/FollowAction",
-        userInteractionCount: totalFollowers,
-      },
-      {
-        "@type": "InteractionCounter",
-        interactionType: "https://schema.org/VoteAction",
-        userInteractionCount: creator.votes_count,
-      },
-    ],
-    ...(creator.channel_link ? { sameAs: [creator.channel_link] } : {}),
-  };
+  const seoStructuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      name: creator.name,
+      url: `https://rankit.today/creator/${creator.id}`,
+      image: creator.avatar_url,
+      description: seoDescription,
+      interactionStatistic: [
+        {
+          "@type": "InteractionCounter",
+          interactionType: "https://schema.org/FollowAction",
+          userInteractionCount: totalFollowers,
+        },
+        {
+          "@type": "InteractionCounter",
+          interactionType: "https://schema.org/VoteAction",
+          userInteractionCount: creator.votes_count,
+        },
+      ],
+      ...(creator.channel_link ? { sameAs: [creator.channel_link] } : {}),
+      ...(creator.votes_count > 0
+        ? {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: Math.min(5, 3 + (creator.rankit_score ?? 0) / 50).toFixed(1),
+              bestRating: "5",
+              worstRating: "1",
+              ratingCount: creator.votes_count,
+            },
+          }
+        : {}),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "홈", item: "https://rankit.today/" },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: `${creator.category} 유튜버 순위`,
+          item: `https://rankit.today/category/${encodeURIComponent(creator.category)}`,
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: creator.name,
+          item: `https://rankit.today/creator/${creator.id}`,
+        },
+      ],
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">

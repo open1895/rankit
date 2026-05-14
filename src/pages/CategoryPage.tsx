@@ -61,19 +61,35 @@ const CategoryPage = () => {
   const keywords = `${decodedCategory} 유튜버 순위, ${decodedCategory} 크리에이터, ${decodedCategory} 유튜버, ${decodedCategory} 스트리머, ${decodedCategory} 인플루언서 랭킹, 랭킷, Rankit`;
 
   const structuredData = isValidCategory
-    ? {
-        "@context": "https://schema.org",
-        "@type": "ItemList",
-        name: `${decodedCategory} 크리에이터 영향력 랭킹 TOP 10`,
-        url: `https://rankit.today/category/${encodeURIComponent(decodedCategory)}`,
-        numberOfItems: Math.min(creators.length, 10),
-        itemListElement: creators.slice(0, 10).map((c, i) => ({
-          "@type": "ListItem",
-          position: i + 1,
-          name: c.name,
-          url: `https://rankit.today/creator/${c.id}`,
-        })),
-      }
+    ? [
+        {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: `${decodedCategory} 크리에이터 영향력 랭킹 TOP 10`,
+          url: `https://rankit.today/category/${encodeURIComponent(decodedCategory)}`,
+          numberOfItems: Math.min(creators.length, 10),
+          itemListElement: creators.slice(0, 10).map((c, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            name: c.name,
+            url: `https://rankit.today/creator/${c.id}`,
+          })),
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "홈", item: "https://rankit.today/" },
+            { "@type": "ListItem", position: 2, name: "카테고리", item: "https://rankit.today/#categories" },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: `${decodedCategory} 유튜버 순위`,
+              item: `https://rankit.today/category/${encodeURIComponent(decodedCategory)}`,
+            },
+          ],
+        },
+      ]
     : undefined;
 
   if (!isValidCategory) {
