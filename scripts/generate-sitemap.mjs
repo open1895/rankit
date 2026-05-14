@@ -10,7 +10,7 @@ const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjYWFqeHdkZXFuZ2lodXBqYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5ODc1MzgsImV4cCI6MjA4NjU2MzUzOH0.AOa1sSPgsBvyRg64kx3pMdItCi5OjFgYMmZgVfnZiVs";
 
 async function fetchCreators() {
-  const url = `${SUPABASE_URL}/rest/v1/creators_public?select=id,updated_at&limit=10000`;
+  const url = `${SUPABASE_URL}/rest/v1/creators_public?select=id,created_at&limit=10000`;
   try {
     const res = await fetch(url, {
       headers: {
@@ -19,20 +19,11 @@ async function fetchCreators() {
       },
     });
     if (!res.ok) {
-      // Fallback to creators table if view missing
-      const res2 = await fetch(
-        `${SUPABASE_URL}/rest/v1/creators?select=id,updated_at&limit=10000`,
-        {
-          headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-        },
-      );
-      if (!res2.ok) return [];
-      return await res2.json();
+      console.warn("[sitemap] creators fetch failed:", res.status, await res.text());
+      return [];
     }
-    return await res.json();
+    const rows = await res.json();
+    return rows.map((r) => ({ id: r.id, updated_at: r.created_at }));
   } catch (e) {
     console.warn("[sitemap] failed to fetch creators:", e?.message);
     return [];
