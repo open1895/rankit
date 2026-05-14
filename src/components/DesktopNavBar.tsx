@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { Home, Trophy, TrendingUp, Compass, User, Zap, Eye, X, Bug } from "lucide-react";
+import { Home, Trophy, TrendingUp, Compass, User, Zap, X, Bug } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import RPChargeModal from "./RPChargeModal";
 import NotificationBell from "./NotificationBell";
 import ThemeToggle from "./ThemeToggle";
-import HighContrastToggle from "./HighContrastToggle";
 
 const tabs = [
   { to: "/", icon: Home, label: "홈" },
