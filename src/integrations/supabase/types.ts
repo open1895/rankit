@@ -901,6 +901,54 @@ export type Database = {
           },
         ]
       }
+      creator_youtube_health: {
+        Row: {
+          checked_at: string
+          consecutive_failures: number
+          creator_id: string
+          http_status: number | null
+          last_ok_at: string | null
+          notified_at: string | null
+          reason: string | null
+          status: string
+        }
+        Insert: {
+          checked_at?: string
+          consecutive_failures?: number
+          creator_id: string
+          http_status?: number | null
+          last_ok_at?: string | null
+          notified_at?: string | null
+          reason?: string | null
+          status?: string
+        }
+        Update: {
+          checked_at?: string
+          consecutive_failures?: number
+          creator_id?: string
+          http_status?: number | null
+          last_ok_at?: string | null
+          notified_at?: string | null
+          reason?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_youtube_health_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: true
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_youtube_health_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: true
+            referencedRelation: "creators_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creators: {
         Row: {
           avatar_url: string
@@ -3284,6 +3332,21 @@ export type Database = {
           creator_count: number
           fan_count: number
           total_votes: number
+        }[]
+      }
+      get_unhealthy_youtube_creators: {
+        Args: never
+        Returns: {
+          channel_link: string
+          checked_at: string
+          consecutive_failures: number
+          creator_id: string
+          http_status: number
+          last_ok_at: string
+          name: string
+          reason: string
+          status: string
+          youtube_channel_id: string
         }[]
       }
       gift_rp: {

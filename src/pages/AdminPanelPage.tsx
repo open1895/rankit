@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff, UserX, Megaphone, Plus, Target, Trophy, BarChart3, Gift, Flag, Star, Camera, Upload, Mail, Link as LinkIcon, Copy } from "lucide-react";
+import { Check, X, Loader2, Shield, ExternalLink, Lock, Pencil, Trash2, Users, UserCog, ShieldCheck, ShieldOff, UserX, Megaphone, Plus, Target, Trophy, BarChart3, Gift, Flag, Star, Camera, Upload, Mail, Link as LinkIcon, Copy, Youtube, RefreshCw, AlertTriangle } from "lucide-react";
 import AdminRetentionDashboard from "@/components/AdminRetentionDashboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,14 @@ const AdminPanelPage = () => {
   const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingRole, setCheckingRole] = useState(true);
-  const [tab, setTab] = useState<"nominations" | "creators" | "users" | "board" | "predictions" | "tournaments" | "retention" | "seasonRewards" | "banners" | "claims" | "promotions" | "outreach">("nominations");
+  const [tab, setTab] = useState<"nominations" | "creators" | "users" | "board" | "predictions" | "tournaments" | "retention" | "seasonRewards" | "banners" | "claims" | "promotions" | "outreach" | "youtubeHealth">(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const t = params.get("tab");
+      if (t === "youtubeHealth") return "youtubeHealth";
+    }
+    return "nominations";
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -167,9 +174,15 @@ const AdminPanelPage = () => {
           >
             <Mail className="w-4 h-4 inline mr-1" />초대
           </button>
+          <button
+            onClick={() => setTab("youtubeHealth")}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${tab === "youtubeHealth" ? "gradient-primary text-primary-foreground" : "glass-sm text-muted-foreground"}`}
+          >
+            <Youtube className="w-4 h-4 inline mr-1" />채널 검증
+          </button>
         </div>
 
-        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : tab === "predictions" ? <PredictionsTab /> : tab === "tournaments" ? <TournamentsTab /> : tab === "seasonRewards" ? <SeasonRewardsTab /> : tab === "banners" ? <BannersTab /> : tab === "claims" ? <ClaimsTab /> : tab === "promotions" ? <PromotionsTab /> : tab === "outreach" ? <OutreachTab /> : <AdminRetentionDashboard />}
+        {tab === "nominations" ? <NominationsTab /> : tab === "creators" ? <CreatorsTab /> : tab === "users" ? <UsersTab /> : tab === "board" ? <BoardTab /> : tab === "predictions" ? <PredictionsTab /> : tab === "tournaments" ? <TournamentsTab /> : tab === "seasonRewards" ? <SeasonRewardsTab /> : tab === "banners" ? <BannersTab /> : tab === "claims" ? <ClaimsTab /> : tab === "promotions" ? <PromotionsTab /> : tab === "outreach" ? <OutreachTab /> : tab === "youtubeHealth" ? <YoutubeHealthTab /> : <AdminRetentionDashboard />}
       </div>
       <Footer />
     </div>
@@ -2068,6 +2081,162 @@ const OutreachTab = () => {
           </p>
         )}
       </div>
+    </div>
+  );
+};
+
+/* ─── YouTube Health Tab ─── */
+const STATUS_LABELS: Record<string, string> = {
+  ok: "정상",
+  channel_not_found: "채널 삭제됨",
+  handle_not_found: "핸들 없음",
+  fake_id: "가짜 ID",
+  no_channel_info: "정보 없음",
+  api_error: "API 오류",
+  unknown: "미검사",
+};
+
+const YoutubeHealthTab = () => {
+  const queryClient = useQueryClient();
+  const [running, setRunning] = useState(false);
+
+  const { data: rows, isLoading } = useQuery({
+    queryKey: ["youtube-health-unhealthy"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_unhealthy_youtube_creators");
+      if (error) throw error;
+      return data as Array<{
+        creator_id: string;
+        name: string;
+        channel_link: string | null;
+        youtube_channel_id: string | null;
+        status: string;
+        reason: string | null;
+        http_status: number | null;
+        consecutive_failures: number;
+        checked_at: string;
+        last_ok_at: string | null;
+      }>;
+    },
+  });
+
+  const { data: summary } = useQuery({
+    queryKey: ["youtube-health-summary"],
+    queryFn: async () => {
+      const { data } = await supabase.from("creator_youtube_health").select("status");
+      const counts: Record<string, number> = {};
+      (data || []).forEach((r: any) => { counts[r.status] = (counts[r.status] || 0) + 1; });
+      return counts;
+    },
+  });
+
+  const runBatch = async (mode: "cron" | "ids", ids?: string[]) => {
+    setRunning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("validate-youtube-channels", {
+        body: ids ? { creator_ids: ids } : { mode, batch_size: 200 },
+      });
+      if (error) throw error;
+      toast.success(`검증 완료: ${data.checked}명 (정상 ${data.ok}, 문제 ${data.problems?.length ?? data.problems}, 오류 ${data.errors})`);
+      queryClient.invalidateQueries({ queryKey: ["youtube-health-unhealthy"] });
+      queryClient.invalidateQueries({ queryKey: ["youtube-health-summary"] });
+    } catch (e: any) {
+      toast.error(`검증 실패: ${e.message}`);
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const deactivateMutation = useMutation({
+    mutationFn: async (creatorId: string) => {
+      const { error } = await supabase.from("creators").update({ is_verified: false }).eq("id", creatorId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("비활성화 완료");
+      queryClient.invalidateQueries({ queryKey: ["youtube-health-unhealthy"] });
+    },
+    onError: (e: any) => toast.error(`실패: ${e.message}`),
+  });
+
+  return (
+    <div className="space-y-3">
+      <div className="glass-sm rounded-xl p-3 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Youtube className="w-4 h-4 text-primary" />
+            YouTube 채널 자동 검증
+          </div>
+          <Button
+            size="sm"
+            disabled={running}
+            onClick={() => runBatch("cron")}
+          >
+            {running ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+            <span className="ml-1">지금 200명 검증</span>
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          매일 새벽 4:30 (KST) 자동으로 200명씩 순환 검사. 2회 이상 연속 실패한 크리에이터는 관리자 알림으로 전송됩니다.
+        </p>
+        {summary && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {Object.entries(summary).map(([k, v]) => (
+              <Badge key={k} variant={k === "ok" ? "outline" : "destructive"} className="text-xs">
+                {STATUS_LABELS[k] || k}: {v}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+        <AlertTriangle className="w-4 h-4 text-destructive" />
+        문제 크리에이터 ({rows?.length || 0})
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+      ) : !rows?.length ? (
+        <div className="glass-sm rounded-xl p-6 text-center text-sm text-muted-foreground">
+          현재 문제 있는 채널이 없습니다 ✓
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {rows.map((r) => (
+            <div key={r.creator_id} className="glass-sm rounded-xl p-3 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm text-foreground truncate">{r.name}</div>
+                  <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                    <Badge variant="destructive" className="text-[10px]">{STATUS_LABELS[r.status] || r.status}</Badge>
+                    {r.consecutive_failures > 1 && (
+                      <Badge variant="outline" className="text-[10px]">연속 {r.consecutive_failures}회</Badge>
+                    )}
+                  </div>
+                  {r.reason && <div className="text-[11px] text-muted-foreground mt-1 break-all">{r.reason}</div>}
+                  {r.channel_link && (
+                    <a href={r.channel_link} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary hover:underline inline-flex items-center gap-1 mt-1 break-all">
+                      <ExternalLink className="w-3 h-3" />{r.channel_link}
+                    </a>
+                  )}
+                  <div className="text-[10px] text-muted-foreground mt-1">
+                    마지막 검사: {new Date(r.checked_at).toLocaleString("ko-KR")}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Button size="sm" variant="outline" disabled={running} onClick={() => runBatch("ids", [r.creator_id])}>
+                    <RefreshCw className="w-3 h-3" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => deactivateMutation.mutate(r.creator_id)}>
+                    <ShieldOff className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
