@@ -130,19 +130,6 @@ const DesktopNavBar = () => {
               <span>RP 충전</span>
             </button>
             <div className="w-px h-5 bg-border/40" />
-            <button
-              type="button"
-              onClick={() => setContrastOpen((v) => !v)}
-              aria-pressed={contrastOpen}
-              aria-label="대비 체크 데모 토글"
-              title="대비 체크 데모"
-              className={`w-8 h-8 flex items-center justify-center rounded-full border border-glass-border bg-glass hover:bg-primary/10 transition-colors ${
-                contrastOpen ? "ring-2 ring-primary text-primary" : "text-foreground/70"
-              }`}
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-            <HighContrastToggle size="sm" />
             <ThemeToggle size="sm" />
             <NotificationBell />
             <button
