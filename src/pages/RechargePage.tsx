@@ -146,8 +146,8 @@ const RechargePage = () => {
   return (
     <div className="min-h-screen bg-background mesh-bg flex flex-col items-center py-4 px-3 sm:py-8 sm:px-4 pb-28">
       <SEOHead
-        title="무료 충전소 | Rankit"
-        description="미션을 완료하고 무료 티켓을 받으세요!"
+        title="무료 충전소"
+        description="간단한 데일리 미션과 출석 체크를 완료하고 무료 투표 티켓과 리워드 포인트를 받아 좋아하는 크리에이터를 더 강하게 응원해보세요."
       />
 
       {/* ===== Premium Rectangular Card ===== */}

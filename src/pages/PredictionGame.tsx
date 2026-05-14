@@ -203,7 +203,7 @@ const PredictionGame = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SEOHead title="예측 게임 | Rankit" description="크리에이터 대결 결과를 예측하고 보상을 받으세요!" />
+      <SEOHead title="예측 게임" description="크리에이터 배틀의 승자를 예측하고 적중 시 리워드 포인트와 랭킹 보상을 받으세요. 매일 진행되는 라이브 예측 챌린지에 참여해보세요." />
 
       <div className="max-w-lg mx-auto px-4 py-6 pb-28 space-y-6">
         {/* Header */}

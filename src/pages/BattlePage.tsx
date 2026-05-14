@@ -288,7 +288,7 @@ const BattlePage = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
-      <SEOHead title="Creator Battle - Rankit" description="크리에이터 배틀! 누가 더 영향력 있을까? 투표하고 예측하세요." path="/battle" />
+      <SEOHead title="크리에이터 배틀" description="실시간 크리에이터 1:1 배틀에 투표하고 결과를 예측하세요. 매일 새로운 매치업과 인기 유튜버 대결이 펼쳐지는 Rankit 배틀 아레나입니다." path="/battle" />
 
       <div className="container max-w-3xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-3">

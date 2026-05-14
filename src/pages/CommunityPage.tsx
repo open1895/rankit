@@ -621,7 +621,7 @@ const CommunityPage = () => {
 
   return (
     <div className="min-h-screen bg-background mesh-bg pb-24">
-      <SEOHead title="커뮤니티" description="Rankit 게시판 - 공지사항, 이벤트, 자유 게시글을 확인하세요." path="/community" />
+      <SEOHead title="커뮤니티" description="Rankit 팬 커뮤니티에서 공지사항, 이벤트, 자유 토론, 크리에이터 응원 글을 확인하고 다른 팬들과 실시간으로 소통해보세요." path="/community" />
 
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-glass-border/50">
