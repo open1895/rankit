@@ -10,24 +10,34 @@ const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjYWFqeHdkZXFuZ2lodXBqYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5ODc1MzgsImV4cCI6MjA4NjU2MzUzOH0.AOa1sSPgsBvyRg64kx3pMdItCi5OjFgYMmZgVfnZiVs";
 
 async function fetchCreators() {
-  const url = `${SUPABASE_URL}/rest/v1/creators_public?select=id,created_at&limit=10000`;
+  const all = [];
+  const pageSize = 1000;
+  let from = 0;
   try {
-    const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
-    });
-    if (!res.ok) {
-      console.warn("[sitemap] creators fetch failed:", res.status, await res.text());
-      return [];
+    while (from < 50000) {
+      const url = `${SUPABASE_URL}/rest/v1/creators_public?select=id,created_at&order=id.asc`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          Range: `${from}-${from + pageSize - 1}`,
+          "Range-Unit": "items",
+        },
+      });
+      if (!res.ok) {
+        console.warn("[sitemap] creators fetch failed:", res.status, await res.text());
+        break;
+      }
+      const rows = await res.json();
+      if (!rows.length) break;
+      all.push(...rows);
+      if (rows.length < pageSize) break;
+      from += pageSize;
     }
-    const rows = await res.json();
-    return rows.map((r) => ({ id: r.id, updated_at: r.created_at }));
   } catch (e) {
     console.warn("[sitemap] failed to fetch creators:", e?.message);
-    return [];
   }
+  return all.map((r) => ({ id: r.id, updated_at: r.created_at }));
 }
 
 function xmlEscape(s) {
