@@ -142,11 +142,6 @@ Deno.serve(async (req) => {
     creators = data || []
   } else {
     // cron: 미검사 우선, 그다음 오래된 순
-    const { data: unchecked } = await supabase
-      .rpc('exec_sql_dummy_placeholder' as any, {})
-      .select('*')
-      .limit(0)
-    void unchecked
     // 1) 아직 health 행이 없는 크리에이터
     const { data: healthRows } = await supabase
       .from('creator_youtube_health')
