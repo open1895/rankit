@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, ReactNode } from "react";
+import { useRef, useState, useEffect, ReactNode, Suspense } from "react";
 
 interface LazySectionProps {
   children: ReactNode;
@@ -9,6 +9,8 @@ interface LazySectionProps {
 /**
  * Renders children only when the section enters or is near the viewport.
  * Once mounted, children stay mounted (no unmount on scroll away).
+ * Wraps children in its own Suspense boundary so a lazy() chunk loading
+ * here doesn't unmount sibling sections (which causes scroll jumps).
  */
 const LazySection = ({ children, rootMargin = "200px", fallback = null }: LazySectionProps) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -34,7 +36,7 @@ const LazySection = ({ children, rootMargin = "200px", fallback = null }: LazySe
 
   return (
     <div ref={ref}>
-      {mounted ? children : fallback}
+      {mounted ? <Suspense fallback={fallback}>{children}</Suspense> : fallback}
     </div>
   );
 };
