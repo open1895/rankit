@@ -175,6 +175,52 @@
     }
     </script>
 
+    <!-- WebSite + Sitelinks Search Box -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Rankit",
+      "alternateName": ["랭킷", "Rankit 랭킷"],
+      "url": "https://rankit.today/",
+      "inLanguage": "ko",
+      "publisher": { "@id": "https://rankit.today/#organization" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://rankit.today/?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- Organization (logo + sameAs) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": "https://rankit.today/#organization",
+      "name": "Rankit",
+      "alternateName": "랭킷",
+      "url": "https://rankit.today/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://rankit.today/favicon.png",
+        "width": 512,
+        "height": 512
+      },
+      "image": "https://rankit.today/og-rankit-20260303.png?v=20260303-2",
+      "description": "대한민국 인기 유튜버·크리에이터 영향력 랭킹 플랫폼.",
+      "sameAs": [
+        "https://www.instagram.com/rankit.today",
+        "https://x.com/rankit_today",
+        "https://www.youtube.com/@rankit_today"
+      ]
+    }
+    </script>
+
     <!-- Google Fonts: non-render-blocking preload -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
