@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Home, Trophy, Zap, Compass, User, Contrast } from "lucide-react";
+import { Home, Trophy, Zap, Compass, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { useHighContrast } from "@/hooks/useHighContrast";
 import RPChargeModal from "./RPChargeModal";
 
 const tabs = [
@@ -18,7 +17,6 @@ const MobileTabBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { highContrast, toggle: toggleHighContrast } = useHighContrast();
   const [chargeOpen, setChargeOpen] = useState(false);
 
   const isActive = (to: string) => {
