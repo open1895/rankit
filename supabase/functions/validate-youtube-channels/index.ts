@@ -141,13 +141,35 @@ Deno.serve(async (req) => {
       .limit(batchSize)
     creators = data || []
   } else {
-    // cron: 가장 오래 검사 안 된 / 미검사 우선
-    const { data: stale } = await supabase
+    // cron: 미검사 우선, 그다음 오래된 순
+    const { data: unchecked } = await supabase
+      .rpc('exec_sql_dummy_placeholder' as any, {})
+      .select('*')
+      .limit(0)
+    void unchecked
+    // 1) 아직 health 행이 없는 크리에이터
+    const { data: healthRows } = await supabase
+      .from('creator_youtube_health')
+      .select('creator_id')
+    const knownIds = new Set((healthRows || []).map((h: any) => h.creator_id))
+    const { data: allCreators } = await supabase
       .from('creators')
-      .select('id, name, channel_link, youtube_channel_id, creator_youtube_health!left(checked_at)')
-      .order('creator_youtube_health(checked_at)', { ascending: true, nullsFirst: true })
-      .limit(batchSize)
-    creators = stale || []
+      .select('id, name, channel_link, youtube_channel_id')
+    const newOnes = (allCreators || []).filter((c: any) => !knownIds.has(c.id))
+    if (newOnes.length >= batchSize) {
+      creators = newOnes.slice(0, batchSize)
+    } else {
+      // 부족분 → 오래된 health 순
+      const need = batchSize - newOnes.length
+      const { data: stale } = await supabase
+        .from('creator_youtube_health')
+        .select('creator_id')
+        .order('checked_at', { ascending: true })
+        .limit(need)
+      const staleIds = (stale || []).map((s: any) => s.creator_id)
+      const staleCreators = (allCreators || []).filter((c: any) => staleIds.includes(c.id))
+      creators = [...newOnes, ...staleCreators]
+    }
   }
 
   const results = { checked: 0, ok: 0, problems: 0, errors: 0 }
