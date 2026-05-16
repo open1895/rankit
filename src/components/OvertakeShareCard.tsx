@@ -579,6 +579,44 @@ const OvertakeShareCard = ({
           )}
         </div>
       </div>
+
+      {/* Fullscreen image preview */}
+      {showPreview && previewUrl && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-background/95 backdrop-blur-md animate-fade-in"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowPreview(false);
+          }}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowPreview(false);
+            }}
+            className="absolute top-4 right-4 p-2 rounded-full bg-[hsl(var(--muted)/0.7)] text-foreground"
+            aria-label="닫기"
+          >
+            <X className="w-4 h-4" />
+          </button>
+          <img
+            src={previewUrl}
+            alt={`${creator.name} 공유 카드`}
+            className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDownload();
+            }}
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-cyan))] text-white font-bold text-sm shadow-lg"
+          >
+            <Download className="w-4 h-4" />
+            이미지 저장
+          </button>
+        </div>
+      )}
     </div>
   );
 };
