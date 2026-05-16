@@ -54,6 +54,9 @@ const OvertakeShareCard = ({
 }: OvertakeShareCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [capturing, setCapturing] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const isFirst = gap === null || gap <= 0;
   const totalForBar = aboveCreator
     ? aboveCreator.votes_count + creator.votes_count
