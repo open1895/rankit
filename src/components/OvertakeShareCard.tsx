@@ -1,5 +1,5 @@
-import { useRef, useState, useCallback } from "react";
-import { Crown, Swords, Zap, Share2, X, Download, Loader2, Image } from "lucide-react";
+import { useRef, useState, useCallback, useEffect } from "react";
+import { Crown, Swords, Zap, Share2, X, Download, Loader2, Image as ImageIcon } from "lucide-react";
 import { Creator } from "@/lib/data";
 import { toast } from "sonner";
 import { copyToClipboard } from "@/lib/clipboard";
