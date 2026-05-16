@@ -144,33 +144,47 @@ const OvertakeShareCard = ({
   }, [shared, bonusInfo, onShared, onShareBonus]);
 
   const handleShare = async () => {
-    // Keep this synchronous with click as much as possible.
-    // Some mobile browsers/webviews block navigator.share when delayed by async work.
     const textWithUrl = `${shareTextSNS}\n\n👉 투표하러 가기: ${siteUrl}`;
-    const shareData: ShareData = {
-      title: "Rank It - 역전 임박!",
-      text: textWithUrl,
-      url: siteUrl,
-    };
+    // Open preview panel so the user sees what will be shared
+    setShowPreview(true);
+
+    // Try sharing the generated image as a file when supported
+    const blob = previewBlob ?? (await captureCard());
+    if (blob && !previewBlob) {
+      const url = URL.createObjectURL(blob);
+      setPreviewBlob(blob);
+      setPreviewUrl(url);
+    }
+
+    const file = blob
+      ? new File([blob], `rankit-${creator.name}.png`, { type: "image/png" })
+      : null;
+
+    const fileShareData: ShareData & { files?: File[] } = file
+      ? {
+          title: "Rank It",
+          text: textWithUrl,
+          files: [file],
+        }
+      : { title: "Rank It - 역전 임박!", text: textWithUrl, url: siteUrl };
 
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
+      const canShareFiles =
+        file && (navigator as any).canShare?.({ files: [file] });
+
+      if (navigator.share && canShareFiles) {
+        await navigator.share(fileShareData);
+      } else if (navigator.share) {
+        await navigator.share({ title: "Rank It", text: textWithUrl, url: siteUrl });
       } else {
         const ok = await copyToClipboard(textWithUrl);
-        if (ok) {
-          toast.success("공유 텍스트가 복사되었습니다!");
-        } else {
-          toast.info("공유 링크: " + siteUrl);
-        }
+        if (ok) toast.success("공유 텍스트가 복사되었습니다!");
+        else toast.info("공유 링크: " + siteUrl);
       }
-
       grantShareBonus();
     } catch (err: any) {
       if (err?.name === "AbortError") return;
       console.error("Share failed:", err);
-
-      // Final fallback: copy share text so user can still paste/share manually
       const ok = await copyToClipboard(textWithUrl);
       if (ok) {
         toast.success("공유 문구가 복사되었습니다. 원하는 SNS에 붙여넣어 주세요.");
