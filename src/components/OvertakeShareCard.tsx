@@ -438,6 +438,40 @@ const OvertakeShareCard = ({
 
         {/* Action buttons below card */}
         <div className="relative mt-3 space-y-2">
+          {/* Auto-generated image preview */}
+          {(previewUrl || capturing) && (
+            <div className="flex items-center gap-2.5 p-2 rounded-xl glass-sm border border-[hsl(var(--neon-cyan)/0.25)]">
+              <div className="w-12 h-16 rounded-md overflow-hidden bg-muted/40 shrink-0 flex items-center justify-center">
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    alt={`${creator.name} 공유 카드 미리보기`}
+                    className="w-full h-full object-cover cursor-zoom-in"
+                    onClick={() => setShowPreview(true)}
+                  />
+                ) : (
+                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-bold text-foreground flex items-center gap-1">
+                  <ImageIcon className="w-3 h-3 text-[hsl(var(--neon-cyan))]" />
+                  공유 이미지 자동 생성됨
+                </p>
+                <p className="text-[9px] text-muted-foreground truncate">
+                  {creator.name} · {creator.rank}위 · {creator.votes_count.toLocaleString()}표
+                </p>
+              </div>
+              {previewUrl && (
+                <button
+                  onClick={() => setShowPreview(true)}
+                  className="text-[10px] font-bold px-2 py-1 rounded-md bg-[hsl(var(--neon-cyan)/0.15)] text-[hsl(var(--neon-cyan))] hover:bg-[hsl(var(--neon-cyan)/0.25)] transition"
+                >
+                  미리보기
+                </button>
+              )}
+            </div>
+          )}
           {/* Share button */}
           <button
             onClick={handleShare}
