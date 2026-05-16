@@ -1,5 +1,5 @@
-import { useRef, useState, useCallback } from "react";
-import { Crown, Swords, Zap, Share2, X, Download, Loader2, Image } from "lucide-react";
+import { useRef, useState, useCallback, useEffect } from "react";
+import { Crown, Swords, Zap, Share2, X, Download, Loader2, Image as ImageIcon } from "lucide-react";
 import { Creator } from "@/lib/data";
 import { toast } from "sonner";
 import { copyToClipboard } from "@/lib/clipboard";
@@ -54,6 +54,9 @@ const OvertakeShareCard = ({
 }: OvertakeShareCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [capturing, setCapturing] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const isFirst = gap === null || gap <= 0;
   const totalForBar = aboveCreator
     ? aboveCreator.votes_count + creator.votes_count
@@ -107,6 +110,23 @@ const OvertakeShareCard = ({
   const [bonusInfo, setBonusInfo] = useState(getShareBonusInfo);
   const canGetBonus = !shared && bonusInfo.remaining > 0;
 
+  // Auto-generate the share image as soon as the card is mounted/painted
+  useEffect(() => {
+    let cancelled = false;
+    let createdUrl: string | null = null;
+    const timer = window.setTimeout(async () => {
+      const blob = await captureCard();
+      if (cancelled || !blob) return;
+      createdUrl = URL.createObjectURL(blob);
+      setPreviewBlob(blob);
+      setPreviewUrl(createdUrl);
+    }, 350); // wait for fonts/animations to settle
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      if (createdUrl) URL.revokeObjectURL(createdUrl);
+    };
+  }, [captureCard]);
   const grantShareBonus = useCallback(() => {
     if (!shared && bonusInfo.remaining > 0) {
       const granted = recordShareBonus();
@@ -124,33 +144,47 @@ const OvertakeShareCard = ({
   }, [shared, bonusInfo, onShared, onShareBonus]);
 
   const handleShare = async () => {
-    // Keep this synchronous with click as much as possible.
-    // Some mobile browsers/webviews block navigator.share when delayed by async work.
     const textWithUrl = `${shareTextSNS}\n\n👉 투표하러 가기: ${siteUrl}`;
-    const shareData: ShareData = {
-      title: "Rank It - 역전 임박!",
-      text: textWithUrl,
-      url: siteUrl,
-    };
+    // Open preview panel so the user sees what will be shared
+    setShowPreview(true);
+
+    // Try sharing the generated image as a file when supported
+    const blob = previewBlob ?? (await captureCard());
+    if (blob && !previewBlob) {
+      const url = URL.createObjectURL(blob);
+      setPreviewBlob(blob);
+      setPreviewUrl(url);
+    }
+
+    const file = blob
+      ? new File([blob], `rankit-${creator.name}.png`, { type: "image/png" })
+      : null;
+
+    const fileShareData: ShareData & { files?: File[] } = file
+      ? {
+          title: "Rank It",
+          text: textWithUrl,
+          files: [file],
+        }
+      : { title: "Rank It - 역전 임박!", text: textWithUrl, url: siteUrl };
 
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
+      const canShareFiles =
+        file && (navigator as any).canShare?.({ files: [file] });
+
+      if (navigator.share && canShareFiles) {
+        await navigator.share(fileShareData);
+      } else if (navigator.share) {
+        await navigator.share({ title: "Rank It", text: textWithUrl, url: siteUrl });
       } else {
         const ok = await copyToClipboard(textWithUrl);
-        if (ok) {
-          toast.success("공유 텍스트가 복사되었습니다!");
-        } else {
-          toast.info("공유 링크: " + siteUrl);
-        }
+        if (ok) toast.success("공유 텍스트가 복사되었습니다!");
+        else toast.info("공유 링크: " + siteUrl);
       }
-
       grantShareBonus();
     } catch (err: any) {
       if (err?.name === "AbortError") return;
       console.error("Share failed:", err);
-
-      // Final fallback: copy share text so user can still paste/share manually
       const ok = await copyToClipboard(textWithUrl);
       if (ok) {
         toast.success("공유 문구가 복사되었습니다. 원하는 SNS에 붙여넣어 주세요.");
@@ -404,6 +438,40 @@ const OvertakeShareCard = ({
 
         {/* Action buttons below card */}
         <div className="relative mt-3 space-y-2">
+          {/* Auto-generated image preview */}
+          {(previewUrl || capturing) && (
+            <div className="flex items-center gap-2.5 p-2 rounded-xl glass-sm border border-[hsl(var(--neon-cyan)/0.25)]">
+              <div className="w-12 h-16 rounded-md overflow-hidden bg-muted/40 shrink-0 flex items-center justify-center">
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    alt={`${creator.name} 공유 카드 미리보기`}
+                    className="w-full h-full object-cover cursor-zoom-in"
+                    onClick={() => setShowPreview(true)}
+                  />
+                ) : (
+                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-bold text-foreground flex items-center gap-1">
+                  <ImageIcon className="w-3 h-3 text-[hsl(var(--neon-cyan))]" />
+                  공유 이미지 자동 생성됨
+                </p>
+                <p className="text-[9px] text-muted-foreground truncate">
+                  {creator.name} · {creator.rank}위 · {creator.votes_count.toLocaleString()}표
+                </p>
+              </div>
+              {previewUrl && (
+                <button
+                  onClick={() => setShowPreview(true)}
+                  className="text-[10px] font-bold px-2 py-1 rounded-md bg-[hsl(var(--neon-cyan)/0.15)] text-[hsl(var(--neon-cyan))] hover:bg-[hsl(var(--neon-cyan)/0.25)] transition"
+                >
+                  미리보기
+                </button>
+              )}
+            </div>
+          )}
           {/* Share button */}
           <button
             onClick={handleShare}
@@ -511,6 +579,44 @@ const OvertakeShareCard = ({
           )}
         </div>
       </div>
+
+      {/* Fullscreen image preview */}
+      {showPreview && previewUrl && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-background/95 backdrop-blur-md animate-fade-in"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowPreview(false);
+          }}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowPreview(false);
+            }}
+            className="absolute top-4 right-4 p-2 rounded-full bg-[hsl(var(--muted)/0.7)] text-foreground"
+            aria-label="닫기"
+          >
+            <X className="w-4 h-4" />
+          </button>
+          <img
+            src={previewUrl}
+            alt={`${creator.name} 공유 카드`}
+            className="max-w-full max-h-[80vh] rounded-2xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDownload();
+            }}
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-cyan))] text-white font-bold text-sm shadow-lg"
+          >
+            <Download className="w-4 h-4" />
+            이미지 저장
+          </button>
+        </div>
+      )}
     </div>
   );
 };
