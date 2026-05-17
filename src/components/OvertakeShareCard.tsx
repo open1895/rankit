@@ -40,6 +40,9 @@ interface OvertakeShareCardProps {
   onShareBonus: () => void;
   shared: boolean;
   onShared: () => void;
+  cachedBlob?: Blob | null;
+  cachedUrl?: string | null;
+  onImageReady?: (blob: Blob, url: string) => void;
 }
 
 const OvertakeShareCard = ({
