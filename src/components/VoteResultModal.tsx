@@ -10,6 +10,9 @@ interface VoteResultModalProps {
   siteUrl: string;
   onClose: () => void;
   onBonusVote: () => void;
+  cachedBlob?: Blob | null;
+  cachedUrl?: string | null;
+  onImageReady?: (blob: Blob, url: string) => void;
 }
 
 const VoteResultModal = forwardRef<HTMLDivElement, VoteResultModalProps>(({ show, creator, aboveCreator, gap, siteUrl, onClose, onBonusVote }, ref) => {
