@@ -54,6 +54,9 @@ const OvertakeShareCard = ({
   onShareBonus,
   shared,
   onShared,
+  cachedBlob,
+  cachedUrl,
+  onImageReady,
 }: OvertakeShareCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [capturing, setCapturing] = useState(false);
