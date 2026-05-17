@@ -383,6 +383,23 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
         siteUrl={siteUrl}
         onClose={() => setShowVoteModal(false)}
         onBonusVote={handleBonusVote}
+        cachedBlob={
+          shareImageCache &&
+          shareImageCache.gap === voteGap &&
+          shareImageCache.votes === creator.votes_count
+            ? shareImageCache.blob
+            : null
+        }
+        cachedUrl={
+          shareImageCache &&
+          shareImageCache.gap === voteGap &&
+          shareImageCache.votes === creator.votes_count
+            ? shareImageCache.url
+            : null
+        }
+        onImageReady={(blob, url) =>
+          setShareImageCache({ blob, url, gap: voteGap, votes: creator.votes_count })
+        }
       />
     </div>
   );
