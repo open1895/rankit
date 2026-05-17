@@ -10,9 +10,12 @@ interface VoteResultModalProps {
   siteUrl: string;
   onClose: () => void;
   onBonusVote: () => void;
+  cachedBlob?: Blob | null;
+  cachedUrl?: string | null;
+  onImageReady?: (blob: Blob, url: string) => void;
 }
 
-const VoteResultModal = forwardRef<HTMLDivElement, VoteResultModalProps>(({ show, creator, aboveCreator, gap, siteUrl, onClose, onBonusVote }, ref) => {
+const VoteResultModal = forwardRef<HTMLDivElement, VoteResultModalProps>(({ show, creator, aboveCreator, gap, siteUrl, onClose, onBonusVote, cachedBlob, cachedUrl, onImageReady }, ref) => {
   const [shared, setShared] = useState(false);
 
   if (!show) return null;
@@ -30,6 +33,9 @@ const VoteResultModal = forwardRef<HTMLDivElement, VoteResultModalProps>(({ show
       onShareBonus={onBonusVote}
       shared={shared}
       onShared={() => setShared(true)}
+      cachedBlob={cachedBlob}
+      cachedUrl={cachedUrl}
+      onImageReady={onImageReady}
     />
   );
 });
