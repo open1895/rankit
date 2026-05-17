@@ -118,6 +118,11 @@ const OvertakeShareCard = ({
 
   // Auto-generate the share image as soon as the card is mounted/painted
   useEffect(() => {
+    if (cachedBlob && cachedUrl) {
+      setPreviewBlob(cachedBlob);
+      setPreviewUrl(cachedUrl);
+      return;
+    }
     let cancelled = false;
     let createdUrl: string | null = null;
     const timer = window.setTimeout(async () => {
@@ -126,13 +131,14 @@ const OvertakeShareCard = ({
       createdUrl = URL.createObjectURL(blob);
       setPreviewBlob(blob);
       setPreviewUrl(createdUrl);
+      onImageReady?.(blob, createdUrl);
     }, 350); // wait for fonts/animations to settle
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
       if (createdUrl) URL.revokeObjectURL(createdUrl);
     };
-  }, [captureCard]);
+  }, [captureCard, cachedBlob, cachedUrl, onImageReady]);
   const grantShareBonus = useCallback(() => {
     if (!shared && bonusInfo.remaining > 0) {
       const granted = recordShareBonus();
