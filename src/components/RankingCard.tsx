@@ -54,6 +54,12 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
   const [showOvertake, setShowOvertake] = useState(false);
   const [showPlusOne, setShowPlusOne] = useState(false);
   const [microReward, setMicroReward] = useState<string | null>(null);
+  const [shareImageCache, setShareImageCache] = useState<{
+    blob: Blob;
+    url: string;
+    gap: number | null;
+    votes: number;
+  } | null>(null);
   const prevRankRef = useRef(creator.rank);
   const timersRef = useRef<number[]>([]);
   const votesUntilNext = getVotesUntilNext(creator, creators);
