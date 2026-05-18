@@ -1048,12 +1048,22 @@ const Index = () => {
         <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
       </main>
 
-      {/* Popular Posts */}
+      {/* Community Section — 인기 게시글 */}
       <LazySection>
         <section className="container max-w-5xl mx-auto px-4 py-2">
           <PopularPosts />
         </section>
       </LazySection>
+
+      {/* Fandom Tournament */}
+      <LazySection>
+        <section className="container max-w-5xl mx-auto px-4 py-2">
+          <FandomTournament />
+        </section>
+      </LazySection>
+
+      {/* 👑 This Week's Top Fandom */}
+      <TopFandomWidget />
 
       {/* Live Feed */}
       <LazySection>
