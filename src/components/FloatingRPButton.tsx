@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import RPChargeModal from "./RPChargeModal";
+import { FEATURES } from "@/config/features";
 
 const VISIBLE_PATHS = ["/", "/ranking", "/prediction", "/predictions", "/compare", "/battle"];
 
@@ -29,6 +30,8 @@ const FloatingRPButton = () => {
   }, [location.pathname]);
 
   if (!isVisible) return null;
+  // 결제 기능 비활성화 시 충전 플로팅 버튼 숨김
+  if (!FEATURES.ENABLE_PAYMENT) return null;
 
   return (
     <>
