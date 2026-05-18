@@ -19,6 +19,8 @@ import GoldenTimeBanner from "@/components/GoldenTimeBanner";
 import DailyMatchupCard from "@/components/DailyMatchupCard";
 import DailySummaryCard from "@/components/DailySummaryCard";
 import TopFandomWidget from "@/components/TopFandomWidget";
+import SocialProofTicker from "@/components/SocialProofTicker";
+import QuickVoteStrip from "@/components/QuickVoteStrip";
 
 // Lazy-load heavy sections
 const LiveFeed = lazy(() => import("@/components/LiveFeed"));
@@ -34,6 +36,9 @@ const CreatorBattleSection = lazy(() => import("@/components/CreatorBattleSectio
 const MonthlyTop3Widget = lazy(() => import("@/components/MonthlyTop3Widget"));
 const SeasonRewardsBanner = lazy(() => import("@/components/SeasonRewardsBanner"));
 const PopularPosts = lazy(() => import("@/components/PopularPosts"));
+const FandomTournament = lazy(() => import("@/components/FandomTournament"));
+const HomePredictionSection = lazy(() => import("@/components/HomePredictionSection"));
+const RisingInfluenceCreators = lazy(() => import("@/components/RisingInfluenceCreators"));
 const LandingHero = lazy(() => import("@/components/LandingHero"));
 const NewUserWelcome = lazy(() => import("@/components/NewUserWelcome"));
 const PushNotificationPrompt = lazy(() => import("@/components/PushNotificationPrompt"));
@@ -475,6 +480,7 @@ const Index = () => {
     }
 
     toast.success(data?.referral_bonus ? "투표 완료! 🎉 초대 보너스 투표권이 지급되었어요!" : "투표 완료! 🎉");
+    try { window.dispatchEvent(new CustomEvent("rankit:vote-success")); } catch {}
 
     // 투표 결과 팝업은 fixed 오버레이라서 별도의 스크롤 이동이 필요 없음.
     // 전체 페이지를 위로 이동시키면 랭킹 섹션이 깜빡이고 사용자의 위치를 잃게 되므로 제거함.
