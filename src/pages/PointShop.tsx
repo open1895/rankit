@@ -13,8 +13,15 @@ import {
   Vote,
   Sparkles,
   Check,
+  CalendarCheck,
+  Ticket,
+  UserPlus,
+  Target,
+  PlayCircle,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 interface ShopItem {
   id: string;
@@ -119,6 +126,41 @@ const PointShop = () => {
       </header>
 
       <main className="container max-w-lg mx-auto px-4 py-6 space-y-6">
+        {/* 활동 보상 허브 — 무과금 리워드 동선 */}
+        <section className="space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-sm font-bold text-foreground">🎁 무료 보상 받기</h2>
+            <span className="text-[10px] text-muted-foreground">매일 RP를 모아보세요</span>
+          </div>
+          <div className="space-y-2">
+            {[
+              { to: "/mypage", icon: <CalendarCheck className="w-4 h-4" />, title: "출석 체크", desc: "매일 접속하고 연속 보너스 받기", color: "hsl(var(--neon-purple))" },
+              { to: "/recharge", icon: <Ticket className="w-4 h-4" />, title: "무료 티켓 받기", desc: "무료충전소에서 티켓 적립", color: "hsl(45 96% 56%)" },
+              { to: "/mypage?tab=invite", icon: <UserPlus className="w-4 h-4" />, title: "친구 초대", desc: "초대 코드 공유하고 RP 받기", color: "hsl(var(--neon-cyan))" },
+              { to: "/mypage?tab=missions", icon: <Target className="w-4 h-4" />, title: "주간 미션", desc: "주간 목표 달성하고 보상", color: "hsl(var(--primary))" },
+              { to: "/recharge?tab=ad", icon: <PlayCircle className="w-4 h-4" />, title: "광고 보기", desc: "짧은 광고 시청하고 RP 충전", color: "hsl(var(--secondary))" },
+            ].map((item) => (
+              <Link
+                key={item.title}
+                to={item.to}
+                className="glass glass-hover rounded-2xl px-4 py-3 flex items-center gap-3 transition-all"
+              >
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${item.color} / 0.12`, color: item.color, backgroundColor: `color-mix(in srgb, ${item.color} 12%, transparent)` }}
+                >
+                  {item.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold truncate">{item.title}</div>
+                  <div className="text-[11px] text-muted-foreground truncate">{item.desc}</div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              </Link>
+            ))}
+          </div>
+        </section>
+
         {/* Category Tabs */}
         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
           {[

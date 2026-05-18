@@ -94,6 +94,7 @@ const App = () => (
                     <Route path="/fans" element={<FanLeaderboard />} />
                     <Route path="/tournament" element={<Tournament />} />
                     <Route path="/shop" element={<PointShop />} />
+                    <Route path="/rewards" element={<PointShop />} />
                     <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>} />
                     <Route path="/admin-panel" element={<ProtectedRoute requireAdmin><AdminPanelPage /></ProtectedRoute>} />
                     <Route path="/hall-of-fame" element={<HallOfFame />} />
