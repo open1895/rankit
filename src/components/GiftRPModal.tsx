@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
 import { Gift, Search, Send } from "lucide-react";
 import { toast } from "sonner";
+import { FEATURES } from "@/config/features";
 
 interface Props {
   open: boolean;
@@ -84,6 +85,9 @@ const GiftRPModal = ({ open, onOpenChange, presetReceiverId, presetReceiverName 
     refreshTickets();
     onOpenChange(false);
   };
+
+  // RP 선물 기능 비활성화 시 모달 미노출
+  if (!FEATURES.ENABLE_GIFT_RP) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

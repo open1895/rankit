@@ -3,6 +3,7 @@ import { Rocket, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { FEATURES } from "@/config/features";
 
 interface BoostVoteButtonProps {
   creatorId: string;
@@ -73,6 +74,8 @@ const BoostVoteButton = ({
   };
 
   if (!user) return null;
+  // 부스트 기능 비활성화 시 버튼 완전히 숨김
+  if (!FEATURES.ENABLE_BOOST) return null;
 
   return (
     <div className="relative">

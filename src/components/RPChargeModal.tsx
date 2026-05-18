@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Zap, Gift, ShoppingCart, Check } from "lucide-react";
 import { TermsOfServiceModal } from "@/components/LegalModals";
 import { cn } from "@/lib/utils";
+import { FEATURES } from "@/config/features";
 
 interface RPChargeModalProps {
   open: boolean;
@@ -23,6 +24,9 @@ const RPChargeModal = ({ open, onOpenChange }: RPChargeModalProps) => {
   const navigate = useNavigate();
   const [termsOpen, setTermsOpen] = useState(false);
   const [selectedId, setSelectedId] = useState("rp_1000");
+
+  // 결제 기능 비활성화 시 모달을 띄우지 않음
+  if (!FEATURES.ENABLE_PAYMENT) return null;
 
   return (
     <>

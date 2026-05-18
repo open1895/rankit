@@ -19,6 +19,8 @@ import GoldenTimeBanner from "@/components/GoldenTimeBanner";
 import DailyMatchupCard from "@/components/DailyMatchupCard";
 import DailySummaryCard from "@/components/DailySummaryCard";
 import TopFandomWidget from "@/components/TopFandomWidget";
+import SocialProofTicker from "@/components/SocialProofTicker";
+import QuickVoteStrip from "@/components/QuickVoteStrip";
 
 // Lazy-load heavy sections
 const LiveFeed = lazy(() => import("@/components/LiveFeed"));
@@ -34,6 +36,9 @@ const CreatorBattleSection = lazy(() => import("@/components/CreatorBattleSectio
 const MonthlyTop3Widget = lazy(() => import("@/components/MonthlyTop3Widget"));
 const SeasonRewardsBanner = lazy(() => import("@/components/SeasonRewardsBanner"));
 const PopularPosts = lazy(() => import("@/components/PopularPosts"));
+const FandomTournament = lazy(() => import("@/components/FandomTournament"));
+const HomePredictionSection = lazy(() => import("@/components/HomePredictionSection"));
+const RisingInfluenceCreators = lazy(() => import("@/components/RisingInfluenceCreators"));
 const LandingHero = lazy(() => import("@/components/LandingHero"));
 const NewUserWelcome = lazy(() => import("@/components/NewUserWelcome"));
 const PushNotificationPrompt = lazy(() => import("@/components/PushNotificationPrompt"));
@@ -475,6 +480,7 @@ const Index = () => {
     }
 
     toast.success(data?.referral_bonus ? "투표 완료! 🎉 초대 보너스 투표권이 지급되었어요!" : "투표 완료! 🎉");
+    try { window.dispatchEvent(new CustomEvent("rankit:vote-success")); } catch {}
 
     // 투표 결과 팝업은 fixed 오버레이라서 별도의 스크롤 이동이 필요 없음.
     // 전체 페이지를 위로 이동시키면 랭킹 섹션이 깜빡이고 사용자의 위치를 잃게 되므로 제거함.
@@ -842,48 +848,53 @@ const Index = () => {
 
 
       <Suspense fallback={null}>
-      {/* ===== NEW HOMEPAGE STRUCTURE ===== */}
+      {/* ===== NEW HOMEPAGE STRUCTURE (engagement-first) =====
+        순서: Hero → SocialProofTicker → QuickVoteStrip → GoldenTimeBanner
+              → DailyMatchupCard → HomePredictionSection → RisingCreators
+              → RankingList → CommunitySection → FandomTournament → TopFandomWidget
+        상단 2스크린 이내 모든 과금 유도 요소는 제거됨. */}
 
-      {/* Golden Time top banner */}
-      <GoldenTimeBanner />
-
-      {/* 0.5. Event Banners */}
+      {/* 0. Event Banners (운영 공지) */}
       <EventBanner />
 
-      {/* Daily Matchup */}
-      <DailyMatchupCard />
-
-      {/* Daily Summary (logged in only) */}
-      <DailySummaryCard />
-
-      {/* 👑 This Week's Top Fandom */}
-      <TopFandomWidget />
-
-      {/* 1. Hero Section */}
+      {/* 1. Hero — 랭킹 섹션으로 스무스 스크롤 CTA 포함 */}
       <HomepageHero />
 
-      {/* 1.5. Social Proof Counters */}
-      <SocialProofCounters />
+      {/* 2. SocialProofTicker — 실시간 참여 */}
+      <SocialProofTicker />
 
-      {/* 2. Section Cards */}
-      <HomepageSections />
+      {/* 3. QuickVoteStrip — 오늘 투표 진행 바 */}
+      <QuickVoteStrip />
 
-      {/* 2.5. Trending Now - 급상승 크리에이터 */}
+      {/* 4. GoldenTimeBanner — KST 19:50~21:00 에만 표시됨 (내부 분기) */}
+      <GoldenTimeBanner />
+
+      {/* 5. Daily Matchup */}
+      <DailyMatchupCard />
+
+      {/* 5.5. Daily Summary (logged in only) */}
+      <DailySummaryCard />
+
+      {/* 6. Home Prediction */}
+      <LazySection>
+        <HomePredictionSection />
+      </LazySection>
+
+      {/* 7. Rising Creators */}
+      <LazySection>
+        <RisingInfluenceCreators />
+      </LazySection>
+
+      {/* 8. Trending / League / Featured / Battle (보조 섹션) */}
       <LazySection>
         <TrendingNowSection />
       </LazySection>
-
-      {/* 2.6. Creator League */}
       <LazySection>
         <CreatorLeagueSection />
       </LazySection>
-
-      {/* 2.7. Featured Creators */}
       <LazySection>
         <FeaturedCreatorsSection />
       </LazySection>
-
-      {/* 2.7. Creator Battle */}
       <LazySection>
         <CreatorBattleSection />
       </LazySection>
@@ -896,13 +907,19 @@ const Index = () => {
         </div>
       </LazySection>
 
-      {/* 3. Live VS Battle + Countdown */}
+      {/* Live VS Battle + Countdown */}
       <LazySection>
         <div className="container max-w-5xl mx-auto px-4 space-y-6">
           {creators.length >= 2 && <HeroSection creators={creators} />}
           <CountdownTimer />
         </div>
       </LazySection>
+
+      {/* Section Cards (탐색 진입점) */}
+      <HomepageSections />
+
+      {/* 1.5. Social Proof Counters (요약 통계) */}
+      <SocialProofCounters />
 
       {/* 4. Full Rankings */}
       <main className="container max-w-5xl mx-auto px-4 py-6 space-y-5">
@@ -1031,12 +1048,22 @@ const Index = () => {
         <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
       </main>
 
-      {/* Popular Posts */}
+      {/* Community Section — 인기 게시글 */}
       <LazySection>
         <section className="container max-w-5xl mx-auto px-4 py-2">
           <PopularPosts />
         </section>
       </LazySection>
+
+      {/* Fandom Tournament */}
+      <LazySection>
+        <section className="container max-w-5xl mx-auto px-4 py-2">
+          <FandomTournament />
+        </section>
+      </LazySection>
+
+      {/* 👑 This Week's Top Fandom */}
+      <TopFandomWidget />
 
       {/* Live Feed */}
       <LazySection>

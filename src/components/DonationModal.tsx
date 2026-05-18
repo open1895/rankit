@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { FEATURES } from "@/config/features";
 
 interface DonationModalProps {
   open: boolean;
@@ -29,6 +30,8 @@ const DonationModal = ({ open, onClose, creatorId, creatorName, creatorAvatar, o
   const [loading, setLoading] = useState(false);
 
   if (!open) return null;
+  // 크리에이터 후원 기능 비활성화 시 모달 미노출
+  if (!FEATURES.ENABLE_DONATION) return null;
 
   const finalAmount = selectedAmount === "custom" ? Number(customAmount) || 0 : selectedAmount;
   const isAmountValid = finalAmount >= MIN_AMOUNT && finalAmount <= MAX_AMOUNT;
