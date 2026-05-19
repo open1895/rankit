@@ -1057,6 +1057,16 @@ const Index = () => {
         <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
       </main>
 
+      {/* Home Prediction (랭킹 직후) */}
+      <LazySection>
+        <HomePredictionSection />
+      </LazySection>
+
+      {/* Rising Creators */}
+      <LazySection>
+        <RisingInfluenceCreators />
+      </LazySection>
+
       {/* Community Section — 인기 게시글 */}
       <LazySection>
         <section className="container max-w-5xl mx-auto px-4 py-2">
@@ -1083,6 +1093,7 @@ const Index = () => {
 
       {/* Modals */}
       <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
+      <TicketEmptyDialog open={ticketEmptyOpen} onOpenChange={setTicketEmptyOpen} />
       </Suspense>
       </>
     </div>
