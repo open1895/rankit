@@ -85,7 +85,7 @@ const HomepageHero = () => {
             🔥 지금 투표하기
           </button>
           <button
-            onClick={() => navigate("/ranking")}
+            onClick={handleVoteClick}
             className="w-full h-12 text-base font-bold glass-sm rounded-2xl border active:scale-[0.98] transition-transform"
             style={{
               borderColor: "hsl(var(--neon-cyan) / 0.3)",
