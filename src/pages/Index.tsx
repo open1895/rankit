@@ -885,24 +885,14 @@ const Index = () => {
       {/* 3. QuickVoteStrip — 오늘 투표 진행 바 */}
       <QuickVoteStrip />
 
-      {/* 4. GoldenTimeBanner — KST 19:50~21:00 에만 표시됨 (내부 분기) */}
-      <GoldenTimeBanner />
+      {/* 4. GoldenTimeBanner — KST 20:00 ~ 21:00 사이에만 노출 */}
+      {isGoldenTime && <GoldenTimeBanner />}
 
       {/* 5. Daily Matchup */}
       <DailyMatchupCard />
 
       {/* 5.5. Daily Summary (logged in only) */}
       <DailySummaryCard />
-
-      {/* 6. Home Prediction */}
-      <LazySection>
-        <HomePredictionSection />
-      </LazySection>
-
-      {/* 7. Rising Creators */}
-      <LazySection>
-        <RisingInfluenceCreators />
-      </LazySection>
 
       {/* 8. Trending / League / Featured / Battle (보조 섹션) */}
       <LazySection>
