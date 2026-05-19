@@ -21,6 +21,7 @@ import DailySummaryCard from "@/components/DailySummaryCard";
 import TopFandomWidget from "@/components/TopFandomWidget";
 import SocialProofTicker from "@/components/SocialProofTicker";
 import QuickVoteStrip from "@/components/QuickVoteStrip";
+import TicketEmptyDialog from "@/components/TicketEmptyDialog";
 
 // Lazy-load heavy sections
 const LiveFeed = lazy(() => import("@/components/LiveFeed"));
@@ -254,6 +255,24 @@ const Index = () => {
   const [nominationOpen, setNominationOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [page, setPage] = useState(0);
+  const [ticketEmptyOpen, setTicketEmptyOpen] = useState(false);
+
+  // KST 20:00 ~ 21:00 골든타임 판정 (분 단위 갱신)
+  const [isGoldenTime, setIsGoldenTime] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      const koreaHour = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Seoul",
+        hour: "numeric",
+        hour12: false,
+      }).format(new Date());
+      const h = Number(koreaHour);
+      setIsGoldenTime(h >= 20 && h < 21);
+    };
+    check();
+    const id = setInterval(check, 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   // URL의 ?category= 파라미터 읽어서 카테고리 필터 적용 + 랭킹 섹션으로 스크롤
   useEffect(() => {
@@ -447,7 +466,7 @@ const Index = () => {
 
     const currentRemaining = Math.max(0, 1 - todayVoted.size + extraVotes);
     if (currentRemaining <= 0) {
-      toast.error("투표권이 부족합니다! 광고를 시청하고 추가 투표권을 받으세요.");
+      setTicketEmptyOpen(true);
       return false;
     }
 
