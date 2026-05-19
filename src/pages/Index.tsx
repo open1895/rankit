@@ -589,12 +589,13 @@ const Index = () => {
             </button>
             <div className="w-px h-5 bg-border/40" />
             <Link
-              to={user ? "/recharge" : "#"}
+              to={user ? "/rewards" : "/auth"}
               className="flex items-center gap-1 px-1.5 py-1.5 rounded-full text-xs font-bold hover:scale-105 transition-transform"
               style={{
                 background: "hsl(var(--neon-purple) / 0.12)",
                 color: "hsl(var(--primary))",
               }}
+              aria-label="투표권"
             >
               <Ticket className="w-3.5 h-3.5" />
               <span className="font-bold leading-none">{user ? tickets : remainingVotes}</span>
