@@ -21,6 +21,7 @@ import DailySummaryCard from "@/components/DailySummaryCard";
 import TopFandomWidget from "@/components/TopFandomWidget";
 import SocialProofTicker from "@/components/SocialProofTicker";
 import QuickVoteStrip from "@/components/QuickVoteStrip";
+import TicketEmptyDialog from "@/components/TicketEmptyDialog";
 
 // Lazy-load heavy sections
 const LiveFeed = lazy(() => import("@/components/LiveFeed"));
@@ -254,6 +255,24 @@ const Index = () => {
   const [nominationOpen, setNominationOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [page, setPage] = useState(0);
+  const [ticketEmptyOpen, setTicketEmptyOpen] = useState(false);
+
+  // KST 20:00 ~ 21:00 골든타임 판정 (분 단위 갱신)
+  const [isGoldenTime, setIsGoldenTime] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      const koreaHour = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Seoul",
+        hour: "numeric",
+        hour12: false,
+      }).format(new Date());
+      const h = Number(koreaHour);
+      setIsGoldenTime(h >= 20 && h < 21);
+    };
+    check();
+    const id = setInterval(check, 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   // URL의 ?category= 파라미터 읽어서 카테고리 필터 적용 + 랭킹 섹션으로 스크롤
   useEffect(() => {
@@ -447,7 +466,7 @@ const Index = () => {
 
     const currentRemaining = Math.max(0, 1 - todayVoted.size + extraVotes);
     if (currentRemaining <= 0) {
-      toast.error("투표권이 부족합니다! 광고를 시청하고 추가 투표권을 받으세요.");
+      setTicketEmptyOpen(true);
       return false;
     }
 
@@ -570,12 +589,13 @@ const Index = () => {
             </button>
             <div className="w-px h-5 bg-border/40" />
             <Link
-              to={user ? "/recharge" : "#"}
+              to={user ? "/rewards" : "/auth"}
               className="flex items-center gap-1 px-1.5 py-1.5 rounded-full text-xs font-bold hover:scale-105 transition-transform"
               style={{
                 background: "hsl(var(--neon-purple) / 0.12)",
                 color: "hsl(var(--primary))",
               }}
+              aria-label="투표권"
             >
               <Ticket className="w-3.5 h-3.5" />
               <span className="font-bold leading-none">{user ? tickets : remainingVotes}</span>
@@ -866,24 +886,14 @@ const Index = () => {
       {/* 3. QuickVoteStrip — 오늘 투표 진행 바 */}
       <QuickVoteStrip />
 
-      {/* 4. GoldenTimeBanner — KST 19:50~21:00 에만 표시됨 (내부 분기) */}
-      <GoldenTimeBanner />
+      {/* 4. GoldenTimeBanner — KST 20:00 ~ 21:00 사이에만 노출 */}
+      {isGoldenTime && <GoldenTimeBanner />}
 
       {/* 5. Daily Matchup */}
       <DailyMatchupCard />
 
       {/* 5.5. Daily Summary (logged in only) */}
       <DailySummaryCard />
-
-      {/* 6. Home Prediction */}
-      <LazySection>
-        <HomePredictionSection />
-      </LazySection>
-
-      {/* 7. Rising Creators */}
-      <LazySection>
-        <RisingInfluenceCreators />
-      </LazySection>
 
       {/* 8. Trending / League / Featured / Battle (보조 섹션) */}
       <LazySection>
@@ -1048,6 +1058,16 @@ const Index = () => {
         <NominationSection externalOpen={nominationOpen} onOpenChange={setNominationOpen} />
       </main>
 
+      {/* Home Prediction (랭킹 직후) */}
+      <LazySection>
+        <HomePredictionSection />
+      </LazySection>
+
+      {/* Rising Creators */}
+      <LazySection>
+        <RisingInfluenceCreators />
+      </LazySection>
+
       {/* Community Section — 인기 게시글 */}
       <LazySection>
         <section className="container max-w-5xl mx-auto px-4 py-2">
@@ -1074,6 +1094,7 @@ const Index = () => {
 
       {/* Modals */}
       <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
+      <TicketEmptyDialog open={ticketEmptyOpen} onOpenChange={setTicketEmptyOpen} />
       </Suspense>
       </>
     </div>
