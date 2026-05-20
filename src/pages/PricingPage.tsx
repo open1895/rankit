@@ -59,6 +59,25 @@ const PricingPage = () => {
             <p className="text-xs text-muted-foreground">부가세 포함 가격입니다</p>
           </div>
 
+          <div className="rounded-lg border border-border bg-card p-5 text-sm text-foreground space-y-3 mb-6">
+            <h2 className="text-base font-bold">서비스 제공 기간 안내</h2>
+            <div className="space-y-2 text-muted-foreground leading-relaxed">
+              <p>
+                <span className="font-semibold text-foreground">• RP 충전 상품(단건 결제):</span> 결제 즉시 RP가 지급되며,
+                지급된 RP는 <span className="font-semibold text-foreground">지급일로부터 1년간</span> 사용 가능합니다.
+                기간 만료 시 자동 소멸되며 자동 갱신은 없습니다.
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">• 1개월 이용권(패스권):</span> 결제일로부터 30일간 이용 /
+                기간 만료 시 자동 종료 (자동 갱신 없음).
+              </p>
+              <p>
+                <span className="font-semibold text-foreground">• 월 정기 구독:</span> 결제일로부터 1개월(30일) 이용 후 자동 갱신 /
+                매월 동일한 날짜에 자동 결제. 마이페이지에서 언제든지 해지 가능합니다.
+              </p>
+            </div>
+          </div>
+
           <div className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground space-y-2">
             <p>• 미사용 RP는 구매일로부터 7일 이내 환불 가능합니다.</p>
             <p>• 문의: steelmind7777@naver.com / 010-8337-7429</p>
