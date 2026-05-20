@@ -8,7 +8,7 @@
  * 결제·후원 인프라가 안정화되는 시점에 각 플래그를 true 로 전환한다.
  */
 export const FEATURES = {
-  ENABLE_PAYMENT: false,  // 6~8주 후 true로 변경 예정 (현금 결제·RP 충전)
+  ENABLE_PAYMENT: true,   // PG 심사(결제창 노출) 위해 활성화. 안정화 후에도 유지.
   ENABLE_BOOST: false,    // 결제 안정화 후 true로 변경 예정 (RP 부스트 투표)
   ENABLE_GIFT_RP: false,  // 후원 안정화 후 true로 변경 예정 (유저간 RP 선물)
   ENABLE_DONATION: false, // 크리에이터 인증 후 true로 변경 예정 (크리에이터 후원)
