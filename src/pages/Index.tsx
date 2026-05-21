@@ -470,12 +470,30 @@ const Index = () => {
       return false;
     }
 
+    // ⚡ 낙관적 업데이트: 서버 응답을 기다리지 않고 즉시 표 수/순위 반영
+    let rollback: (() => void) | null = null;
+    setCreators((prev) => {
+      const snapshot = prev;
+      rollback = () => setCreators(snapshot);
+      const bumped = prev.map((c) =>
+        c.id === id ? { ...c, votes_count: c.votes_count + 1 } : c
+      );
+      // 표 수 기준으로 즉시 재정렬 및 rank 재계산
+      const sorted = [...bumped].sort((a, b) => b.votes_count - a.votes_count);
+      return sorted.map((c, idx) => ({
+        ...c,
+        previousRank: c.rank,
+        rank: idx + 1,
+      }));
+    });
+
     const refCode = localStorage.getItem("pending_referral");
     const { data, error } = await supabase.functions.invoke("vote", {
       body: { creator_id: id, referral_code: refCode || undefined },
     });
 
     if (error) {
+      rollback?.();
       let msg = "투표에 실패했습니다.";
       try {
         if (error.context instanceof Response) {
@@ -494,15 +512,13 @@ const Index = () => {
     }
 
     if (data && data.error) {
+      rollback?.();
       toast.error(data.message || "투표에 실패했습니다.");
       return false;
     }
 
     toast.success(data?.referral_bonus ? "투표 완료! 🎉 초대 보너스 투표권이 지급되었어요!" : "투표 완료! 🎉");
     try { window.dispatchEvent(new CustomEvent("rankit:vote-success")); } catch {}
-
-    // 투표 결과 팝업은 fixed 오버레이라서 별도의 스크롤 이동이 필요 없음.
-    // 전체 페이지를 위로 이동시키면 랭킹 섹션이 깜빡이고 사용자의 위치를 잃게 되므로 제거함.
 
     const weeklyCount = parseInt(localStorage.getItem("weekly_vote_count") || "0");
     localStorage.setItem("weekly_vote_count", String(weeklyCount + 1));
