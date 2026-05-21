@@ -1,17 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import { Home, Trophy, TrendingUp, Compass, User, Zap, X, Bug } from "lucide-react";
+import { Home, Trophy, Swords, Gift, User, X, Bug } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import RPChargeModal from "./RPChargeModal";
-import NotificationBell from "./NotificationBell";
-import ThemeToggle from "./ThemeToggle";
 
 const tabs = [
   { to: "/", icon: Home, label: "홈" },
   { to: "/ranking", icon: Trophy, label: "랭킹" },
-  { to: "/prediction", icon: TrendingUp, label: "예측" },
-  { to: "/explore", icon: Compass, label: "더보기" },
-  { to: "/my", icon: User, label: "내 정보" },
+  { to: "/battle", icon: Swords, label: "배틀" },
+  { to: "/rewards", icon: Gift, label: "리워드" },
+  { to: "/mypage", icon: User, label: "마이" },
 ];
 
 const CONTRAST_BACKGROUNDS = [
