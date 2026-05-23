@@ -339,6 +339,33 @@ const CreatorsTab = () => {
     },
   });
 
+  const { data: lastAutoAdd } = useQuery({
+    queryKey: ["creator-auto-add-latest"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("creator_auto_add_runs")
+        .select("run_at, total_added, mode, details")
+        .order("run_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    refetchInterval: 60_000,
+  });
+
+  const { data: latestCreators } = useQuery({
+    queryKey: ["admin-creators-latest"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("creators")
+        .select("id, name, category, created_at")
+        .order("created_at", { ascending: false })
+        .limit(5);
+      return data || [];
+    },
+    refetchInterval: 60_000,
+  });
+
   const updateMutation = useMutation({
     mutationFn: async ({ id, name, category }: { id: string; name: string; category: string }) => {
       const { data, error } = await supabase.functions.invoke("admin", {
