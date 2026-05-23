@@ -430,7 +430,9 @@ const CreatorsTab = () => {
           )}
         </div>
 
-
+        <div className="flex items-center gap-2">
+          <Input placeholder="크리에이터 검색..." value={search} onChange={(e) => setSearch(e.target.value)} className="text-sm" />
+          <Badge variant="outline" className="text-xs whitespace-nowrap">{filtered.length}명</Badge>
         </div>
 
         <Button
