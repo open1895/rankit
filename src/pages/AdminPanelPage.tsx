@@ -339,6 +339,33 @@ const CreatorsTab = () => {
     },
   });
 
+  const { data: lastAutoAdd } = useQuery({
+    queryKey: ["creator-auto-add-latest"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("creator_auto_add_runs")
+        .select("run_at, total_added, mode, details")
+        .order("run_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    refetchInterval: 60_000,
+  });
+
+  const { data: latestCreators } = useQuery({
+    queryKey: ["admin-creators-latest"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("creators")
+        .select("id, name, category, created_at")
+        .order("created_at", { ascending: false })
+        .limit(5);
+      return data || [];
+    },
+    refetchInterval: 60_000,
+  });
+
   const updateMutation = useMutation({
     mutationFn: async ({ id, name, category }: { id: string; name: string; category: string }) => {
       const { data, error } = await supabase.functions.invoke("admin", {
@@ -377,6 +404,32 @@ const CreatorsTab = () => {
   return (
     <>
       <div className="space-y-3">
+        <div className="glass rounded-xl border border-glass-border p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-foreground">신규 크리에이터 자동 수집</p>
+            <Badge variant="outline" className="text-xs">카테고리당 20명</Badge>
+          </div>
+          {lastAutoAdd ? (
+            <div className="text-xs text-muted-foreground">
+              마지막 실행: <span className="text-foreground font-medium">{new Date(lastAutoAdd.run_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}</span>
+              {" · "}추가 {lastAutoAdd.total_added}명 ({lastAutoAdd.mode})
+            </div>
+          ) : (
+            <div className="text-xs text-muted-foreground">아직 실행 기록이 없습니다.</div>
+          )}
+          {latestCreators && latestCreators.length > 0 && (
+            <div className="pt-1 border-t border-glass-border space-y-1">
+              <p className="text-[11px] text-muted-foreground">최근 추가된 크리에이터</p>
+              {latestCreators.map((c: any) => (
+                <div key={c.id} className="flex items-center justify-between text-xs">
+                  <span className="text-foreground truncate">{c.name} <span className="text-muted-foreground">· {c.category}</span></span>
+                  <span className="text-muted-foreground shrink-0 ml-2">{new Date(c.created_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="flex items-center gap-2">
           <Input placeholder="크리에이터 검색..." value={search} onChange={(e) => setSearch(e.target.value)} className="text-sm" />
           <Badge variant="outline" className="text-xs whitespace-nowrap">{filtered.length}명</Badge>
