@@ -113,8 +113,6 @@ async function gatherEligibleChannels(
     const channels = await searchAndFetchChannels(`${baseQuery}${suffix}`, apiKey, SEARCH_BATCH_SIZE);
 
     for (const channel of uniqueChannels(channels)) {
-      const subs = parseInt(channel.statistics?.subscriberCount ?? "0", 10) || 0;
-      if (subs <= 0 || subs > MAX_SUBSCRIBERS) continue;
       if (existingIds.has(channel.id) || collectedIds.has(channel.id)) continue;
 
       collected.push(channel);
