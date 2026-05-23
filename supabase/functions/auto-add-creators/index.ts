@@ -26,7 +26,6 @@ const CATEGORIES = [
   { name: "과학기술", query: "한국 과학 기술 유튜버" },
 ];
 
-const MAX_SUBSCRIBERS = 1000000;
 const TARGET_PER_CATEGORY = 20;
 const SEARCH_BATCH_SIZE = 50;
 const SEARCH_VARIATIONS = [
@@ -114,8 +113,6 @@ async function gatherEligibleChannels(
     const channels = await searchAndFetchChannels(`${baseQuery}${suffix}`, apiKey, SEARCH_BATCH_SIZE);
 
     for (const channel of uniqueChannels(channels)) {
-      const subs = parseInt(channel.statistics?.subscriberCount ?? "0", 10) || 0;
-      if (subs <= 0 || subs > MAX_SUBSCRIBERS) continue;
       if (existingIds.has(channel.id) || collectedIds.has(channel.id)) continue;
 
       collected.push(channel);
