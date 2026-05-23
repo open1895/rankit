@@ -26,7 +26,6 @@ const CATEGORIES = [
   { name: "과학기술", query: "한국 과학 기술 유튜버" },
 ];
 
-const MAX_SUBSCRIBERS = 1000000;
 const TARGET_PER_CATEGORY = 20;
 const SEARCH_BATCH_SIZE = 50;
 const SEARCH_VARIATIONS = [
