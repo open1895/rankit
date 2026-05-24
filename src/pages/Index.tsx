@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
-import { useCountdown } from "@/hooks/use-countdown";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Creator } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
