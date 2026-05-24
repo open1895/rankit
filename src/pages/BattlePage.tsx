@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import CountdownTimer from "@/components/CountdownTimer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
@@ -303,6 +304,8 @@ const BattlePage = () => {
             <p className="text-xs text-muted-foreground">매일 새로운 크리에이터 대결! 투표하고 승자를 예측하세요</p>
           </div>
         </div>
+
+        <CountdownTimer />
 
         {loading ? (
           <div className="space-y-4">

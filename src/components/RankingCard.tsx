@@ -14,6 +14,7 @@ import VoteResultModal from "./VoteResultModal";
 import BoostVoteButton from "./BoostVoteButton";
 import CelebrationEffect from "./CelebrationEffect";
 import { toast } from "sonner";
+import { FEATURES } from "@/config/features";
 import { highlightMatch } from "@/lib/highlight";
 
 interface RankingCardProps {
@@ -309,7 +310,7 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
           >
             {hasVoted ? "✓ 완료" : isVoting ? "🎉" : "투표"}
           </button>
-          {user && (
+          {FEATURES.ENABLE_PAYMENT && user && (
             <button
               onClick={handleFireVote}
               disabled={isFireVoting || tickets < 5}

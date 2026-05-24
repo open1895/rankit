@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
-import { useCountdown } from "@/hooks/use-countdown";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Creator } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +6,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
 import RankingCard from "@/components/RankingCard";
 import RankitLogo from "@/components/RankitLogo";
-import CountdownTimer from "@/components/CountdownTimer";
 import NotificationBell from "@/components/NotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -234,7 +232,6 @@ const NominationSection = ({ externalOpen, onOpenChange }: { externalOpen?: bool
 const Index = () => {
   const { user } = useAuth();
   const { tickets } = useTickets();
-  const { days } = useCountdown();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [creators, setCreators] = useState<Creator[]>([]);
@@ -933,11 +930,10 @@ const Index = () => {
         </div>
       </LazySection>
 
-      {/* Live VS Battle + Countdown */}
+      {/* Live VS Battle */}
       <LazySection>
-        <div className="container max-w-5xl mx-auto px-4 space-y-6">
+        <div className="container max-w-5xl mx-auto px-4 space-y-4">
           {creators.length >= 2 && <HeroSection creators={creators} />}
-          <CountdownTimer />
         </div>
       </LazySection>
 

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import CountdownTimer from "@/components/CountdownTimer";
 import { supabase } from "@/integrations/supabase/client";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
@@ -137,6 +138,10 @@ const CategoryPage = () => {
           팬 투표로 결정되는 {decodedCategory} 카테고리 크리에이터 영향력 랭킹입니다.
         </p>
       </header>
+
+      <div className="max-w-2xl mx-auto px-4 pb-4">
+        <CountdownTimer />
+      </div>
 
       <section className="max-w-2xl mx-auto px-4">
         {loading ? (
