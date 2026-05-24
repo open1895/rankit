@@ -139,6 +139,10 @@ const CategoryPage = () => {
         </p>
       </header>
 
+      <div className="max-w-2xl mx-auto px-4 pb-4">
+        <CountdownTimer />
+      </div>
+
       <section className="max-w-2xl mx-auto px-4">
         {loading ? (
           <div className="flex justify-center py-12">
