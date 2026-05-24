@@ -233,7 +233,6 @@ const NominationSection = ({ externalOpen, onOpenChange }: { externalOpen?: bool
 const Index = () => {
   const { user } = useAuth();
   const { tickets } = useTickets();
-  const { days } = useCountdown();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [creators, setCreators] = useState<Creator[]>([]);
