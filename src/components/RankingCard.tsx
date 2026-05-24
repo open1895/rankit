@@ -14,6 +14,7 @@ import VoteResultModal from "./VoteResultModal";
 import BoostVoteButton from "./BoostVoteButton";
 import CelebrationEffect from "./CelebrationEffect";
 import { toast } from "sonner";
+import { FEATURES } from "@/config/features";
 import { highlightMatch } from "@/lib/highlight";
 
 interface RankingCardProps {
