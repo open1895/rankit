@@ -930,11 +930,10 @@ const Index = () => {
         </div>
       </LazySection>
 
-      {/* Live VS Battle + Countdown */}
+      {/* Live VS Battle */}
       <LazySection>
-        <div className="container max-w-5xl mx-auto px-4 space-y-6">
+        <div className="container max-w-5xl mx-auto px-4 space-y-4">
           {creators.length >= 2 && <HeroSection creators={creators} />}
-          <CountdownTimer />
         </div>
       </LazySection>
 
