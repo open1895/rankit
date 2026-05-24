@@ -305,6 +305,8 @@ const BattlePage = () => {
           </div>
         </div>
 
+        <CountdownTimer />
+
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => <div key={i} className="glass rounded-2xl h-48 animate-pulse" />)}
