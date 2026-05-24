@@ -6,7 +6,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
 import RankingCard from "@/components/RankingCard";
 import RankitLogo from "@/components/RankitLogo";
-import CountdownTimer from "@/components/CountdownTimer";
 import NotificationBell from "@/components/NotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
 import ScrollReveal from "@/components/ScrollReveal";
