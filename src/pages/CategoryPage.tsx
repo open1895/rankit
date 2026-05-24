@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import CountdownTimer from "@/components/CountdownTimer";
 import { supabase } from "@/integrations/supabase/client";
 import SEOHead from "@/components/SEOHead";
 import Footer from "@/components/Footer";
