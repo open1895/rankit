@@ -18,6 +18,8 @@ interface BoostCampaign {
 }
 
 const ActiveBoostCampaigns = () => {
+  if (!FEATURES.ENABLE_PAYMENT) return null;
+
   const [campaigns, setCampaigns] = useState<BoostCampaign[]>([]);
   const [loading, setLoading] = useState(true);
 
