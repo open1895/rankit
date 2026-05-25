@@ -104,7 +104,9 @@ const OverviewTab = ({
 
     {/* Power Boost */}
     <div className="glass p-4 space-y-3">
-      <PowerBoostSection creatorId={creator.id} creatorName={creator.name} creatorAvatar={creator.avatar_url} />
+      {FEATURES.ENABLE_PAYMENT && (
+        <PowerBoostSection creatorId={creator.id} creatorName={creator.name} creatorAvatar={creator.avatar_url} />
+      )}
       <button onClick={handleDownloadPDF} disabled={pdfGenerating} className="w-full py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 glass-sm border border-primary/20 text-primary hover:border-primary/50 active:scale-[0.98] disabled:opacity-60">
         {pdfGenerating ? <><div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /> 생성 중...</> : <><FileDown className="w-4 h-4" /> 주간 리포트 PDF</>}
       </button>
