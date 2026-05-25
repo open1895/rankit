@@ -136,7 +136,7 @@ const PointShop = () => {
           <div className="space-y-2">
             {[
               { to: "/mypage", icon: <CalendarCheck className="w-4 h-4" />, title: "출석 체크", desc: "매일 접속하고 연속 보너스 받기", color: "hsl(var(--neon-purple))" },
-              { to: "/recharge", icon: <Ticket className="w-4 h-4" />, title: "무료 티켓 받기", desc: "무료충전소에서 티켓 적립", color: "hsl(45 96% 56%)" },
+              ...(FEATURES.ENABLE_PAYMENT ? [{ to: "/recharge", icon: <Ticket className="w-4 h-4" />, title: "무료 티켓 받기", desc: "무료충전소에서 티켓 적립", color: "hsl(45 96% 56%)" }] : []),
               { to: "/mypage?tab=invite", icon: <UserPlus className="w-4 h-4" />, title: "친구 초대", desc: "초대 코드 공유하고 RP 받기", color: "hsl(var(--neon-cyan))" },
               { to: "/mypage?tab=missions", icon: <Target className="w-4 h-4" />, title: "주간 미션", desc: "주간 목표 달성하고 보상", color: "hsl(var(--primary))" },
               { to: "/recharge?tab=ad", icon: <PlayCircle className="w-4 h-4" />, title: "광고 보기", desc: "짧은 광고 시청하고 RP 충전", color: "hsl(var(--secondary))" },
