@@ -108,7 +108,7 @@ const App = () => (
                     <Route path="/battle" element={<BattlePage />} />
                     <Route path="/explore" element={<ExplorePage />} />
                     <Route path="/monthly-top3" element={<MonthlyTop3 />} />
-                    <Route path="/ticket-store" element={<TicketStore />} />
+                    {FEATURES.ENABLE_PAYMENT && <Route path="/ticket-store" element={<TicketStore />} />}
                     <Route path="/widget/creator/:id" element={<WidgetPage />} />
                     <Route path="/widget/fanclub/:id" element={<FanclubWidgetPage />} />
                     <Route path="/invite" element={<InviteLanding />} />
