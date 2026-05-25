@@ -48,6 +48,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { highlightMatch } from "@/lib/highlight";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FEATURES } from "@/config/features";
 
 type SortBy = "rank" | "votes" | "score" | "new";
 type SubscriberFilter = "all" | "10k" | "100k" | "1m";
