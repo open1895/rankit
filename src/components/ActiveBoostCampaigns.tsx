@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BoostProgressCard } from "@/components/PowerBoostCard";
 import { Zap } from "lucide-react";
 import { Link } from "react-router-dom";
+import { FEATURES } from "@/config/features";
 
 interface BoostCampaign {
   id: string;
