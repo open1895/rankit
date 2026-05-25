@@ -139,11 +139,14 @@ const CategoryPage = () => {
         </p>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 pb-4">
+      <div
+        className="max-w-2xl mx-auto px-4 pb-4 cursor-pointer hover:opacity-80 transition-opacity"
+        onClick={() => document.getElementById('ranking-section')?.scrollIntoView({ behavior: 'smooth' })}
+      >
         <CountdownTimer />
       </div>
 
-      <section className="max-w-2xl mx-auto px-4">
+      <section id="ranking-section" className="max-w-2xl mx-auto px-4">
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />

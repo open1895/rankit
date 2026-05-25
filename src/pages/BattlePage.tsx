@@ -305,7 +305,12 @@ const BattlePage = () => {
           </div>
         </div>
 
-        <CountdownTimer />
+        <div
+          className="cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => document.getElementById('battle-section')?.scrollIntoView({ behavior: 'smooth' })}
+        >
+          <CountdownTimer />
+        </div>
 
         {loading ? (
           <div className="space-y-4">
@@ -319,7 +324,7 @@ const BattlePage = () => {
           </div>
         ) : (
           <>
-            <div className="space-y-4">
+            <div id="battle-section" className="space-y-4">
               {visibleBattles.map((battle) => (
                 <ScrollReveal key={battle.id}>
                   <BattleCard battle={battle} />
