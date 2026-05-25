@@ -713,41 +713,43 @@ const MyPage = () => {
             );
           })()}
 
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Ticket className="w-4 h-4 text-neon-purple" />
-              <span className="text-xs font-bold">내 티켓 🎫</span>
+          {FEATURES.ENABLE_PAYMENT && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Ticket className="w-4 h-4 text-neon-purple" />
+                <span className="text-xs font-bold">내 티켓 🎫</span>
+              </div>
+              <div className="glass-sm p-4 text-center space-y-1 relative overflow-hidden">
+                <div className="text-3xl font-black gradient-text neon-text-purple">
+                  {tickets.toLocaleString()}
+                </div>
+                <div className="text-[11px] text-muted-foreground">보유 티켓</div>
+                <div className="text-[10px] text-muted-foreground mt-1">
+                  불꽃투표(5장) · 익명글(2장) · 응원강조(3장)
+                </div>
+              </div>
+              {ticketHistory.length > 0 && (
+                <div className="space-y-1">
+                  <div className="text-[11px] font-bold text-muted-foreground px-1">최근 사용 내역</div>
+                  {ticketHistory.map((tx: any) => (
+                    <div key={tx.id} className="glass-sm px-3 py-2 flex items-center justify-between text-[11px]">
+                      <span className="text-foreground">{tx.description || tx.type}</span>
+                      <span className={tx.amount > 0 ? "text-green-400 font-bold" : "text-destructive font-bold"}>
+                        {tx.amount > 0 ? "+" : ""}{tx.amount}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Button
+                onClick={() => navigate("/recharge")}
+                className="w-full min-h-[44px] bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white font-bold rounded-xl shadow-[0_0_16px_rgba(168,85,247,0.4)] gap-2"
+              >
+                <Zap className="w-4 h-4" />
+                무료 충전소 바로가기
+              </Button>
             </div>
-            <div className="glass-sm p-4 text-center space-y-1 relative overflow-hidden">
-              <div className="text-3xl font-black gradient-text neon-text-purple">
-                {tickets.toLocaleString()}
-              </div>
-              <div className="text-[11px] text-muted-foreground">보유 티켓</div>
-              <div className="text-[10px] text-muted-foreground mt-1">
-                불꽃투표(5장) · 익명글(2장) · 응원강조(3장)
-              </div>
-            </div>
-            {ticketHistory.length > 0 && (
-              <div className="space-y-1">
-                <div className="text-[11px] font-bold text-muted-foreground px-1">최근 사용 내역</div>
-                {ticketHistory.map((tx: any) => (
-                  <div key={tx.id} className="glass-sm px-3 py-2 flex items-center justify-between text-[11px]">
-                    <span className="text-foreground">{tx.description || tx.type}</span>
-                    <span className={tx.amount > 0 ? "text-green-400 font-bold" : "text-destructive font-bold"}>
-                      {tx.amount > 0 ? "+" : ""}{tx.amount}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-            <Button
-              onClick={() => navigate("/recharge")}
-              className="w-full min-h-[44px] bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white font-bold rounded-xl shadow-[0_0_16px_rgba(168,85,247,0.4)] gap-2"
-            >
-              <Zap className="w-4 h-4" />
-              무료 충전소 바로가기
-            </Button>
-          </div>
+          )}
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
