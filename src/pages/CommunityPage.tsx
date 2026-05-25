@@ -4,6 +4,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
+import { FEATURES } from "@/config/features";
 import { Heart, Search, ArrowLeft, Megaphone, X, Pencil, Send, MessageCircle, User, ImagePlus, ChevronLeft, ChevronRight, Image as ImageIcon, EyeOff, Trash2, Edit3, MoreVertical, Reply, Pin, ShieldCheck } from "lucide-react";
 import CommunityActivityRanking from "@/components/CommunityActivityRanking";
 import { getAuthorBadge } from "@/components/CommunityActivityRanking";
