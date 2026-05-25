@@ -6,6 +6,7 @@ import CreatorPerformanceBadge from "@/components/CreatorPerformanceBadge";
 import CreatorRewards from "@/components/CreatorRewards";
 import PowerBoostSection from "@/components/PowerBoostCard";
 import DonationStats from "@/components/DonationStats";
+import { FEATURES } from "@/config/features";
 import { CreatorProfileData } from "./types";
 
 interface OverviewTabProps {
