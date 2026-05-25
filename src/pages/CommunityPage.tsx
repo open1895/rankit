@@ -496,19 +496,21 @@ const CommunityPage = () => {
         toast({ title: "로그인 필요", description: "익명 글쓰기는 로그인이 필요합니다.", variant: "destructive" });
         return;
       }
-      if (tickets < 2) {
-        toast({ title: "티켓 부족", description: "익명 글쓰기에는 티켓 2장이 필요합니다.", variant: "destructive" });
-        return;
+      if (FEATURES.ENABLE_PAYMENT) {
+        if (tickets < 2) {
+          toast({ title: "티켓 부족", description: "익명 글쓰기에는 티켓 2장이 필요합니다.", variant: "destructive" });
+          return;
+        }
+        const { data: ticketRes } = await supabase.functions.invoke("tickets", {
+          body: { action: "anonymous_post" },
+        });
+        if (!ticketRes?.success) {
+          toast({ title: "티켓 부족", description: ticketRes?.error || "티켓이 부족합니다.", variant: "destructive" });
+          return;
+        }
+        await refreshTickets();
+        toast({ title: "🎫 티켓 2장 사용", description: "익명 크루로 글이 작성됩니다." });
       }
-      const { data: ticketRes } = await supabase.functions.invoke("tickets", {
-        body: { action: "anonymous_post" },
-      });
-      if (!ticketRes?.success) {
-        toast({ title: "티켓 부족", description: ticketRes?.error || "티켓이 부족합니다.", variant: "destructive" });
-        return;
-      }
-      await refreshTickets();
-      toast({ title: "🎫 티켓 2장 사용", description: "익명 크루로 글이 작성됩니다." });
     }
 
     setSubmitting(true);
