@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
 import SEOHead from "@/components/SEOHead";
+import { FEATURES } from "@/config/features";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -204,20 +205,22 @@ const RechargePage = () => {
 
             <div className="w-px h-5 bg-border/50" />
 
-            <div
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold cursor-pointer hover:scale-105 transition-transform"
-              style={{
-                background: "hsl(var(--neon-purple) / 0.12)",
-                color: "hsl(var(--primary))",
-              }}
-              onClick={() => navigate("/recharge")}
-            >
-              <Ticket className="w-3.5 h-3.5" />
-              {tickets.toLocaleString()}
-              <Zap className="w-3 h-3 ml-0.5 opacity-70" />
-            </div>
+            {FEATURES.ENABLE_PAYMENT && (
+              <div
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold cursor-pointer hover:scale-105 transition-transform"
+                style={{
+                  background: "hsl(var(--neon-purple) / 0.12)",
+                  color: "hsl(var(--primary))",
+                }}
+                onClick={() => navigate("/recharge")}
+              >
+                <Ticket className="w-3.5 h-3.5" />
+                {tickets.toLocaleString()}
+                <Zap className="w-3 h-3 ml-0.5 opacity-70" />
+              </div>
+            )}
 
-            <div className="w-px h-5 bg-border/50" />
+            {FEATURES.ENABLE_PAYMENT && <div className="w-px h-5 bg-border/50" />}
 
             <button
               onClick={() => navigate("/my")}

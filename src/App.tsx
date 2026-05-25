@@ -16,6 +16,7 @@ import PredictionWinPopup from "@/components/PredictionWinPopup";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { FEATURES } from "@/config/features";
 
 // Lazy-loaded pages
 const Index = lazy(() => import("./pages/Index"));
@@ -107,7 +108,7 @@ const App = () => (
                     <Route path="/battle" element={<BattlePage />} />
                     <Route path="/explore" element={<ExplorePage />} />
                     <Route path="/monthly-top3" element={<MonthlyTop3 />} />
-                    <Route path="/ticket-store" element={<TicketStore />} />
+                    {FEATURES.ENABLE_PAYMENT && <Route path="/ticket-store" element={<TicketStore />} />}
                     <Route path="/widget/creator/:id" element={<WidgetPage />} />
                     <Route path="/widget/fanclub/:id" element={<FanclubWidgetPage />} />
                     <Route path="/invite" element={<InviteLanding />} />

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
+import { FEATURES } from "@/config/features";
 import { Zap, Ticket, Minus, Plus, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -392,41 +393,47 @@ const LivePredictionBattle = () => {
           <span className="text-xs text-muted-foreground">⏰ 베팅 마감</span>
         </div>
       ) : selectedCreator ? (
-        <div className="space-y-3">
-          <div className="flex items-center justify-center gap-3">
-            <button
-              onClick={() => setBetAmount(Math.max(1, betAmount - 1))}
-              className="w-8 h-8 rounded-full glass-sm flex items-center justify-center hover:bg-muted/50 transition"
-            >
-              <Minus className="w-4 h-4" />
-            </button>
-            <div className="flex items-center gap-1.5 px-4 py-2 rounded-xl glass-sm">
-              <Ticket className="w-4 h-4" style={{ color: "hsl(var(--neon-purple))" }} />
-              <span className="text-lg font-black">{betAmount}</span>
-              <span className="text-xs text-muted-foreground">표</span>
+        FEATURES.ENABLE_PAYMENT ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={() => setBetAmount(Math.max(1, betAmount - 1))}
+                className="w-8 h-8 rounded-full glass-sm flex items-center justify-center hover:bg-muted/50 transition"
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <div className="flex items-center gap-1.5 px-4 py-2 rounded-xl glass-sm">
+                <Ticket className="w-4 h-4" style={{ color: "hsl(var(--neon-purple))" }} />
+                <span className="text-lg font-black">{betAmount}</span>
+                <span className="text-xs text-muted-foreground">표</span>
+              </div>
+              <button
+                onClick={() => setBetAmount(Math.min(10, tickets, betAmount + 1))}
+                className="w-8 h-8 rounded-full glass-sm flex items-center justify-center hover:bg-muted/50 transition"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
             </div>
-            <button
-              onClick={() => setBetAmount(Math.min(10, tickets, betAmount + 1))}
-              className="w-8 h-8 rounded-full glass-sm flex items-center justify-center hover:bg-muted/50 transition"
+            <div className="text-center text-[10px] text-muted-foreground">
+              보유 티켓: {tickets}장 · 최대 10표
+            </div>
+            <Button
+              onClick={handleBet}
+              disabled={submitting || betAmount > tickets}
+              className="w-full font-bold text-sm"
+              style={{
+                background: "linear-gradient(135deg, hsl(var(--neon-purple)), hsl(var(--primary)))",
+                boxShadow: "0 0 20px hsl(var(--neon-purple) / 0.4)",
+              }}
             >
-              <Plus className="w-4 h-4" />
-            </button>
+              {submitting ? "처리 중..." : `🎯 ${betAmount}표 베팅하기`}
+            </Button>
           </div>
-          <div className="text-center text-[10px] text-muted-foreground">
-            보유 티켓: {tickets}장 · 최대 10표
-          </div>
-          <Button
-            onClick={handleBet}
-            disabled={submitting || betAmount > tickets}
-            className="w-full font-bold text-sm"
-            style={{
-              background: "linear-gradient(135deg, hsl(var(--neon-purple)), hsl(var(--primary)))",
-              boxShadow: "0 0 20px hsl(var(--neon-purple) / 0.4)",
-            }}
-          >
-            {submitting ? "처리 중..." : `🎯 ${betAmount}표 베팅하기`}
-          </Button>
-        </div>
+        ) : (
+          <p className="text-[10px] text-center text-muted-foreground">
+            티켓 베팅 기능은 현재 비활성화되어 있습니다.
+          </p>
+        )
       ) : (
         <p className="text-[10px] text-center text-muted-foreground">
           크리에이터를 선택하고 베팅하세요! 💰

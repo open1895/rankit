@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTickets } from "@/hooks/useTickets";
 import { useLoginStreak } from "@/hooks/useLoginStreak";
+import { FEATURES } from "@/config/features";
 
 import SEOHead from "@/components/SEOHead";
 import EarlyAdopterBadge from "@/components/EarlyAdopterBadge";
@@ -712,41 +713,43 @@ const MyPage = () => {
             );
           })()}
 
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Ticket className="w-4 h-4 text-neon-purple" />
-              <span className="text-xs font-bold">내 티켓 🎫</span>
+          {FEATURES.ENABLE_PAYMENT && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Ticket className="w-4 h-4 text-neon-purple" />
+                <span className="text-xs font-bold">내 티켓 🎫</span>
+              </div>
+              <div className="glass-sm p-4 text-center space-y-1 relative overflow-hidden">
+                <div className="text-3xl font-black gradient-text neon-text-purple">
+                  {tickets.toLocaleString()}
+                </div>
+                <div className="text-[11px] text-muted-foreground">보유 티켓</div>
+                <div className="text-[10px] text-muted-foreground mt-1">
+                  불꽃투표(5장) · 익명글(2장) · 응원강조(3장)
+                </div>
+              </div>
+              {ticketHistory.length > 0 && (
+                <div className="space-y-1">
+                  <div className="text-[11px] font-bold text-muted-foreground px-1">최근 사용 내역</div>
+                  {ticketHistory.map((tx: any) => (
+                    <div key={tx.id} className="glass-sm px-3 py-2 flex items-center justify-between text-[11px]">
+                      <span className="text-foreground">{tx.description || tx.type}</span>
+                      <span className={tx.amount > 0 ? "text-green-400 font-bold" : "text-destructive font-bold"}>
+                        {tx.amount > 0 ? "+" : ""}{tx.amount}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Button
+                onClick={() => navigate("/recharge")}
+                className="w-full min-h-[44px] bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white font-bold rounded-xl shadow-[0_0_16px_rgba(168,85,247,0.4)] gap-2"
+              >
+                <Zap className="w-4 h-4" />
+                무료 충전소 바로가기
+              </Button>
             </div>
-            <div className="glass-sm p-4 text-center space-y-1 relative overflow-hidden">
-              <div className="text-3xl font-black gradient-text neon-text-purple">
-                {tickets.toLocaleString()}
-              </div>
-              <div className="text-[11px] text-muted-foreground">보유 티켓</div>
-              <div className="text-[10px] text-muted-foreground mt-1">
-                불꽃투표(5장) · 익명글(2장) · 응원강조(3장)
-              </div>
-            </div>
-            {ticketHistory.length > 0 && (
-              <div className="space-y-1">
-                <div className="text-[11px] font-bold text-muted-foreground px-1">최근 사용 내역</div>
-                {ticketHistory.map((tx: any) => (
-                  <div key={tx.id} className="glass-sm px-3 py-2 flex items-center justify-between text-[11px]">
-                    <span className="text-foreground">{tx.description || tx.type}</span>
-                    <span className={tx.amount > 0 ? "text-green-400 font-bold" : "text-destructive font-bold"}>
-                      {tx.amount > 0 ? "+" : ""}{tx.amount}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-            <Button
-              onClick={() => navigate("/recharge")}
-              className="w-full min-h-[44px] bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white font-bold rounded-xl shadow-[0_0_16px_rgba(168,85,247,0.4)] gap-2"
-            >
-              <Zap className="w-4 h-4" />
-              무료 충전소 바로가기
-            </Button>
-          </div>
+          )}
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -831,66 +834,68 @@ const MyPage = () => {
             </button>
 
             {/* RP → Ticket Conversion */}
-            <div className="glass-sm p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="text-xs font-bold flex items-center gap-1.5">
-                  <Ticket className="w-3.5 h-3.5 text-primary" />
-                  RP → 투표 티켓 전환
+            {FEATURES.ENABLE_PAYMENT && (
+              <div className="glass-sm p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-bold flex items-center gap-1.5">
+                    <Ticket className="w-3.5 h-3.5 text-primary" />
+                    RP → 투표 티켓 전환
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">10 RP = 1 티켓</span>
                 </div>
-                <span className="text-[10px] text-muted-foreground">10 RP = 1 티켓</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 flex-1">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 flex-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 w-8 p-0"
+                      onClick={() => setConvertCount(Math.max(1, convertCount - 1))}
+                      disabled={convertCount <= 1}
+                    >-</Button>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={Math.floor(pointBalance / 10)}
+                      value={convertCount}
+                      onChange={(e) => setConvertCount(Math.max(1, Math.min(Math.floor(pointBalance / 10) || 1, parseInt(e.target.value) || 1)))}
+                      className="h-8 text-center text-sm font-bold w-16"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 w-8 p-0"
+                      onClick={() => setConvertCount(Math.min(Math.floor(pointBalance / 10) || 1, convertCount + 1))}
+                      disabled={convertCount >= Math.floor(pointBalance / 10)}
+                    >+</Button>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">장 ({convertCount * 10} RP)</span>
+                  </div>
                   <Button
                     size="sm"
-                    variant="outline"
-                    className="h-8 w-8 p-0"
-                    onClick={() => setConvertCount(Math.max(1, convertCount - 1))}
-                    disabled={convertCount <= 1}
-                  >-</Button>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={Math.floor(pointBalance / 10)}
-                    value={convertCount}
-                    onChange={(e) => setConvertCount(Math.max(1, Math.min(Math.floor(pointBalance / 10) || 1, parseInt(e.target.value) || 1)))}
-                    className="h-8 text-center text-sm font-bold w-16"
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 w-8 p-0"
-                    onClick={() => setConvertCount(Math.min(Math.floor(pointBalance / 10) || 1, convertCount + 1))}
-                    disabled={convertCount >= Math.floor(pointBalance / 10)}
-                  >+</Button>
-                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">장 ({convertCount * 10} RP)</span>
+                    disabled={converting || pointBalance < convertCount * 10}
+                    onClick={async () => {
+                      setConverting(true);
+                      try {
+                        const { data, error } = await supabase.functions.invoke("points", {
+                          body: { action: "convert_to_ticket", amount: convertCount },
+                        });
+                        if (error) throw error;
+                        if (data?.error) throw new Error(data.error);
+                        setPointBalance(data.new_balance);
+                        toast.success(`🎫 티켓 ${data.tickets_gained}장 전환 완료! (-${data.rp_spent} RP)`);
+                        setConvertCount(1);
+                      } catch (e: any) {
+                        toast.error(e.message || "전환 실패");
+                      } finally {
+                        setConverting(false);
+                      }
+                    }}
+                    className="h-8 text-xs font-bold whitespace-nowrap"
+                  >
+                    {converting ? "..." : "전환"}
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  disabled={converting || pointBalance < convertCount * 10}
-                  onClick={async () => {
-                    setConverting(true);
-                    try {
-                      const { data, error } = await supabase.functions.invoke("points", {
-                        body: { action: "convert_to_ticket", amount: convertCount },
-                      });
-                      if (error) throw error;
-                      if (data?.error) throw new Error(data.error);
-                      setPointBalance(data.new_balance);
-                      toast.success(`🎫 티켓 ${data.tickets_gained}장 전환 완료! (-${data.rp_spent} RP)`);
-                      setConvertCount(1);
-                    } catch (e: any) {
-                      toast.error(e.message || "전환 실패");
-                    } finally {
-                      setConverting(false);
-                    }
-                  }}
-                  className="h-8 text-xs font-bold whitespace-nowrap"
-                >
-                  {converting ? "..." : "전환"}
-                </Button>
               </div>
-            </div>
+            )}
           </div>
 
           <RPChargeModal open={showRPCharge} onOpenChange={setShowRPCharge} />

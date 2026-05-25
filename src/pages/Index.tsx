@@ -48,6 +48,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { highlightMatch } from "@/lib/highlight";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FEATURES } from "@/config/features";
 
 type SortBy = "rank" | "votes" | "score" | "new";
 type SubscriberFilter = "all" | "10k" | "100k" | "1m";
@@ -601,19 +602,21 @@ const Index = () => {
               <Search className="w-[18px] h-[18px] text-muted-foreground" />
             </button>
             <div className="w-px h-5 bg-border/40" />
-            <Link
-              to={user ? "/rewards" : "/auth"}
-              className="flex items-center gap-1 px-1.5 py-1.5 rounded-full text-xs font-bold hover:scale-105 transition-transform"
-              style={{
-                background: "hsl(var(--neon-purple) / 0.12)",
-                color: "hsl(var(--primary))",
-              }}
-              aria-label="투표권"
-            >
-              <Ticket className="w-3.5 h-3.5" />
-              <span className="font-bold leading-none">{user ? tickets : remainingVotes}</span>
-            </Link>
-            <div className="w-px h-5 bg-border/40" />
+            {FEATURES.ENABLE_PAYMENT && (
+              <Link
+                to={user ? "/rewards" : "/auth"}
+                className="flex items-center gap-1 px-1.5 py-1.5 rounded-full text-xs font-bold hover:scale-105 transition-transform"
+                style={{
+                  background: "hsl(var(--neon-purple) / 0.12)",
+                  color: "hsl(var(--primary))",
+                }}
+                aria-label="투표권"
+              >
+                <Ticket className="w-3.5 h-3.5" />
+                <span className="font-bold leading-none">{user ? tickets : remainingVotes}</span>
+              </Link>
+            )}
+            {FEATURES.ENABLE_PAYMENT && <div className="w-px h-5 bg-border/40" />}
             {user ? (
               <Link to="/mypage" className="p-1.5 hover:bg-muted/50 transition rounded-full flex items-center justify-center">
                 <User className="w-[18px] h-[18px] text-muted-foreground" />
@@ -1106,7 +1109,9 @@ const Index = () => {
 
       {/* Modals */}
       <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
-      <TicketEmptyDialog open={ticketEmptyOpen} onOpenChange={setTicketEmptyOpen} />
+      {FEATURES.ENABLE_PAYMENT && (
+        <TicketEmptyDialog open={ticketEmptyOpen} onOpenChange={setTicketEmptyOpen} />
+      )}
       </Suspense>
       </>
     </div>
