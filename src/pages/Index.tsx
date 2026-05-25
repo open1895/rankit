@@ -1109,7 +1109,9 @@ const Index = () => {
 
       {/* Modals */}
       <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
-      <TicketEmptyDialog open={ticketEmptyOpen} onOpenChange={setTicketEmptyOpen} />
+      {FEATURES.ENABLE_PAYMENT && (
+        <TicketEmptyDialog open={ticketEmptyOpen} onOpenChange={setTicketEmptyOpen} />
+      )}
       </Suspense>
       </>
     </div>
