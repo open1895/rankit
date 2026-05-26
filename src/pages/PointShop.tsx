@@ -278,6 +278,8 @@ const PointShop = () => {
             해당 카테고리의 상품이 없습니다.
           </div>
         )}
+          </>
+        )}
       </main>
       <Footer />
     </div>
