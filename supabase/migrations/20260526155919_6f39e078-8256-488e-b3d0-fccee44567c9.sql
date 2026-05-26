@@ -1,0 +1,1 @@
+UPDATE public.creators SET avatar_url = 'https://yt3.googleusercontent.com/VZjuFcIgiJydrhIPzcRBb58GD5VkJHAM1-okwgqHxNlIgz4aKNV5dgrTH8QWu9Uc6g5OWwazG7E=s900-c-k-c0x00ffffff-no-rj', youtube_channel_id = 'UCqsPmfRMm0AGTF3mw1VtCnw' WHERE id = 'd1ac2030-8de9-4c7d-8878-32c6be7a96f5';
