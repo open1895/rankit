@@ -230,10 +230,11 @@ Deno.serve(async (req) => {
 
         const { error: pErr } = await supabase.from("tournament_participants").insert(participantInserts);
         if (pErr) {
+          console.error("tournament participants insert failed:", pErr);
           await supabase.from("tournament_logs").insert({
             tournament_id: tournament.id,
             log_type: "error",
-            message: `참가자 등록 실패: ${pErr.message}`,
+            message: `참가자 등록 실패`,
           });
         }
 
@@ -254,14 +255,15 @@ Deno.serve(async (req) => {
 
         const { error: mErr } = await supabase.from("tournament_matches").insert(matchInserts);
         if (mErr) {
+          console.error("tournament matches insert failed:", mErr);
           // Rollback: set to draft if matches fail
           await supabase.from("tournaments").update({ status: "draft", is_active: false }).eq("id", tournament.id);
           await supabase.from("tournament_logs").insert({
             tournament_id: tournament.id,
             log_type: "error",
-            message: `매치 생성 실패, draft로 전환: ${mErr.message}`,
+            message: `매치 생성 실패, draft로 전환`,
           });
-          results.push({ category, error: mErr.message });
+          results.push({ category, error: "match insert failed" });
           continue;
         }
 
@@ -304,7 +306,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: true, message: (e as Error).message }), {
+    console.error("generate-weekly-tournaments error:", e);
+    return new Response(JSON.stringify({ error: true, message: "Internal error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

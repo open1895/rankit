@@ -77,13 +77,15 @@ export function buildItem(opts: {
     </item>`;
 }
 
-export function errorResponse(message: string, status = 500): Response {
+export function errorResponse(_message?: string, status = 500): Response {
+  // Never echo caller-supplied messages to the public RSS response.
+  if (_message) console.error("RSS error:", _message);
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Rankit RSS Error</title>
     <link>${SITE_URL}</link>
-    <description>${escapeXml(message)}</description>
+    <description>RSS generation failed</description>
     <language>ko</language>
     <lastBuildDate>${toRFC822(new Date())}</lastBuildDate>
   </channel>

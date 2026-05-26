@@ -445,7 +445,8 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), {
+    console.error("points function error:", err);
+    return new Response(JSON.stringify({ error: "서버 오류가 발생했습니다." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
