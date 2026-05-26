@@ -776,15 +776,17 @@ const MyPage = () => {
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                onClick={() => setShowRPCharge(true)}
-                className="min-h-[44px] bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground font-bold rounded-xl shadow-[0_0_16px_rgba(168,85,247,0.3)] gap-1.5"
-              >
-                <Zap className="w-4 h-4" />
-                ⚡ RP 충전
-              </Button>
-            </div>
+            {FEATURES.ENABLE_PAYMENT && (
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={() => setShowRPCharge(true)}
+                  className="min-h-[44px] bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-primary-foreground font-bold rounded-xl shadow-[0_0_16px_rgba(168,85,247,0.3)] gap-1.5"
+                >
+                  <Zap className="w-4 h-4" />
+                  ⚡ RP 충전
+                </Button>
+              </div>
+            )}
             {/* Ad reward button */}
             <button
               onClick={handleWatchAd}
