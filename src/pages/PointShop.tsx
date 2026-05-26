@@ -43,11 +43,13 @@ const categoryLabels: Record<string, { label: string; icon: React.ReactNode }> =
 const PointShop = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { claimedToday, claimStreak } = useLoginStreak();
   const [items, setItems] = useState<ShopItem[]>([]);
   const [balance, setBalance] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [claiming, setClaiming] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
