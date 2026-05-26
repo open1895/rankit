@@ -955,6 +955,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: corsHeaders });
 
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
+    console.error("Admin function error:", err);
+    return new Response(JSON.stringify({ error: "An internal error occurred." }), { status: 500, headers: corsHeaders });
   }
 });

@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
     );
   } catch (err) {
     console.error("daily-matchup-vote error:", err);
-    return new Response(JSON.stringify({ error: String(err) }), {
+    return new Response(JSON.stringify({ error: "서버 오류가 발생했습니다." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
