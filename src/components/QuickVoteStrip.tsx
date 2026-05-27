@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { getCreatorAvatarUrl, avatarOnError } from "@/lib/creatorAvatar";
 
 /**
  * QuickVoteStrip
@@ -158,7 +159,6 @@ export default function QuickVoteStrip() {
                       loading="lazy"
                       onError={(e) => avatarOnError(e, c)}
                     />
-                  </div>
                     <span className="absolute -top-1 -left-1 text-[9px] font-black bg-amber-400 text-black rounded-full w-5 h-5 flex items-center justify-center">
                       {c.rank}
                     </span>
