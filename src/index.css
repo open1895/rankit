@@ -139,6 +139,17 @@
   }
 }
 
+html, body {
+  background-color: hsl(var(--background));
+  min-height: 100vh;
+}
+
+.scroll-container {
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-overflow-scrolling: touch;
+}
+
 @layer utilities {
   .glass {
     @apply backdrop-blur-xl border rounded-2xl;
