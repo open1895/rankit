@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { getCreatorAvatarUrl, avatarOnError } from "@/lib/creatorAvatar";
 
 /**
  * QuickVoteStrip
@@ -13,7 +14,7 @@ import { toast } from "sonner";
  *  - 하단: 오늘 투표 진행률 (목표 3회)
  */
 
-type Item = { id: string; name: string; avatar_url: string | null; rank: number };
+type Item = { id: string; name: string; avatar_url: string | null; rank: number; youtube_channel_id: string | null };
 
 const DAY_KEY = () => {
   const d = new Date();
@@ -47,7 +48,7 @@ export default function QuickVoteStrip() {
     (async () => {
       const { data } = await supabase
         .from("creators_public")
-        .select("id, name, avatar_url, rank")
+        .select("id, name, avatar_url, rank, youtube_channel_id")
         .order("rank", { ascending: true })
         .limit(10);
       if (!alive) return;
@@ -151,18 +152,13 @@ export default function QuickVoteStrip() {
                   className="min-w-[80px] max-w-[80px] glass-sm rounded-2xl p-3 cursor-pointer flex flex-col items-center gap-1.5 active:scale-95 transition-transform disabled:opacity-60"
                 >
                   <div className="relative">
-                    {c.avatar_url?.startsWith("http") || c.avatar_url?.startsWith("/") ? (
-                      <img
-                        src={c.avatar_url}
-                        alt={c.name}
-                        className="w-12 h-12 rounded-full object-cover ring-1 ring-border/50"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-[11px] font-bold text-primary-foreground">
-                        {c.name.slice(0, 2)}
-                      </div>
-                    )}
+                    <img
+                      src={getCreatorAvatarUrl(c)}
+                      alt={c.name}
+                      className="w-12 h-12 rounded-full object-cover ring-1 ring-border/50 bg-muted"
+                      loading="lazy"
+                      onError={(e) => avatarOnError(e, c)}
+                    />
                     <span className="absolute -top-1 -left-1 text-[9px] font-black bg-amber-400 text-black rounded-full w-5 h-5 flex items-center justify-center">
                       {c.rank}
                     </span>

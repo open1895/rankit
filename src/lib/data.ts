@@ -14,6 +14,7 @@ export interface Creator {
   tiktok_followers: number;
   rankit_score: number;
   last_stats_updated?: string | null;
+  youtube_channel_id?: string | null;
 }
 
 export interface VoteEvent {

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Flame, TrendingUp, Zap, ChevronRight, AlertTriangle } from "lucide-react";
 import { Creator } from "@/lib/data";
+import { getCreatorAvatarUrl, avatarOnError } from "@/lib/creatorAvatar";
 
 interface HeroSectionProps {
   creators: Creator[];
@@ -66,13 +67,7 @@ const HeroSection = ({ creators }: HeroSectionProps) => {
           {/* Rank 1 */}
           <Link to={`/creator/${rank1.id}`} className="flex flex-col items-center gap-1.5 flex-1 cursor-pointer active:scale-95 transition-transform">
             <span className="text-[10px] text-yellow-400 font-bold">👑 1위</span>
-            {(rank1.avatar_url?.startsWith("http") || rank1.avatar_url?.startsWith("/")) ? (
-              <img src={rank1.avatar_url} alt={rank1.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-yellow-400/60" loading="eager" decoding="async" fetchPriority="high" width={48} height={48} />
-            ) : (
-              <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground ring-2 ring-yellow-400/60">
-                {rank1.name.slice(0, 2)}
-              </div>
-            )}
+            <img src={getCreatorAvatarUrl(rank1)} alt={rank1.name} onError={(e) => avatarOnError(e, rank1)} className="w-12 h-12 rounded-full object-cover ring-2 ring-yellow-400/60 bg-muted" loading="eager" decoding="async" fetchPriority="high" width={48} height={48} />
             <span className="text-xs font-bold text-foreground truncate max-w-[80px]">{rank1.name}</span>
             <span className="text-[10px] text-neon-purple font-semibold">{rank1.votes_count.toLocaleString()}표</span>
           </Link>
@@ -110,13 +105,7 @@ const HeroSection = ({ creators }: HeroSectionProps) => {
           {/* Rank 2 */}
           <Link to={`/creator/${rank2.id}`} className="flex flex-col items-center gap-1.5 flex-1 cursor-pointer active:scale-95 transition-transform">
             <span className="text-[10px] text-slate-300 font-bold">🥈 2위</span>
-            {(rank2.avatar_url?.startsWith("http") || rank2.avatar_url?.startsWith("/")) ? (
-              <img src={rank2.avatar_url} alt={rank2.name} className="w-12 h-12 rounded-full object-cover ring-2 ring-slate-400/60" loading="eager" decoding="async" fetchPriority="high" width={48} height={48} />
-            ) : (
-              <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground ring-2 ring-slate-400/60">
-                {rank2.name.slice(0, 2)}
-              </div>
-            )}
+            <img src={getCreatorAvatarUrl(rank2)} alt={rank2.name} onError={(e) => avatarOnError(e, rank2)} className="w-12 h-12 rounded-full object-cover ring-2 ring-slate-400/60 bg-muted" loading="eager" decoding="async" fetchPriority="high" width={48} height={48} />
             <span className="text-xs font-bold text-foreground truncate max-w-[80px]">{rank2.name}</span>
             <span className="text-[10px] text-neon-cyan font-semibold">{rank2.votes_count.toLocaleString()}표</span>
           </Link>

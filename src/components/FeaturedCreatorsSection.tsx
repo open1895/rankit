@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Star, Crown, Medal, Award, Trophy } from "lucide-react";
+import { getCreatorAvatarUrl, avatarOnError } from "@/lib/creatorAvatar";
 
 interface FeaturedCreator {
   id: string;
@@ -12,6 +13,7 @@ interface FeaturedCreator {
   performance_tier?: string;
   featured_until?: string | null;
   source: "promotion" | "performance";
+  youtube_channel_id?: string | null;
 }
 
 const tierStyle: Record<string, { ring: string; badge: string; icon: typeof Crown; label: string }> = {
@@ -31,7 +33,7 @@ const FeaturedCreatorsSection = () => {
       // 1. Promotion-based featured
       const { data: promoData } = await supabase
         .from("creators")
-        .select("id, name, avatar_url, category, rank")
+        .select("id, name, avatar_url, category, rank, youtube_channel_id")
         .eq("is_promoted", true)
         .in("promotion_type", ["featured", "homepage"])
         .gt("promotion_end", now)
@@ -42,7 +44,7 @@ const FeaturedCreatorsSection = () => {
       // 2. Performance-based featured (featured_until > now)
       const { data: perfData } = await supabase
         .from("creators")
-        .select("id, name, avatar_url, category, rank, performance_tier, featured_until")
+        .select("id, name, avatar_url, category, rank, performance_tier, featured_until, youtube_channel_id")
         .gt("featured_until", now)
         .neq("performance_tier", "none")
         .order("rank", { ascending: true })
@@ -107,17 +109,12 @@ const FeaturedCreatorsSection = () => {
                   )}
 
                   <div className="relative mt-1">
-                    {creator.avatar_url ? (
-                      <img
-                        src={creator.avatar_url}
-                        alt={creator.name}
-                        className={`w-14 h-14 rounded-full object-cover ring-2 ${tier ? tier.ring : "ring-yellow-500/30"}`}
-                      />
-                    ) : (
-                      <div className="w-14 h-14 rounded-full gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground">
-                        {creator.name.slice(0, 2)}
-                      </div>
-                    )}
+                    <img
+                      src={getCreatorAvatarUrl(creator)}
+                      alt={creator.name}
+                      onError={(e) => avatarOnError(e, creator)}
+                      className={`w-14 h-14 rounded-full object-cover bg-muted ring-2 ${tier ? tier.ring : "ring-yellow-500/30"}`}
+                    />
                     {!tier && (
                       <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center">
                         <Star className="w-3 h-3 text-background" />
