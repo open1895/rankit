@@ -341,6 +341,7 @@ const Index = () => {
       tiktok_followers: c.tiktok_followers ?? 0,
       rankit_score: c.rankit_score ?? 0,
       last_stats_updated: c.last_stats_updated ?? null,
+      youtube_channel_id: c.youtube_channel_id ?? null,
     }));
 
     setCreators((prev) => (append ? [...prev, ...mapped] : mapped));
@@ -378,7 +379,7 @@ const Index = () => {
     (async () => {
       const { data } = await supabase
         .from("creators_public")
-        .select("id, name, category, avatar_url, votes_count, subscriber_count, rank, is_verified, rankit_score")
+        .select("id, name, category, avatar_url, votes_count, subscriber_count, rank, is_verified, rankit_score, youtube_channel_id")
         .ilike("name", `%${firstChar}%`)
         .order("rank", { ascending: true })
         .limit(3);
@@ -399,6 +400,7 @@ const Index = () => {
         tiktok_followers: 0,
         rankit_score: c.rankit_score ?? 0,
         last_stats_updated: null,
+        youtube_channel_id: c.youtube_channel_id ?? null,
       }));
       setSimilarCreators(mapped);
     })();
