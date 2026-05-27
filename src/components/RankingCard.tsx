@@ -16,6 +16,7 @@ import CelebrationEffect from "./CelebrationEffect";
 import { toast } from "sonner";
 import { FEATURES } from "@/config/features";
 import { highlightMatch } from "@/lib/highlight";
+import { getCreatorAvatarUrl, avatarOnError } from "@/lib/creatorAvatar";
 
 interface RankingCardProps {
   creator: Creator;
@@ -173,7 +174,8 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
     ? "rank-bronze"
     : "text-muted-foreground";
 
-  const isImageUrl = creator.avatar_url?.startsWith("http") || creator.avatar_url?.startsWith("/");
+  const hasYoutubeFallback = !!creator.youtube_channel_id;
+  const isImageUrl = creator.avatar_url?.startsWith("http") || creator.avatar_url?.startsWith("/") || hasYoutubeFallback;
   const initials = (!isImageUrl && creator.avatar_url) || creator.name.slice(0, 2);
   const isTop3 = creator.rank <= 3;
 
@@ -221,11 +223,12 @@ const RankingCard = memo(({ creator, creators, onVote, onBonusVote, hasVoted = f
         <div className="relative shrink-0">
           {isImageUrl ? (
             <img
-              src={creator.avatar_url}
+              src={getCreatorAvatarUrl(creator)}
               alt={creator.name}
               loading="lazy"
               decoding="async"
-              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover transition-transform duration-300 group-hover:scale-105 ${
+              onError={(e) => avatarOnError(e, creator)}
+              className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover bg-muted transition-transform duration-300 group-hover:scale-105 ${
                 isTop3 ? "ring-2 ring-primary shadow-lg shadow-primary/30" : ""
               }`}
             />
