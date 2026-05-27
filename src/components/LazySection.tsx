@@ -12,7 +12,15 @@ interface LazySectionProps {
  * Wraps children in its own Suspense boundary so a lazy() chunk loading
  * here doesn't unmount sibling sections (which causes scroll jumps).
  */
-const LazySection = ({ children, rootMargin = "200px", fallback = null }: LazySectionProps) => {
+const DefaultFallback = () => (
+  <div
+    aria-hidden="true"
+    style={{ minHeight: 200 }}
+    className="bg-background"
+  />
+);
+
+const LazySection = ({ children, rootMargin = "200px", fallback }: LazySectionProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -34,9 +42,11 @@ const LazySection = ({ children, rootMargin = "200px", fallback = null }: LazySe
     return () => observer.disconnect();
   }, [rootMargin]);
 
+  const fb = fallback ?? <DefaultFallback />;
+
   return (
-    <div ref={ref}>
-      {mounted ? <Suspense fallback={fallback}>{children}</Suspense> : fallback}
+    <div ref={ref} className="bg-background">
+      {mounted ? <Suspense fallback={fb}>{children}</Suspense> : fb}
     </div>
   );
 };
