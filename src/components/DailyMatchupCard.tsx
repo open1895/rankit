@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Swords, Clock, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { getCreatorAvatarUrl, avatarOnError } from "@/lib/creatorAvatar";
 
 interface MatchupData {
   id: string;
@@ -21,6 +22,7 @@ interface CreatorMini {
   name: string;
   avatar_url: string;
   category: string;
+  youtube_channel_id?: string | null;
 }
 
 function getKstNow() {
@@ -66,7 +68,7 @@ export default function DailyMatchupCard() {
 
       const { data: cs } = await supabase
         .from("creators")
-        .select("id, name, avatar_url, category")
+        .select("id, name, avatar_url, category, youtube_channel_id")
         .in("id", [m.creator_a_id, m.creator_b_id]);
       if (cancelled) return;
       const a = (cs || []).find((c: any) => c.id === m.creator_a_id) as any;
@@ -185,7 +187,7 @@ export default function DailyMatchupCard() {
               } ${votedFor && votedFor !== creatorA.id ? "opacity-50" : ""}`}
             >
               <Avatar className="w-14 h-14 ring-2 ring-white/50">
-                <AvatarImage src={creatorA.avatar_url} alt={creatorA.name} />
+                <AvatarImage src={getCreatorAvatarUrl(creatorA)} alt={creatorA.name} onError={(e) => avatarOnError(e, creatorA)} />
                 <AvatarFallback>{creatorA.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <span className="text-xs font-bold truncate max-w-[80px]">{creatorA.name}</span>
@@ -202,7 +204,7 @@ export default function DailyMatchupCard() {
               } ${votedFor && votedFor !== creatorB.id ? "opacity-50" : ""}`}
             >
               <Avatar className="w-14 h-14 ring-2 ring-white/50">
-                <AvatarImage src={creatorB.avatar_url} alt={creatorB.name} />
+                <AvatarImage src={getCreatorAvatarUrl(creatorB)} alt={creatorB.name} onError={(e) => avatarOnError(e, creatorB)} />
                 <AvatarFallback>{creatorB.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <span className="text-xs font-bold truncate max-w-[80px]">{creatorB.name}</span>
