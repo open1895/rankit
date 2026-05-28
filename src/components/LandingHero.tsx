@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { TrendingUp, Heart, Users, Vote, UserCheck, Star, Shield, Zap, ArrowRight, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -207,6 +207,18 @@ const LandingHero = () => {
                 랭킹 보기
               </Button>
             </motion.div>
+          </motion.div>
+
+          {/* Community shortcut */}
+          <motion.div variants={fadeUp}>
+            <button
+              onClick={() => navigate('/community')}
+              className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+            >
+              <span>💬</span>
+              <span>커뮤니티 보기</span>
+              <span className="text-xs">→</span>
+            </button>
           </motion.div>
 
           {/* Scroll indicator */}
