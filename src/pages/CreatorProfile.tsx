@@ -551,7 +551,7 @@ const CreatorProfile = () => {
               {useSuperVote ? <span>⚡</span> : <Heart className="w-4 h-4" />}
               {hasVotedToday ? "오늘 투표 완료 ✓" : useSuperVote ? "슈퍼투표 ×3" : "투표하기"}
             </Button>
-            <Button onClick={() => setShowShare(true)} variant="outline" className="h-11 px-3 rounded-xl glass-sm border-glass-border">
+            <Button onClick={() => setShowShare(true)} variant="outline" className="h-11 px-3 rounded-xl glass-sm border-glass-border" aria-label="공유하기">
               <Share2 className="w-4 h-4" />
             </Button>
            <button onClick={() => setShowFanCert(true)} className="h-11 px-3 rounded-xl glass-sm border border-primary/20 hover:border-primary/40 transition-colors flex items-center">
