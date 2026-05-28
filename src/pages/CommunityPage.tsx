@@ -213,12 +213,14 @@ const ImageCarousel = ({ images, className = "" }: { images: string[]; className
           <button
             onClick={(e) => { e.stopPropagation(); setCurrent((c) => (c - 1 + images.length) % images.length); }}
             className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors"
+            aria-label="이전 이미지"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); setCurrent((c) => (c + 1) % images.length); }}
             className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-colors"
+            aria-label="다음 이미지"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -228,6 +230,7 @@ const ImageCarousel = ({ images, className = "" }: { images: string[]; className
                 key={i}
                 onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
                 className={`w-2 h-2 rounded-full transition-all ${i === current ? "bg-white w-5" : "bg-white/40"}`}
+                aria-label={`이미지 ${i + 1}로 이동`}
               />
             ))}
           </div>

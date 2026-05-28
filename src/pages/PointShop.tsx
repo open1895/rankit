@@ -116,7 +116,7 @@ const PointShop = () => {
           </button>
           <div className="flex items-center gap-2 flex-1">
             <ShoppingBag className="w-5 h-5 text-neon-purple" />
-            <span className="text-lg font-bold gradient-text">보상 센터</span>
+            <h1 className="text-lg font-bold gradient-text">보상 센터</h1>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-sm">

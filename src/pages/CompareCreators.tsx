@@ -169,7 +169,7 @@ const CompareCreators = () => {
             </button>
             <div className="flex items-center gap-2">
               <GitCompareArrows className="w-5 h-5 text-neon-purple" />
-              <span className="text-lg font-bold gradient-text">크리에이터 비교</span>
+              <h1 className="text-lg font-bold gradient-text">크리에이터 비교</h1>
             </div>
           </div>
           

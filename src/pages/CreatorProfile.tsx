@@ -437,7 +437,7 @@ const CreatorProfile = () => {
             {/* Avatar */}
             <div className="relative shrink-0">
               {isEditing ? (
-                <button type="button" onClick={() => avatarInputRef.current?.click()} className="relative group">
+                <button type="button" onClick={() => avatarInputRef.current?.click()} className="relative group" aria-label="프로필 사진 변경">
                   {(avatarPreview || creator.avatar_url) ? (
                     <img src={avatarPreview || creator.avatar_url} alt={creator.name} className="w-20 h-20 rounded-full object-cover ring-3 ring-primary/30 ring-offset-2 ring-offset-background" />
                   ) : (
@@ -551,7 +551,7 @@ const CreatorProfile = () => {
               {useSuperVote ? <span>⚡</span> : <Heart className="w-4 h-4" />}
               {hasVotedToday ? "오늘 투표 완료 ✓" : useSuperVote ? "슈퍼투표 ×3" : "투표하기"}
             </Button>
-            <Button onClick={() => setShowShare(true)} variant="outline" className="h-11 px-3 rounded-xl glass-sm border-glass-border">
+            <Button onClick={() => setShowShare(true)} variant="outline" className="h-11 px-3 rounded-xl glass-sm border-glass-border" aria-label="공유하기">
               <Share2 className="w-4 h-4" />
             </Button>
            <button onClick={() => setShowFanCert(true)} className="h-11 px-3 rounded-xl glass-sm border border-primary/20 hover:border-primary/40 transition-colors flex items-center">
