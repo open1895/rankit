@@ -94,6 +94,14 @@ const HomepageHero = () => {
           >
             실시간 랭킹 보기
           </button>
+          <button
+            onClick={() => navigate("/community")}
+            className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+          >
+            <span>💬</span>
+            <span>커뮤니티 보기</span>
+            <span className="text-xs">→</span>
+          </button>
         </div>
       </div>
     </section>
