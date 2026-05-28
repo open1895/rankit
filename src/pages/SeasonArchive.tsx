@@ -89,7 +89,7 @@ const SeasonArchive = () => {
             </button>
             <div className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-neon-purple" />
-              <span className="text-lg font-bold gradient-text">시즌 아카이브</span>
+              <h1 className="text-lg font-bold gradient-text">시즌 아카이브</h1>
             </div>
           </div>
         </div>
