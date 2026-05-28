@@ -88,6 +88,7 @@ const fadeUp = {
 };
 
 const LandingHero = () => {
+  const navigate = useNavigate();
   const [topCreators, setTopCreators] = useState<TopCreator[]>([]);
   const [stats, setStats] = useState({ creators: 0, votes: 0, users: 0 });
   const prefersReduced = useReducedMotion();
