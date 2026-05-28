@@ -437,7 +437,7 @@ const CreatorProfile = () => {
             {/* Avatar */}
             <div className="relative shrink-0">
               {isEditing ? (
-                <button type="button" onClick={() => avatarInputRef.current?.click()} className="relative group">
+                <button type="button" onClick={() => avatarInputRef.current?.click()} className="relative group" aria-label="프로필 사진 변경">
                   {(avatarPreview || creator.avatar_url) ? (
                     <img src={avatarPreview || creator.avatar_url} alt={creator.name} className="w-20 h-20 rounded-full object-cover ring-3 ring-primary/30 ring-offset-2 ring-offset-background" />
                   ) : (
