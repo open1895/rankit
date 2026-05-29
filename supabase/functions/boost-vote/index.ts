@@ -143,6 +143,7 @@ Deno.serve(async (req) => {
       remaining_boosts: remaining,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    console.error("boost-vote error:", e);
+    return new Response(JSON.stringify({ error: "요청을 처리할 수 없습니다." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

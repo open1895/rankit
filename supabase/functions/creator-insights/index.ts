@@ -256,7 +256,7 @@ Focus on actionable, specific insights using actual numbers. Include insights ab
   } catch (e) {
     console.error("creator-insights error:", e);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      JSON.stringify({ error: "요청을 처리할 수 없습니다." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

@@ -390,8 +390,9 @@ Deno.serve(async (req) => {
       }
     );
   } catch (err) {
+    console.error("season-rewards error:", err);
     return new Response(
-      JSON.stringify({ error: err.message || "Internal server error" }),
+      JSON.stringify({ error: "Internal server error" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
