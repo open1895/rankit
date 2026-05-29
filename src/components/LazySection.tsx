@@ -20,7 +20,7 @@ const DefaultFallback = () => (
   />
 );
 
-const LazySection = ({ children, rootMargin = "200px", fallback }: LazySectionProps) => {
+const LazySection = ({ children, rootMargin = "800px", fallback }: LazySectionProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
 
