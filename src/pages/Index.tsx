@@ -885,7 +885,6 @@ const Index = () => {
       )}
 
 
-      <Suspense fallback={null}>
       {/* ===== NEW HOMEPAGE STRUCTURE (engagement-first) =====
         순서: Hero → SocialProofTicker → QuickVoteStrip → GoldenTimeBanner
               → DailyMatchupCard → HomePredictionSection → RisingCreators
@@ -1114,7 +1113,6 @@ const Index = () => {
       {FEATURES.ENABLE_PAYMENT && (
         <TicketEmptyDialog open={ticketEmptyOpen} onOpenChange={setTicketEmptyOpen} />
       )}
-      </Suspense>
       </>
     </div>
   );
