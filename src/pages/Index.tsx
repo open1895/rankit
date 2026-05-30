@@ -20,11 +20,11 @@ import TopFandomWidget from "@/components/TopFandomWidget";
 import SocialProofTicker from "@/components/SocialProofTicker";
 import QuickVoteStrip from "@/components/QuickVoteStrip";
 import TicketEmptyDialog from "@/components/TicketEmptyDialog";
+import HomepageHero from "@/components/HomepageHero";
 
 // Lazy-load heavy sections
 const LiveFeed = lazy(() => import("@/components/LiveFeed"));
 const HeroSection = lazy(() => import("@/components/HeroSection"));
-const HomepageHero = lazy(() => import("@/components/HomepageHero"));
 const HomepageSections = lazy(() => import("@/components/HomepageSections"));
 const SocialProofCounters = lazy(() => import("@/components/SocialProofCounters"));
 const CreatorRecommendations = lazy(() => import("@/components/CreatorRecommendations"));
