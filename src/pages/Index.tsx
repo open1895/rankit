@@ -584,7 +584,9 @@ const Index = () => {
       />
 
       {/* Push Notification Prompt */}
-      <PushNotificationPrompt />
+      <Suspense fallback={null}>
+        <PushNotificationPrompt />
+      </Suspense>
 
       {/* 공개 정책: 모든 사용자에게 메인 화면 노출 (로그인은 투표/결제 등 개인 액션에서만 요구) */}
       <>
@@ -942,10 +944,14 @@ const Index = () => {
       </LazySection>
 
       {/* Section Cards (탐색 진입점) */}
-      <HomepageSections />
+      <Suspense fallback={null}>
+        <HomepageSections />
+      </Suspense>
 
       {/* 1.5. Social Proof Counters (요약 통계) */}
-      <SocialProofCounters />
+      <Suspense fallback={null}>
+        <SocialProofCounters />
+      </Suspense>
 
       {/* 4. Full Rankings */}
       <main className="container max-w-5xl mx-auto px-4 py-6 space-y-5">
@@ -1099,7 +1105,9 @@ const Index = () => {
       </LazySection>
 
       {/* 👑 This Week's Top Fandom */}
-      <TopFandomWidget />
+      <Suspense fallback={null}>
+        <TopFandomWidget />
+      </Suspense>
 
       {/* Live Feed */}
       <LazySection>
@@ -1109,7 +1117,9 @@ const Index = () => {
       <Footer />
 
       {/* Modals */}
-      <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
+      <Suspense fallback={null}>
+        <NewUserWelcome onGetFreeVotes={(count) => setExtraVotes((v) => v + count)} />
+      </Suspense>
       {FEATURES.ENABLE_PAYMENT && (
         <TicketEmptyDialog open={ticketEmptyOpen} onOpenChange={setTicketEmptyOpen} />
       )}
