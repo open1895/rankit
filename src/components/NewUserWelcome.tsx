@@ -5,6 +5,7 @@ const STORAGE_KEY = "rankit_tutorial_seen_v2";
 
 interface NewUserWelcomeProps {
   onGetFreeVotes?: (count: number) => void;
+  openOnFirstVisit?: boolean;
 }
 
 const STEPS = [
@@ -55,19 +56,21 @@ const STEPS = [
   },
 ];
 
-const NewUserWelcome = ({ onGetFreeVotes }: NewUserWelcomeProps) => {
+const NewUserWelcome = ({ onGetFreeVotes, openOnFirstVisit = false }: NewUserWelcomeProps) => {
   const [visible, setVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [animating, setAnimating] = useState(false);
   const [direction, setDirection] = useState<"next" | "prev">("next");
 
   useEffect(() => {
+    if (!openOnFirstVisit) return;
+
     const seen = localStorage.getItem(STORAGE_KEY);
     if (!seen) {
       const t = setTimeout(() => setVisible(true), 900);
       return () => clearTimeout(t);
     }
-  }, []);
+  }, [openOnFirstVisit]);
 
   const dismiss = () => {
     localStorage.setItem(STORAGE_KEY, "1");
