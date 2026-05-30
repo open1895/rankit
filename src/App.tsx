@@ -82,6 +82,7 @@ const App = () => (
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/index" element={<Navigate to="/" replace />} />
+                    <Route path="/ranking" element={<Navigate to="/#ranking-section" replace />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/auth/callback" element={<AuthCallback />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
