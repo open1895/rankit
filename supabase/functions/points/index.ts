@@ -410,19 +410,27 @@ Deno.serve(async (req) => {
       }
 
       const rpCost = count * 10;
-      const currentBalance = existing?.balance || 0;
 
-      if (currentBalance < rpCost) {
+      // Atomic RP deduction (prevents TOCTOU race condition)
+      const { data: newBalanceAfterConvert, error: convertDeductErr } = await supabaseAdmin.rpc("deduct_rp", {
+        p_user_id: user.id,
+        p_amount: rpCost,
+      });
+
+      if (convertDeductErr) {
+        console.error("deduct_rp error:", convertDeductErr);
+        return new Response(JSON.stringify({ error: "전환에 실패했습니다." }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (newBalanceAfterConvert === null) {
         return new Response(
-          JSON.stringify({ error: `RP가 부족합니다. (필요: ${rpCost} RP, 보유: ${currentBalance} RP)` }),
+          JSON.stringify({ error: `RP가 부족합니다. (필요: ${rpCost} RP)` }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-
-      await supabaseAdmin
-        .from("user_points")
-        .update({ balance: currentBalance - rpCost })
-        .eq("user_id", user.id);
 
       await supabaseAdmin.from("point_transactions").insert({
         user_id: user.id,
@@ -443,7 +451,8 @@ Deno.serve(async (req) => {
           success: true,
           tickets_gained: count,
           rp_spent: rpCost,
-          new_balance: currentBalance - rpCost,
+          new_balance: newBalanceAfterConvert,
+
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
