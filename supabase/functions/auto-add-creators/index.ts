@@ -28,6 +28,11 @@ const CATEGORIES = [
 
 const TARGET_PER_CATEGORY = 20;
 const SEARCH_BATCH_SIZE = 50;
+const MAX_SEARCH_REQUESTS_PER_RUN = 85;
+const PRIMARY_SEARCH_REQUEST_LIMIT = 5;
+const FALLBACK_SEARCH_REQUEST_LIMIT = 2;
+const SEARCH_PAGES_PER_VARIATION = 2;
+const SEARCH_ORDERS = ["date", "relevance"];
 const SEARCH_VARIATIONS = [
   "",
   " 인기",
@@ -60,34 +65,54 @@ interface YouTubeChannel {
   };
 }
 
+interface ChannelSearchResult {
+  channels: YouTubeChannel[];
+  nextPageToken?: string;
+  error?: string;
+}
+
 async function searchAndFetchChannels(
   query: string,
   apiKey: string,
-  maxResults: number = 25
-): Promise<YouTubeChannel[]> {
+  maxResults: number = 25,
+  pageToken?: string,
+  order: string = "relevance"
+): Promise<ChannelSearchResult> {
   // Step 1: Search for channels
-  const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(query)}&regionCode=KR&relevanceLanguage=ko&maxResults=${maxResults}&key=${apiKey}`;
-  const searchRes = await fetch(searchUrl);
+  const searchUrl = new URL("https://www.googleapis.com/youtube/v3/search");
+  searchUrl.searchParams.set("part", "snippet");
+  searchUrl.searchParams.set("type", "channel");
+  searchUrl.searchParams.set("q", query);
+  searchUrl.searchParams.set("regionCode", "KR");
+  searchUrl.searchParams.set("relevanceLanguage", "ko");
+  searchUrl.searchParams.set("maxResults", String(maxResults));
+  searchUrl.searchParams.set("order", order);
+  searchUrl.searchParams.set("key", apiKey);
+  if (pageToken) searchUrl.searchParams.set("pageToken", pageToken);
+
+  const searchRes = await fetch(searchUrl.toString());
   if (!searchRes.ok) {
-    console.error(`YouTube search error: ${searchRes.status} - ${await searchRes.text()}`);
-    return [];
+    const message = `YouTube search ${searchRes.status}`;
+    console.error(`${message} - ${await searchRes.text()}`);
+    return { channels: [], error: message };
   }
   const searchData = await searchRes.json();
   const channelIds = (searchData.items || [])
     .map((item: any) => item.snippet?.channelId || item.id?.channelId)
     .filter(Boolean);
 
-  if (channelIds.length === 0) return [];
+  if (channelIds.length === 0) return { channels: [], nextPageToken: searchData.nextPageToken };
 
   // Step 2: Get channel details with statistics
   const detailsUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelIds.join(",")}&key=${apiKey}`;
   const detailsRes = await fetch(detailsUrl);
   if (!detailsRes.ok) {
-    console.error(`YouTube channels error: ${detailsRes.status}`);
-    return [];
+    const message = `YouTube channels ${detailsRes.status}`;
+    console.error(message);
+    return { channels: [], nextPageToken: searchData.nextPageToken, error: message };
   }
   const detailsData = await detailsRes.json();
-  return detailsData.items || [];
+  return { channels: detailsData.items || [], nextPageToken: searchData.nextPageToken };
 }
 
 function uniqueChannels(channels: YouTubeChannel[]): YouTubeChannel[] {
@@ -104,22 +129,37 @@ async function gatherEligibleChannels(
   apiKey: string,
   existingIds: Set<string>,
   neededCount: number,
-  variations: string[] = SEARCH_VARIATIONS
+  variations: string[] = SEARCH_VARIATIONS,
+  requestBudget: { remaining: number },
+  requestLimit: number
 ): Promise<YouTubeChannel[]> {
   const collected: YouTubeChannel[] = [];
   const collectedIds = new Set<string>();
+  let requestsUsed = 0;
 
   for (const suffix of variations) {
-    const channels = await searchAndFetchChannels(`${baseQuery}${suffix}`, apiKey, SEARCH_BATCH_SIZE);
+    for (const order of SEARCH_ORDERS) {
+      let pageToken: string | undefined;
+      for (let page = 0; page < SEARCH_PAGES_PER_VARIATION; page++) {
+        if (requestBudget.remaining <= 0 || requestsUsed >= requestLimit) return collected;
+        requestBudget.remaining -= 1;
+        requestsUsed += 1;
+        const result = await searchAndFetchChannels(`${baseQuery}${suffix}`, apiKey, SEARCH_BATCH_SIZE, pageToken, order);
+        if (result.error?.includes("403") || result.error?.includes("429")) return collected;
 
-    for (const channel of uniqueChannels(channels)) {
-      if (existingIds.has(channel.id) || collectedIds.has(channel.id)) continue;
+        for (const channel of uniqueChannels(result.channels)) {
+          if (existingIds.has(channel.id) || collectedIds.has(channel.id)) continue;
 
-      collected.push(channel);
-      collectedIds.add(channel.id);
+          collected.push(channel);
+          collectedIds.add(channel.id);
 
-      if (collected.length >= neededCount) {
-        return collected;
+          if (collected.length >= neededCount) {
+            return collected;
+          }
+        }
+
+        if (!result.nextPageToken) break;
+        pageToken = result.nextPageToken;
       }
     }
   }
@@ -283,6 +323,7 @@ Deno.serve(async (req) => {
 
     let totalAdded = 0;
     const results = new Map<string, CategoryResult>();
+    const searchBudget = { remaining: MAX_SEARCH_REQUESTS_PER_RUN };
 
     // Insert helper: inserts channels for a category, updates existingIds.
     async function insertForCategory(
@@ -303,6 +344,7 @@ Deno.serve(async (req) => {
           name: ch.snippet.title,
           category: cat.name,
           youtube_channel_id: ch.id,
+          subscriber_count: subs,
           youtube_subscribers: subs,
           avatar_url: avatarUrl,
           channel_link: channelLink,
@@ -314,20 +356,35 @@ Deno.serve(async (req) => {
           rankit_score: 0,
         };
       });
-      const { error: insertError } = await supabase.from("creators").insert(rows);
-      if (insertError) {
-        console.error(`Insert error for ${cat.name}:`, insertError);
-        return 0;
+      let inserted = 0;
+      for (const row of rows) {
+        const { error: insertError } = await supabase.from("creators").insert(row);
+        if (insertError) {
+          if (insertError.code !== "23505") {
+            console.error(`Insert error for ${cat.name}/${row.youtube_channel_id}:`, insertError);
+          }
+          existingIds.add(row.youtube_channel_id);
+          continue;
+        }
+        existingIds.add(row.youtube_channel_id);
+        inserted += 1;
       }
-      channels.forEach((ch) => existingIds.add(ch.id));
-      return channels.length;
+      return inserted;
     }
 
     // Pass 1: primary search variations.
     for (const cat of targetCategories) {
       const beforeCount = existingCounts.get(cat.name) || 0;
       const requested = TARGET_PER_CATEGORY;
-      const found = await gatherEligibleChannels(cat.query, youtubeApiKey, existingIds, requested);
+      const found = await gatherEligibleChannels(
+        cat.query,
+        youtubeApiKey,
+        existingIds,
+        requested,
+        SEARCH_VARIATIONS,
+        searchBudget,
+        PRIMARY_SEARCH_REQUEST_LIMIT
+      );
       const added = await insertForCategory(cat, found);
       totalAdded += added;
       const afterCount = beforeCount + added;
@@ -354,7 +411,9 @@ Deno.serve(async (req) => {
         youtubeApiKey,
         existingIds,
         need,
-        FALLBACK_VARIATIONS
+        FALLBACK_VARIATIONS,
+        searchBudget,
+        FALLBACK_SEARCH_REQUEST_LIMIT
       );
       const added = await insertForCategory(cat, found);
       totalAdded += added;
