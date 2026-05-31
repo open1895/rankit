@@ -137,7 +137,8 @@ Deno.serve(async (req) => {
       success: true,
       votes_added: multiplier,
       rp_spent: config.rpCost,
-      new_balance: currentBalance - config.rpCost,
+      new_balance: newBalance,
+
       remaining_boosts: remaining,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
