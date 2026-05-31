@@ -28,6 +28,11 @@ const CATEGORIES = [
 
 const TARGET_PER_CATEGORY = 20;
 const SEARCH_BATCH_SIZE = 50;
+const MAX_SEARCH_REQUESTS_PER_RUN = 85;
+const PRIMARY_SEARCH_REQUEST_LIMIT = 5;
+const FALLBACK_SEARCH_REQUEST_LIMIT = 2;
+const SEARCH_PAGES_PER_VARIATION = 2;
+const SEARCH_ORDERS = ["date", "relevance"];
 const SEARCH_VARIATIONS = [
   "",
   " 인기",
@@ -60,34 +65,54 @@ interface YouTubeChannel {
   };
 }
 
+interface ChannelSearchResult {
+  channels: YouTubeChannel[];
+  nextPageToken?: string;
+  error?: string;
+}
+
 async function searchAndFetchChannels(
   query: string,
   apiKey: string,
-  maxResults: number = 25
-): Promise<YouTubeChannel[]> {
+  maxResults: number = 25,
+  pageToken?: string,
+  order: string = "relevance"
+): Promise<ChannelSearchResult> {
   // Step 1: Search for channels
-  const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(query)}&regionCode=KR&relevanceLanguage=ko&maxResults=${maxResults}&key=${apiKey}`;
-  const searchRes = await fetch(searchUrl);
+  const searchUrl = new URL("https://www.googleapis.com/youtube/v3/search");
+  searchUrl.searchParams.set("part", "snippet");
+  searchUrl.searchParams.set("type", "channel");
+  searchUrl.searchParams.set("q", query);
+  searchUrl.searchParams.set("regionCode", "KR");
+  searchUrl.searchParams.set("relevanceLanguage", "ko");
+  searchUrl.searchParams.set("maxResults", String(maxResults));
+  searchUrl.searchParams.set("order", order);
+  searchUrl.searchParams.set("key", apiKey);
+  if (pageToken) searchUrl.searchParams.set("pageToken", pageToken);
+
+  const searchRes = await fetch(searchUrl.toString());
   if (!searchRes.ok) {
-    console.error(`YouTube search error: ${searchRes.status} - ${await searchRes.text()}`);
-    return [];
+    const message = `YouTube search ${searchRes.status}`;
+    console.error(`${message} - ${await searchRes.text()}`);
+    return { channels: [], error: message };
   }
   const searchData = await searchRes.json();
   const channelIds = (searchData.items || [])
     .map((item: any) => item.snippet?.channelId || item.id?.channelId)
     .filter(Boolean);
 
-  if (channelIds.length === 0) return [];
+  if (channelIds.length === 0) return { channels: [], nextPageToken: searchData.nextPageToken };
 
   // Step 2: Get channel details with statistics
   const detailsUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelIds.join(",")}&key=${apiKey}`;
   const detailsRes = await fetch(detailsUrl);
   if (!detailsRes.ok) {
-    console.error(`YouTube channels error: ${detailsRes.status}`);
-    return [];
+    const message = `YouTube channels ${detailsRes.status}`;
+    console.error(message);
+    return { channels: [], nextPageToken: searchData.nextPageToken, error: message };
   }
   const detailsData = await detailsRes.json();
-  return detailsData.items || [];
+  return { channels: detailsData.items || [], nextPageToken: searchData.nextPageToken };
 }
 
 function uniqueChannels(channels: YouTubeChannel[]): YouTubeChannel[] {
