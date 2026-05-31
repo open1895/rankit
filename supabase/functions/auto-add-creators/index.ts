@@ -344,6 +344,7 @@ Deno.serve(async (req) => {
           name: ch.snippet.title,
           category: cat.name,
           youtube_channel_id: ch.id,
+          subscriber_count: subs,
           youtube_subscribers: subs,
           avatar_url: avatarUrl,
           channel_link: channelLink,
@@ -355,13 +356,20 @@ Deno.serve(async (req) => {
           rankit_score: 0,
         };
       });
-      const { error: insertError } = await supabase.from("creators").insert(rows);
-      if (insertError) {
-        console.error(`Insert error for ${cat.name}:`, insertError);
-        return 0;
+      let inserted = 0;
+      for (const row of rows) {
+        const { error: insertError } = await supabase.from("creators").insert(row);
+        if (insertError) {
+          if (insertError.code !== "23505") {
+            console.error(`Insert error for ${cat.name}/${row.youtube_channel_id}:`, insertError);
+          }
+          existingIds.add(row.youtube_channel_id);
+          continue;
+        }
+        existingIds.add(row.youtube_channel_id);
+        inserted += 1;
       }
-      channels.forEach((ch) => existingIds.add(ch.id));
-      return channels.length;
+      return inserted;
     }
 
     // Pass 1: primary search variations.
