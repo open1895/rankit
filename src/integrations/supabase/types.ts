@@ -3239,6 +3239,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      deduct_rp: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: number
+      }
       deduct_tickets: {
         Args: { p_amount: number; p_user_id: string }
         Returns: boolean
