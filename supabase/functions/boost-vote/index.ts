@@ -72,23 +72,21 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "daily_limit", message: `하루 ${DAILY_LIMIT}회 제한에 도달했습니다.`, remaining: 0 }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Check RP balance
-    const { data: pointsData } = await adminClient
-      .from("user_points")
-      .select("balance")
-      .eq("user_id", user.id)
-      .single();
+    // Atomic RP deduction (prevents TOCTOU race condition)
+    const { data: newBalance, error: deductErr } = await adminClient.rpc("deduct_rp", {
+      p_user_id: user.id,
+      p_amount: config.rpCost,
+    });
 
-    const currentBalance = pointsData?.balance ?? 0;
-    if (currentBalance < config.rpCost) {
-      return new Response(JSON.stringify({ error: "insufficient_rp", message: `RP가 부족합니다. (필요: ${config.rpCost} RP, 보유: ${currentBalance} RP)` }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (deductErr) {
+      console.error("deduct_rp error:", deductErr);
+      return new Response(JSON.stringify({ error: "deduction_failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Deduct RP
-    await adminClient
-      .from("user_points")
-      .update({ balance: currentBalance - config.rpCost })
-      .eq("user_id", user.id);
+    if (newBalance === null) {
+      return new Response(JSON.stringify({ error: "insufficient_rp", message: `RP가 부족합니다. (필요: ${config.rpCost} RP)` }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
 
     // Record RP transaction
     await adminClient.from("point_transactions").insert({
