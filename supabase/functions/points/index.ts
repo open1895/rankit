@@ -316,7 +316,7 @@ Deno.serve(async (req) => {
       }
 
       return new Response(
-        JSON.stringify({ success: true, balance: currentBalance - item.price, item_name: item.name }),
+        JSON.stringify({ success: true, balance: newBalanceAfterPurchase, item_name: item.name }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
