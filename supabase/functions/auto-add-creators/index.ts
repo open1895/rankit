@@ -129,22 +129,37 @@ async function gatherEligibleChannels(
   apiKey: string,
   existingIds: Set<string>,
   neededCount: number,
-  variations: string[] = SEARCH_VARIATIONS
+  variations: string[] = SEARCH_VARIATIONS,
+  requestBudget: { remaining: number },
+  requestLimit: number
 ): Promise<YouTubeChannel[]> {
   const collected: YouTubeChannel[] = [];
   const collectedIds = new Set<string>();
+  let requestsUsed = 0;
 
   for (const suffix of variations) {
-    const channels = await searchAndFetchChannels(`${baseQuery}${suffix}`, apiKey, SEARCH_BATCH_SIZE);
+    for (const order of SEARCH_ORDERS) {
+      let pageToken: string | undefined;
+      for (let page = 0; page < SEARCH_PAGES_PER_VARIATION; page++) {
+        if (requestBudget.remaining <= 0 || requestsUsed >= requestLimit) return collected;
+        requestBudget.remaining -= 1;
+        requestsUsed += 1;
+        const result = await searchAndFetchChannels(`${baseQuery}${suffix}`, apiKey, SEARCH_BATCH_SIZE, pageToken, order);
+        if (result.error?.includes("403") || result.error?.includes("429")) return collected;
 
-    for (const channel of uniqueChannels(channels)) {
-      if (existingIds.has(channel.id) || collectedIds.has(channel.id)) continue;
+        for (const channel of uniqueChannels(result.channels)) {
+          if (existingIds.has(channel.id) || collectedIds.has(channel.id)) continue;
 
-      collected.push(channel);
-      collectedIds.add(channel.id);
+          collected.push(channel);
+          collectedIds.add(channel.id);
 
-      if (collected.length >= neededCount) {
-        return collected;
+          if (collected.length >= neededCount) {
+            return collected;
+          }
+        }
+
+        if (!result.nextPageToken) break;
+        pageToken = result.nextPageToken;
       }
     }
   }
