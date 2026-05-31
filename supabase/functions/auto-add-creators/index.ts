@@ -323,6 +323,7 @@ Deno.serve(async (req) => {
 
     let totalAdded = 0;
     const results = new Map<string, CategoryResult>();
+    const searchBudget = { remaining: MAX_SEARCH_REQUESTS_PER_RUN };
 
     // Insert helper: inserts channels for a category, updates existingIds.
     async function insertForCategory(
@@ -367,7 +368,15 @@ Deno.serve(async (req) => {
     for (const cat of targetCategories) {
       const beforeCount = existingCounts.get(cat.name) || 0;
       const requested = TARGET_PER_CATEGORY;
-      const found = await gatherEligibleChannels(cat.query, youtubeApiKey, existingIds, requested);
+      const found = await gatherEligibleChannels(
+        cat.query,
+        youtubeApiKey,
+        existingIds,
+        requested,
+        SEARCH_VARIATIONS,
+        searchBudget,
+        PRIMARY_SEARCH_REQUEST_LIMIT
+      );
       const added = await insertForCategory(cat, found);
       totalAdded += added;
       const afterCount = beforeCount + added;
@@ -394,7 +403,9 @@ Deno.serve(async (req) => {
         youtubeApiKey,
         existingIds,
         need,
-        FALLBACK_VARIATIONS
+        FALLBACK_VARIATIONS,
+        searchBudget,
+        FALLBACK_SEARCH_REQUEST_LIMIT
       );
       const added = await insertForCategory(cat, found);
       totalAdded += added;
