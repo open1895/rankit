@@ -266,14 +266,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      const currentBalance = existing?.balance || 0;
-      if (currentBalance < item.price) {
-        return new Response(
-          JSON.stringify({ error: "포인트가 부족합니다.", required: item.price, current: currentBalance }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
       if (item.stock !== null && item.stock <= 0) {
         return new Response(JSON.stringify({ error: "품절된 상품입니다." }), {
           status: 400,
@@ -281,10 +273,27 @@ Deno.serve(async (req) => {
         });
       }
 
-      await supabaseAdmin
-        .from("user_points")
-        .update({ balance: currentBalance - item.price })
-        .eq("user_id", user.id);
+      // Atomic RP deduction (prevents TOCTOU race condition)
+      const { data: newBalanceAfterPurchase, error: deductErr } = await supabaseAdmin.rpc("deduct_rp", {
+        p_user_id: user.id,
+        p_amount: item.price,
+      });
+
+      if (deductErr) {
+        console.error("deduct_rp error:", deductErr);
+        return new Response(JSON.stringify({ error: "차감에 실패했습니다." }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (newBalanceAfterPurchase === null) {
+        return new Response(
+          JSON.stringify({ error: "포인트가 부족합니다.", required: item.price }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
 
       await supabaseAdmin.from("point_transactions").insert({
         user_id: user.id,
