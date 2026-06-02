@@ -213,7 +213,7 @@ const CreatorBattleSection = () => {
           {/* VS Layout */}
           <div className="flex items-center gap-3">
             {/* Creator A */}
-            <div className="flex-1 text-center space-y-2">
+            <div className="flex-1 min-w-0 text-center space-y-2">
               <Link to={`/creator/${featured.creator_a?.id}`}>
                 <Avatar className="w-16 h-16 mx-auto ring-2 ring-neon-cyan/50 hover:scale-105 transition-transform">
                   <AvatarImage src={featured.creator_a?.avatar_url} />
