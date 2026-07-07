@@ -204,9 +204,15 @@ const CreatorBattleSection = () => {
             </span>
             <div className="flex items-center gap-2">
               <BattleCountdown endsAt={featured.ends_at} />
-              <span className="text-[10px] text-muted-foreground">
-                {totalVotes}표 참여 중
-              </span>
+              {totalVotes < 5 ? (
+                <span className="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                  투표 진행 중 · {5 - totalVotes}표 더 필요
+                </span>
+              ) : (
+                <span className="text-[10px] text-muted-foreground">
+                  {totalVotes}표 참여 중
+                </span>
+              )}
             </div>
           </div>
 
