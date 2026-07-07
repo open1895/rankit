@@ -13,6 +13,7 @@ interface HistoryBattle {
   votes_a: number;
   votes_b: number;
   winner_id: string | null;
+  category: string;
   status?: string;
   created_at: string;
   creator_a?: { id: string; name: string; avatar_url: string };
