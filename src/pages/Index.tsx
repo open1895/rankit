@@ -929,12 +929,14 @@ const Index = () => {
       </LazySection>
 
       {/* Monthly TOP 3 + Season Rewards */}
-      <LazySection>
-        <div className="container max-w-5xl mx-auto px-4 space-y-4">
-          <MonthlyTop3Widget />
-          <SeasonRewardsBanner />
-        </div>
-      </LazySection>
+      {FEATURES.ENABLE_HALL_OF_FAME && (
+        <LazySection>
+          <div className="container max-w-5xl mx-auto px-4 space-y-4">
+            <MonthlyTop3Widget />
+            <SeasonRewardsBanner />
+          </div>
+        </LazySection>
+      )}
 
       {/* Live VS Battle */}
       <LazySection>
