@@ -95,6 +95,7 @@ const OverviewTab = ({
         </div>
       )}
       <CreatorPerformanceBadge creatorId={creator.id} performanceTier={(creator as any).performance_tier} featuredUntil={(creator as any).featured_until} />
+      {FEATURES.ENABLE_WIDGET_EMBED && (
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-foreground">📦 내 순위 위젯 임베드</span>
@@ -115,18 +116,23 @@ const OverviewTab = ({
           <ExternalLink className="w-3.5 h-3.5" /> 내 위젯 가져가기 (3종 + 테마)
         </Link>
       </div>
+      )}
       <CreatorRewards creatorId={creator.id} currentVotes={creator.votes_count} />
     </div>
 
     {/* Power Boost */}
+    {(FEATURES.ENABLE_POWER_BOOST || FEATURES.ENABLE_WEEKLY_PDF) && (
     <div className="glass p-4 space-y-3">
-      {FEATURES.ENABLE_PAYMENT && (
+      {FEATURES.ENABLE_POWER_BOOST && FEATURES.ENABLE_PAYMENT && (
         <PowerBoostSection creatorId={creator.id} creatorName={creator.name} creatorAvatar={creator.avatar_url} />
       )}
-      <button onClick={handleDownloadPDF} disabled={pdfGenerating} className="w-full py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 glass-sm border border-primary/20 text-primary hover:border-primary/50 active:scale-[0.98] disabled:opacity-60">
-        {pdfGenerating ? <><div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /> 생성 중...</> : <><FileDown className="w-4 h-4" /> 주간 리포트 PDF</>}
-      </button>
+      {FEATURES.ENABLE_WEEKLY_PDF && (
+        <button onClick={handleDownloadPDF} disabled={pdfGenerating} className="w-full py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 glass-sm border border-primary/20 text-primary hover:border-primary/50 active:scale-[0.98] disabled:opacity-60">
+          {pdfGenerating ? <><div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /> 생성 중...</> : <><FileDown className="w-4 h-4" /> 주간 리포트 PDF</>}
+        </button>
+      )}
     </div>
+    )}
   </>
   );
 };
