@@ -31,8 +31,11 @@ const PopularPosts = () => {
         .limit(5);
 
       if (!error && data) {
-        // Sort by engagement score (likes * 2 + comments)
-        const sorted = (data as PopularPost[]).sort(
+        // 좋아요+댓글이 0인 글은 제외
+        const filtered = (data as PopularPost[]).filter(
+          (p) => (p.likes || 0) + (p.comments_count || 0) > 0
+        );
+        const sorted = filtered.sort(
           (a, b) => (b.likes * 2 + b.comments_count) - (a.likes * 2 + a.comments_count)
         );
         setPosts(sorted.slice(0, 5));
