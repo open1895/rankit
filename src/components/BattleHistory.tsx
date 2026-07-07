@@ -126,9 +126,10 @@ const BattleHistory = () => {
             const total = battle.votes_a + battle.votes_b;
             const pctA = total > 0 ? Math.round((battle.votes_a / total) * 100) : 50;
             const pctB = 100 - pctA;
-            const isDraw = !battle.winner_id;
-            const aWon = battle.winner_id === battle.creator_a_id;
-            const bWon = battle.winner_id === battle.creator_b_id;
+            const isCancelled = battle.status === "cancelled" || (total === 0 && !battle.winner_id);
+            const isDraw = !isCancelled && !battle.winner_id;
+            const aWon = !isCancelled && battle.winner_id === battle.creator_a_id;
+            const bWon = !isCancelled && battle.winner_id === battle.creator_b_id;
 
             return (
               <ScrollReveal key={battle.id}>
