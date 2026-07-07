@@ -66,6 +66,14 @@ Deno.serve(async (req) => {
 
     if (expiredBattles && expiredBattles.length > 0) {
       for (const battle of expiredBattles) {
+        // 양측 모두 0표면 무승부가 아니라 "투표 부족으로 취소"
+        if ((battle.votes_a || 0) === 0 && (battle.votes_b || 0) === 0) {
+          await supabase
+            .from("battles")
+            .update({ status: "cancelled", winner_id: null })
+            .eq("id", battle.id);
+          continue;
+        }
         const winnerId = battle.votes_a > battle.votes_b
           ? battle.creator_a_id
           : battle.votes_b > battle.votes_a
