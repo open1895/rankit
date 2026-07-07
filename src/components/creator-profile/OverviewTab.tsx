@@ -128,6 +128,7 @@ const OverviewTab = ({
       </button>
     </div>
   </>
-);
+  );
+};
 
 export default OverviewTab;
