@@ -35,8 +35,8 @@ const BattleHistory = () => {
 
     let query = supabase
       .from("battles")
-      .select("id, creator_a_id, creator_b_id, votes_a, votes_b, winner_id, category, created_at")
-      .eq("status", "completed")
+      .select("id, creator_a_id, creator_b_id, votes_a, votes_b, winner_id, category, created_at, status")
+      .in("status", ["completed", "cancelled"])
       .order("created_at", { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
 
