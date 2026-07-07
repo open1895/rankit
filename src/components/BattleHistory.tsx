@@ -164,11 +164,14 @@ const BattleHistory = () => {
                     </Link>
 
                     {/* Center */}
-                    <div className="flex flex-col items-center gap-0.5 shrink-0 w-14">
-                      <span className={`text-[10px] font-black ${isDraw ? "text-amber-500" : "text-muted-foreground"}`}>
-                        {isDraw ? "무승부" : "VS"}
+                    <div className="flex flex-col items-center gap-0.5 shrink-0 w-16">
+                      <span className={`text-[10px] font-black ${isCancelled ? "text-muted-foreground/70" : isDraw ? "text-amber-500" : "text-muted-foreground"}`}>
+                        {isCancelled ? "취소됨" : isDraw ? "무승부" : "VS"}
                       </span>
                       <span className="text-[9px] text-muted-foreground">{formatDate(battle.created_at)}</span>
+                      {isCancelled && (
+                        <span className="text-[8px] text-muted-foreground/80 text-center leading-tight">투표 부족</span>
+                      )}
                     </div>
 
                     {/* Creator B */}
