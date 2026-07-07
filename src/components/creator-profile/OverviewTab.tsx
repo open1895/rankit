@@ -27,7 +27,13 @@ const OverviewTab = ({
   creator, creatorId, topPercent, activityScore,
   showEmbedModal, setShowEmbedModal, embedCopied, handleCopyEmbed, embedCode,
   pdfGenerating, handleDownloadPDF,
-}: OverviewTabProps) => (
+}: OverviewTabProps) => {
+  const isBrandNew =
+    (creator.subscriber_count || 0) === 0 &&
+    (creator.votes_count || 0) === 0 &&
+    (activityScore || 0) === 0;
+
+  return (
   <>
     {/* Quick Stats */}
     <div className="grid grid-cols-3 gap-2">
@@ -45,12 +51,21 @@ const OverviewTab = ({
       </div>
     </div>
 
+    {isBrandNew && (
+      <div className="glass p-4 rounded-2xl border border-neon-purple/30 bg-neon-purple/5 text-center space-y-1">
+        <div className="text-lg">✨</div>
+        <p className="text-sm font-bold text-foreground">신규 크리에이터입니다</p>
+        <p className="text-[11px] text-muted-foreground">첫 투표를 응원해주세요!</p>
+      </div>
+    )}
+
     <AICreatorInsights creatorId={creatorId} />
 
     <DonationStats creatorId={creatorId} />
 
 
     {/* Detail Stats */}
+    {!isBrandNew && (
     <div className="grid grid-cols-3 gap-2">
       <div className="glass-sm p-3 text-center space-y-0.5">
         <div className="text-sm font-bold text-primary">{creator.subscriber_count.toLocaleString()}</div>
@@ -65,6 +80,7 @@ const OverviewTab = ({
         <div className="text-[9px] text-muted-foreground">활동 점수</div>
       </div>
     </div>
+    )}
 
     {/* Creator Tools */}
     <div className="glass p-4 space-y-3">
