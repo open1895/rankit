@@ -76,6 +76,8 @@ const useTopFandoms = (limit = 8) => {
   return { items, loading };
 };
 
+const RECRUITING_THRESHOLD = 10;
+
 const Slot = ({ fandom, winner }: { fandom?: Fandom; winner?: boolean }) => {
   if (!fandom) {
     return (
@@ -84,6 +86,7 @@ const Slot = ({ fandom, winner }: { fandom?: Fandom; winner?: boolean }) => {
       </div>
     );
   }
+  const recruiting = fandom.weekly_score < RECRUITING_THRESHOLD;
   return (
     <Link
       to={`/creator/${fandom.creator_id}`}
@@ -105,9 +108,16 @@ const Slot = ({ fandom, winner }: { fandom?: Fandom; winner?: boolean }) => {
       )}
       <div className="flex-1 min-w-0">
         <div className="text-[11px] font-bold truncate">{fandom.creator_name}</div>
-        <div className="text-[9px] text-neon-purple font-medium">{fandom.weekly_score.toLocaleString()}점</div>
+        <div className="flex items-center gap-1">
+          <span className="text-[9px] text-neon-purple font-medium">{fandom.weekly_score.toLocaleString()}점</span>
+          {recruiting && (
+            <span className="text-[8px] font-bold px-1 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">
+              모집 중
+            </span>
+          )}
+        </div>
       </div>
-      {winner && <Crown className="w-3.5 h-3.5 text-yellow-400 shrink-0" />}
+      {winner && !recruiting && <Crown className="w-3.5 h-3.5 text-yellow-400 shrink-0" />}
     </Link>
   );
 };
