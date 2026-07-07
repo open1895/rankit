@@ -152,7 +152,18 @@ const AICreatorInsights = ({ creatorId, showScoreOnly = false }: AICreatorInsigh
 
   if (!data) return null;
 
-  const { influenceScore, breakdown, categoryRank, categoryTotal, voteGrowthRate, communityGrowthRate, insights } = data;
+  const { influenceScore, breakdown, categoryRank, categoryTotal, voteGrowthRate, communityGrowthRate, insights: rawInsights } = data;
+
+  // 부정/중립만 있으면 실행 가능한 긍정 제안 1개를 앞에 삽입해 균형 유지
+  const POSITIVE_SUGGESTIONS: Insight[] = [
+    { icon: "users", type: "positive", title: "팬클럽 초대 링크를 공유해보세요", description: "SNS·오픈채팅에 팬클럽 초대 링크를 공유하면 주간 활동 점수가 빠르게 오릅니다." },
+    { icon: "zap", type: "positive", title: "골든타임(20~21시) 투표 참여", description: "골든타임 시간대에 투표하면 가중치 보너스를 받아 순위가 크게 상승할 수 있어요." },
+    { icon: "star", type: "positive", title: "커뮤니티 응원톡 남기기", description: "짧은 응원톡 한 줄만 남겨도 팬 활동 점수가 누적되어 랭킹에 반영됩니다." },
+  ];
+  const hasPositive = rawInsights.some((i) => i.type === "positive");
+  const insights = !hasPositive && rawInsights.length > 0
+    ? [POSITIVE_SUGGESTIONS[Math.floor(Date.now() / 86400000) % POSITIVE_SUGGESTIONS.length], ...rawInsights]
+    : rawInsights;
 
   const pieData = [
     { name: "구독자", value: 40, color: "hsl(270 91% 65%)" },

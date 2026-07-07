@@ -39,14 +39,16 @@ import {
   CreatorProfileData, CommentItem, RankHistoryPoint,
   FanPeriod, FanRankingEntry, ProfileTab,
 } from "@/components/creator-profile/types";
+import { FEATURES } from "@/config/features";
 
 // ─── Constants ───────────────────────────────────────────────
-const PROFILE_TABS: { key: ProfileTab; label: string; icon: React.ReactNode }[] = [
+const ALL_PROFILE_TABS: { key: ProfileTab; label: string; icon: React.ReactNode; flag?: boolean }[] = [
   { key: "overview", label: "개요", icon: <Activity className="w-4 h-4" /> },
-  { key: "analytics", label: "분석", icon: <ChartArea className="w-4 h-4" /> },
+  { key: "analytics", label: "분석", icon: <ChartArea className="w-4 h-4" />, flag: FEATURES.ENABLE_PROFILE_ANALYTICS_TAB },
   { key: "fans", label: "팬", icon: <Users className="w-4 h-4" /> },
-  { key: "community", label: "커뮤니티", icon: <MessageCircle className="w-4 h-4" /> },
+  { key: "community", label: "커뮤니티", icon: <MessageCircle className="w-4 h-4" />, flag: FEATURES.ENABLE_PROFILE_COMMUNITY_TAB },
 ];
+const PROFILE_TABS = ALL_PROFILE_TABS.filter((t) => t.flag !== false);
 
 // ─── Main Component ──────────────────────────────────────────
 const CreatorProfile = () => {

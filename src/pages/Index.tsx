@@ -929,12 +929,14 @@ const Index = () => {
       </LazySection>
 
       {/* Monthly TOP 3 + Season Rewards */}
-      <LazySection>
-        <div className="container max-w-5xl mx-auto px-4 space-y-4">
-          <MonthlyTop3Widget />
-          <SeasonRewardsBanner />
-        </div>
-      </LazySection>
+      {FEATURES.ENABLE_HALL_OF_FAME && (
+        <LazySection>
+          <div className="container max-w-5xl mx-auto px-4 space-y-4">
+            <MonthlyTop3Widget />
+            <SeasonRewardsBanner />
+          </div>
+        </LazySection>
+      )}
 
       {/* Live VS Battle */}
       <LazySection>
@@ -1081,9 +1083,11 @@ const Index = () => {
       </main>
 
       {/* Home Prediction (랭킹 직후) */}
-      <LazySection>
-        <HomePredictionSection />
-      </LazySection>
+      {FEATURES.ENABLE_PREDICTION && (
+        <LazySection>
+          <HomePredictionSection />
+        </LazySection>
+      )}
 
       {/* Rising Creators */}
       <LazySection>
@@ -1098,16 +1102,20 @@ const Index = () => {
       </LazySection>
 
       {/* Fandom Tournament */}
-      <LazySection>
-        <section className="container max-w-5xl mx-auto px-4 py-2">
-          <FandomTournament />
-        </section>
-      </LazySection>
+      {FEATURES.ENABLE_FAN_LEADERBOARD && (
+        <LazySection>
+          <section className="container max-w-5xl mx-auto px-4 py-2">
+            <FandomTournament />
+          </section>
+        </LazySection>
+      )}
 
       {/* 👑 This Week's Top Fandom */}
-      <Suspense fallback={null}>
-        <TopFandomWidget />
-      </Suspense>
+      {FEATURES.ENABLE_FAN_LEADERBOARD && (
+        <Suspense fallback={null}>
+          <TopFandomWidget />
+        </Suspense>
+      )}
 
       {/* Live Feed */}
       <LazySection>

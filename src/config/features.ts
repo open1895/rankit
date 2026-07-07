@@ -12,6 +12,16 @@ export const FEATURES = {
   ENABLE_BOOST: false,    // 결제 안정화 후 true로 변경 예정 (RP 부스트 투표)
   ENABLE_GIFT_RP: false,  // 후원 안정화 후 true로 변경 예정 (유저간 RP 선물)
   ENABLE_DONATION: false, // 크리에이터 인증 후 true로 변경 예정 (크리에이터 후원)
+
+  // ── 활동 밀도 확보 전까지 임시 비활성화 (UI 노출만 제어, 데이터/로직은 유지) ──
+  ENABLE_PREDICTION: false,          // 예측 게임 홈 섹션/네비 진입점
+  ENABLE_FAN_LEADERBOARD: false,     // 탑팬 랭킹 · 팬덤 토너먼트 · TopFandomWidget
+  ENABLE_HALL_OF_FAME: false,        // 명예의 전당 / MonthlyTop3 위젯 등 챔피언 섹션
+  ENABLE_POWER_BOOST: false,         // Power Boost 카드
+  ENABLE_WIDGET_EMBED: false,        // 크리에이터 위젯 임베드 진입점
+  ENABLE_WEEKLY_PDF: false,          // 주간 리포트 PDF 다운로드
+  ENABLE_PROFILE_ANALYTICS_TAB: false, // 프로필 분석 탭
+  ENABLE_PROFILE_COMMUNITY_TAB: false, // 프로필 커뮤니티 탭
 } as const;
 
 export type FeatureKey = keyof typeof FEATURES;

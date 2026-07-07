@@ -27,7 +27,13 @@ const OverviewTab = ({
   creator, creatorId, topPercent, activityScore,
   showEmbedModal, setShowEmbedModal, embedCopied, handleCopyEmbed, embedCode,
   pdfGenerating, handleDownloadPDF,
-}: OverviewTabProps) => (
+}: OverviewTabProps) => {
+  const isBrandNew =
+    (creator.subscriber_count || 0) === 0 &&
+    (creator.votes_count || 0) === 0 &&
+    (activityScore || 0) === 0;
+
+  return (
   <>
     {/* Quick Stats */}
     <div className="grid grid-cols-3 gap-2">
@@ -45,12 +51,21 @@ const OverviewTab = ({
       </div>
     </div>
 
+    {isBrandNew && (
+      <div className="glass p-4 rounded-2xl border border-neon-purple/30 bg-neon-purple/5 text-center space-y-1">
+        <div className="text-lg">✨</div>
+        <p className="text-sm font-bold text-foreground">신규 크리에이터입니다</p>
+        <p className="text-[11px] text-muted-foreground">첫 투표를 응원해주세요!</p>
+      </div>
+    )}
+
     <AICreatorInsights creatorId={creatorId} />
 
     <DonationStats creatorId={creatorId} />
 
 
     {/* Detail Stats */}
+    {!isBrandNew && (
     <div className="grid grid-cols-3 gap-2">
       <div className="glass-sm p-3 text-center space-y-0.5">
         <div className="text-sm font-bold text-primary">{creator.subscriber_count.toLocaleString()}</div>
@@ -65,6 +80,7 @@ const OverviewTab = ({
         <div className="text-[9px] text-muted-foreground">활동 점수</div>
       </div>
     </div>
+    )}
 
     {/* Creator Tools */}
     <div className="glass p-4 space-y-3">
@@ -79,6 +95,7 @@ const OverviewTab = ({
         </div>
       )}
       <CreatorPerformanceBadge creatorId={creator.id} performanceTier={(creator as any).performance_tier} featuredUntil={(creator as any).featured_until} />
+      {FEATURES.ENABLE_WIDGET_EMBED && (
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-foreground">📦 내 순위 위젯 임베드</span>
@@ -99,19 +116,25 @@ const OverviewTab = ({
           <ExternalLink className="w-3.5 h-3.5" /> 내 위젯 가져가기 (3종 + 테마)
         </Link>
       </div>
+      )}
       <CreatorRewards creatorId={creator.id} currentVotes={creator.votes_count} />
     </div>
 
     {/* Power Boost */}
+    {(FEATURES.ENABLE_POWER_BOOST || FEATURES.ENABLE_WEEKLY_PDF) && (
     <div className="glass p-4 space-y-3">
-      {FEATURES.ENABLE_PAYMENT && (
+      {FEATURES.ENABLE_POWER_BOOST && FEATURES.ENABLE_PAYMENT && (
         <PowerBoostSection creatorId={creator.id} creatorName={creator.name} creatorAvatar={creator.avatar_url} />
       )}
-      <button onClick={handleDownloadPDF} disabled={pdfGenerating} className="w-full py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 glass-sm border border-primary/20 text-primary hover:border-primary/50 active:scale-[0.98] disabled:opacity-60">
-        {pdfGenerating ? <><div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /> 생성 중...</> : <><FileDown className="w-4 h-4" /> 주간 리포트 PDF</>}
-      </button>
+      {FEATURES.ENABLE_WEEKLY_PDF && (
+        <button onClick={handleDownloadPDF} disabled={pdfGenerating} className="w-full py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 glass-sm border border-primary/20 text-primary hover:border-primary/50 active:scale-[0.98] disabled:opacity-60">
+          {pdfGenerating ? <><div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" /> 생성 중...</> : <><FileDown className="w-4 h-4" /> 주간 리포트 PDF</>}
+        </button>
+      )}
     </div>
+    )}
   </>
-);
+  );
+};
 
 export default OverviewTab;

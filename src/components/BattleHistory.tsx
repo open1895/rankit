@@ -14,6 +14,7 @@ interface HistoryBattle {
   votes_b: number;
   winner_id: string | null;
   category: string;
+  status?: string;
   created_at: string;
   creator_a?: { id: string; name: string; avatar_url: string };
   creator_b?: { id: string; name: string; avatar_url: string };
@@ -35,8 +36,8 @@ const BattleHistory = () => {
 
     let query = supabase
       .from("battles")
-      .select("id, creator_a_id, creator_b_id, votes_a, votes_b, winner_id, category, created_at")
-      .eq("status", "completed")
+      .select("id, creator_a_id, creator_b_id, votes_a, votes_b, winner_id, category, created_at, status")
+      .in("status", ["completed", "cancelled"])
       .order("created_at", { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
 
@@ -125,9 +126,10 @@ const BattleHistory = () => {
             const total = battle.votes_a + battle.votes_b;
             const pctA = total > 0 ? Math.round((battle.votes_a / total) * 100) : 50;
             const pctB = 100 - pctA;
-            const isDraw = !battle.winner_id;
-            const aWon = battle.winner_id === battle.creator_a_id;
-            const bWon = battle.winner_id === battle.creator_b_id;
+            const isCancelled = battle.status === "cancelled" || (total === 0 && !battle.winner_id);
+            const isDraw = !isCancelled && !battle.winner_id;
+            const aWon = !isCancelled && battle.winner_id === battle.creator_a_id;
+            const bWon = !isCancelled && battle.winner_id === battle.creator_b_id;
 
             return (
               <ScrollReveal key={battle.id}>
@@ -162,11 +164,14 @@ const BattleHistory = () => {
                     </Link>
 
                     {/* Center */}
-                    <div className="flex flex-col items-center gap-0.5 shrink-0 w-14">
-                      <span className={`text-[10px] font-black ${isDraw ? "text-amber-500" : "text-muted-foreground"}`}>
-                        {isDraw ? "무승부" : "VS"}
+                    <div className="flex flex-col items-center gap-0.5 shrink-0 w-16">
+                      <span className={`text-[10px] font-black ${isCancelled ? "text-muted-foreground/70" : isDraw ? "text-amber-500" : "text-muted-foreground"}`}>
+                        {isCancelled ? "취소됨" : isDraw ? "무승부" : "VS"}
                       </span>
                       <span className="text-[9px] text-muted-foreground">{formatDate(battle.created_at)}</span>
+                      {isCancelled && (
+                        <span className="text-[8px] text-muted-foreground/80 text-center leading-tight">투표 부족</span>
+                      )}
                     </div>
 
                     {/* Creator B */}

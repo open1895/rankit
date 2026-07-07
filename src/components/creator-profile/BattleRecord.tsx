@@ -50,6 +50,8 @@ const BattleRecord = ({ creatorId }: { creatorId: string }) => {
 
       let w = 0, l = 0, d = 0;
       allBattles.forEach((b) => {
+        // 양측 0표 배틀은 취소로 간주하여 통계에서 제외
+        if ((b.votes_a || 0) === 0 && (b.votes_b || 0) === 0) return;
         if (!b.winner_id) d++;
         else if (b.winner_id === creatorId) w++;
         else l++;

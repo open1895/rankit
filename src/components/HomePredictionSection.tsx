@@ -29,14 +29,22 @@ const HomePredictionSection = () => {
         `)
         .eq("status", "open")
         .order("created_at", { ascending: false })
-        .limit(3);
+        .limit(10);
 
-      setEvents((data || []) as any);
+      // 참여 투표가 있는 이벤트 우선, 0인 것은 뒤로
+      const sorted = ((data || []) as any[]).sort((a, b) => {
+        const ap = a.total_pool || 0;
+        const bp = b.total_pool || 0;
+        if ((ap > 0) !== (bp > 0)) return ap > 0 ? -1 : 1;
+        return bp - ap;
+      });
+      setEvents(sorted.slice(0, 3) as any);
       setLoading(false);
     };
     fetch();
   }, []);
 
+  // 노출 가능한 이벤트가 없으면 섹션 숨김
   if (loading || events.length === 0) return null;
 
   const Avatar = ({ url, name }: { url?: string; name: string }) => {
